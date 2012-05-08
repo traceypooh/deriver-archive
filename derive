@@ -1,0 +1,75 @@
+#!/usr/bin/env php
+<? 
+$_SERVER['PETABOX_HOME'] = dirname(preg_replace('=^\./=', getcwd()."/", $_SERVER['PATH_TRANSLATED']));
+ini_set('include_path', $_SERVER['PETABOX_HOME']);
+require_once('setup.inc');
+
+
+if ($_SERVER['argc'] != 2)
+  fatal("Usage: {$_SERVER['argv'][0]} [source video filename]");
+
+
+$src = realpath($_SERVER['argv'][1]);
+$id = basename(getcwd());
+
+error_log("PETABOX_HOME => {$_SERVER['PETABOX_HOME']}");
+error_log("src => $src");
+
+
+new Thumbnails($src, $id, "jpg");
+new Ogv       ($src, $id, "ogv");
+new MPEG4     ($src, $id, "mp4");
+
+
+class Util
+{
+  public static function cmd($str)
+  {
+    $retval=0;
+    error_log(date("\n[Y-m-d h:i:s] ").$str);
+    $str = str_replace('ffmpeg -v 0','ffmpeg',$str);
+
+    $flags = array_slice(func_get_args(), 1); // skip $cmd
+    if (in_array('ARRAY',$flags))
+    {
+      $ret=array();
+      exec($str, $ret, $retval);
+      return $ret;
+    }
+    passthru($str, $retval);
+  }
+  public static function esc($str)
+  {
+    return escapeshellarg(ltrim($str,'-'));
+  }
+  public static function duration($tm, $n=0, $brief=false)
+  {
+    if     ($tm<60)      return Util::agofmt($tm,         "second",$n,$brief);
+    else if($tm<3600)    return Util::agofmt($tm/60,      "minute",$n,$brief);
+    else if($tm<86400)   return Util::agofmt($tm/3600,    "hour",  $n,$brief);
+    else if($tm<31536000)return Util::agofmt($tm/86400,   "day",   $n,$brief);
+    else                 return Util::agofmt($tm/31536000,"year",  $n,$brief);
+  }
+  public static function agofmt($num, $str, $numDecimals=0, $brief=false)
+  {
+    $num = number_format($num, $numDecimals);
+    return ($brief ? "$num{$str[0]}" : ("$num $str".($num >= 2 ? 's':'')));
+  }
+
+  public static function cmdPP($str) { return Util::cmd($str,array_slice(func_get_args(),1)); }
+  public static function cmdQT($str) { return Util::cmd($str,array_slice(func_get_args(),1)); }
+  public static function timeout(){ return ''; }
+  public static function timeoutTime() { return 0; }
+}
+
+
+class Shared
+{
+  public static function identify($file)
+  {
+    $identify = Video::identify($file, true);
+    print_r($identify);
+    return $identify;
+  }
+  public static function videoMeta(){}
+}
