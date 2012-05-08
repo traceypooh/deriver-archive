@@ -207,7 +207,6 @@ cd ffmpeg;
 --enable-avfilter
 --enable-gpl
 --enable-libdc1394
---enable-libdirac
 --enable-libfaac
 --enable-libfreetype
 --enable-libgsm
