@@ -1,6 +1,6 @@
 #!/usr/bin/env php
 <? 
-$_SERVER['PETABOX_HOME'] = dirname(preg_replace('=^\./=', getcwd()."/", $_SERVER['PATH_TRANSLATED']));
+$_SERVER['PETABOX_HOME'] = dirname(realpath($_SERVER['PATH_TRANSLATED']));
 ini_set('include_path', $_SERVER['PETABOX_HOME']);
 require_once('setup.inc');
 
@@ -8,17 +8,18 @@ require_once('setup.inc');
 if ($_SERVER['argc'] != 2)
   fatal("Usage: {$_SERVER['argv'][0]} [source video filename]");
 
-
 $src = realpath($_SERVER['argv'][1]);
-$id = basename(getcwd());
+$id = basename(dirname($src));
 
 error_log("PETABOX_HOME => {$_SERVER['PETABOX_HOME']}");
-error_log("src => $src");
+error_log("\$src => $src");
+error_log("\$id => $id");
+
 
 
 new Thumbnails($src, $id, "jpg");
-new Ogv       ($src, $id, "ogv");
 new MPEG4     ($src, $id, "mp4");
+new Ogv       ($src, $id, "ogv");
 
 
 class Util
