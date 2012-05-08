@@ -1,0 +1,20 @@
+#
+# no b-frames -- keep the profile simple!
+# no cabac arithimetic coding. (corresponds to specs for level 1.3 video)
+# for ipod video, make sure max avg bitrate doesn't go over 768
+#    http://lists.mplayerhq.hu/pipermail/ffmpeg-user/2006-June/003218.html
+#
+coder=0
+bf=0
+refs=1
+level=30
+b=700000
+maxrate=768000
+bufsize=1400000
+wpredp=0
+vprofile=baseline
+
+# mar2012: no longer compatible
+# (ie: not needed/desirable, i hope!)
+# (params to libx264 (per "Copyleft", etc.) are identical, so likely !needed)
+#flags2=-wpred-dct8x8

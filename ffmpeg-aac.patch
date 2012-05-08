@@ -1,0 +1,19 @@
+# patch to try to make ffmpeg not fatal when copying AAC audio
+# tracks where it seems to think there are 2 frames with the
+# same timestamp.  my patch (hack?) is to allow for frames
+# with the same timestamp to be ignored (but still fail if
+# two adjacent frames *decrease* in timestamps).  Example video:
+#   http://archive.org/details/Xacti1010_trim2_test_2010_02_04
+#   --tracey aug2009
+# diff -U 0 ffmpeg/libavformat/utils.c fixt/libavformat/utils.c
+--- a/libavformat/utils.c
++++ b/libavformat/utils.c
+@@ -2964,7 +2964,7 @@ static int compute_pkt_fields2(AVFormatContext *s, AVStream *st, AVPacket *pkt){
+         av_log(s, AV_LOG_ERROR,
+                "Application provided invalid, non monotonically increasing dts to muxer in stream %d: %"PRId64" >= %"PRId64"\n",
+                st->index, st->cur_dts, pkt->dts);
+-        return AVERROR(EINVAL);
++        if (st->cur_dts > pkt->dts  &&  st->codec->codec_type!=AVMEDIA_TYPE_AUDIO) return AVERROR(EINVAL);
+     }
+     if(pkt->dts != AV_NOPTS_VALUE && pkt->pts != AV_NOPTS_VALUE && pkt->pts < pkt->dts){
+         av_log(s, AV_LOG_ERROR, "pts < dts in stream %d\n", st->index);

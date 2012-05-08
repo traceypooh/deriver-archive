@@ -1,0 +1,1659 @@
+<formats>
+  <!-- As of Dec2005, there are no TAB chars in this file -->
+  <!-- Please do not re-add them (use SPACE chars) so we can keep some -->
+  <!-- semblance of readability.  Thanks - very appreciated!  tracey -->
+
+
+  <!--
+  class is the name of the corresponding perl/PHP class
+  -->
+
+  <format name="WAVE">
+    <extension>wav</extension>
+    <variations>
+      <variation name="WAVE" />
+    </variations>
+  </format>
+
+
+  <format name="MP3">
+    <extension>mp3</extension>
+    <extension>mpeg3</extension>
+    <class>MP3</class>
+    <category>lossy</category>
+    <variations>
+      <!-- NOTE: deriv *NOT* usually made.  see Deriver.loadCollectionRules() -->
+      <variation rank="6" name="MP3" parameter="-b64 -a --resample 22.05" conditionally="{'collection':['tvarchive']}">
+        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2" variation="MPEG2" />
+        <dependency format="MPEG1" variation="MPEG1" />
+      </variation>
+      <!-- NOTE: deriv *NOT* usually made.  see Deriver.loadCollectionRules() -->
+      <variation rank="6" name="64Kbps MP3" parameter="-b64 -a --resample 22.05" preextension="_64kb" conditionally="{'collection':['podcast_corydoctorow','librivoxaudio']}">
+        <dependency format="WAVE"       variation="WAVE" />
+        <dependency format="Shorten"    variation="Shorten"/>
+        <dependency format="Flac"       variation="24bit Flac" />
+        <dependency format="Flac"       variation="Flac" />
+        <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding"/>
+        <dependency format="WebA"       variation="WebA" />
+        <dependency format="AIFF"       variation="AIFF" />
+        <dependency format="Windows Media Audio"  variation="Windows Media Audio" />
+        <dependency format="MP3"        variation="320Kbps MP3"/>
+        <dependency format="MP3"        variation="256Kbps MP3"/>
+        <dependency format="MP3"        variation="192Kbps MP3"/>
+        <dependency format="MP3"        variation="VBR MP3"/>
+        <dependency format="MP3"        variation="160Kbps MP3"/>
+        <dependency format="MP3"        variation="320Kbps MP3"/>
+        <dependency format="MP3"        variation="128Kbps MP3"/>
+        <dependency format="Ogg Vorbis" variation="Ogg Vorbis" />
+        <dependency format="MP3"        variation="96Kbps MP3"/>
+        <dependency format="Real Audio" variation="Real Audio"/>
+        <dependency format="3GP Audio"  variation="3GP Audio" />
+        <dependency format="MIDI"       variation="MIDI" />
+      </variation>
+      <variation rank="6" name="MP3 Sample" parameter="--preset medium" preextension="_sample" conditionally="{'collection':['samples_only']}">
+        <dependency format="WAVE"       variation="WAVE" />
+        <dependency format="Shorten"    variation="Shorten"/>
+        <dependency format="Flac"       variation="24bit Flac" />
+        <dependency format="Flac"       variation="Flac" />
+        <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding"/>
+        <dependency format="WebA"       variation="WebA" />
+        <dependency format="AIFF"       variation="AIFF" />
+        <dependency format="Windows Media Audio"  variation="Windows Media Audio" />
+        <dependency format="MP3"        variation="320Kbps MP3"/>
+        <dependency format="MP3"        variation="256Kbps MP3"/>
+        <dependency format="MP3"        variation="192Kbps MP3"/>
+        <dependency format="MP3"        variation="VBR MP3"/>
+        <dependency format="MP3"        variation="160Kbps MP3"/>
+        <dependency format="MP3"        variation="320Kbps MP3"/>
+        <dependency format="MP3"        variation="128Kbps MP3"/>
+        <dependency format="Ogg Vorbis" variation="Ogg Vorbis" />
+        <dependency format="MP3"        variation="96Kbps MP3"/>
+        <dependency format="Real Audio" variation="Real Audio"/>
+        <dependency format="3GP Audio"  variation="3GP Audio" />
+      </variation>
+      <variation rank="6" name="VBR MP3" parameter="--preset standard">
+        <dependency format="Segment Data" variation="Segment Data" />
+        <dependency format="WAVE"       variation="WAVE" />
+        <dependency format="Shorten"    variation="Shorten"/>
+        <dependency format="Flac"       variation="24bit Flac" />
+        <dependency format="Flac"       variation="Flac" />
+        <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding"/>
+        <dependency format="WebA"       variation="WebA" />
+        <dependency format="AIFF"       variation="AIFF" />
+        <dependency format="Windows Media Audio"  variation="Windows Media Audio" />
+        <dependency format="MP3"        variation="320Kbps MP3"/>
+        <dependency format="MP3"        variation="256Kbps MP3"/>
+        <dependency format="MP3"        variation="192Kbps MP3"/>
+        <dependency format="MP3"        variation="160Kbps MP3"/>
+        <dependency format="MP3"        variation="128Kbps MP3"/>
+        <dependency format="Ogg Vorbis" variation="Ogg Vorbis"/>
+        <dependency format="Real Audio" variation="Real Audio"/>
+        <dependency format="3GP Audio"  variation="3GP Audio" />
+        <dependency format="MIDI"       variation="MIDI" />
+      </variation>
+      <variation name="320Kbps MP3" preextension="_320kb" />
+      <variation name="256Kbps MP3" preextension="_256kb" />
+      <variation name="192Kbps MP3" preextension="_192kb" />
+      <variation name="160Kbps MP3" preextension="_160kb" />
+      <variation name="128Kbps MP3" preextension="_128kb"/>
+      <variation name="96Kbps MP3"  preextension="_96kb" />
+    </variations>
+  </format>
+
+  <format name="AIFF">
+    <extension>aiff</extension>
+    <extension>aif</extension>
+    <variations>
+      <variation name="AIFF"/>
+    </variations>
+  </format>
+
+  <format name="Windows Media Audio">
+    <extension>wma</extension>
+    <variations>
+      <variation name="Windows Media Audio"/>
+    </variations>
+  </format>
+
+  <format name="Advanced Audio Coding">
+    <extension>aac</extension>
+    <variations>
+      <variation name="Advanced Audio Coding"/>
+    </variations>
+  </format>
+
+  <format name="Sibelius">
+    <extension>sib</extension>
+    <variations>
+      <variation name="Sibelius"/>
+    </variations>
+  </format>
+
+
+
+  <format name="Ogg Vorbis">
+    <extension>ogg</extension>
+    <class>Ogg</class>
+    <category>lossy</category>
+    <variations>
+      <variation rank="7" name="Ogg Vorbis">
+        <dependency format="WAVE" variation="WAVE" />
+        <dependency format="Shorten" variation="Shorten" />
+        <dependency format="Flac" variation="24bit Flac" />
+        <dependency format="Flac" variation="Flac" />
+        <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding"/>
+        <dependency format="WebA"       variation="WebA" />
+        <dependency format="AIFF"       variation="AIFF" />
+        <dependency format="Windows Media Audio"  variation="Windows Media Audio" />
+        <dependency format="MP3" variation="320Kbps MP3"/>
+        <dependency format="MP3" variation="256Kbps MP3"/>
+        <dependency format="MP3" variation="192Kbps MP3"/>
+        <dependency format="MP3" variation="VBR MP3"/>
+        <dependency format="MP3" variation="160Kbps MP3"/>
+        <dependency format="MP3" variation="128Kbps MP3"/>
+        <dependency format="MP3" variation="96Kbps MP3"/>
+        <dependency format="MP3" variation="64Kbps MP3"/>
+        <dependency format="Real Audio" variation="Real Audio"/>
+        <dependency format="3GP Audio"  variation="3GP Audio" />
+        <dependency format="MIDI"       variation="MIDI" />
+      </variation>
+    </variations>
+  </format>
+
+  <format name="Shorten">
+    <extension>shn</extension>
+    <variations>
+      <variation name="Shorten"/>
+    </variations>
+  </format>
+
+  <format name="Flac">
+    <extension>flac</extension>
+    <class>FLAC</class>
+    <variations>
+      <variation name="Flac">
+        <dependency rank="8" format="WAVE" variation="WAVE" />
+        <!-- dependency format="Shorten" variation="Shorten" / -->
+      </variation>
+      <variation name="24bit Flac" />
+    </variations>
+  </format>
+
+  <format name="M3U">
+    <extension>m3u</extension>
+    <class>M3U</class>
+    <variations>
+      <variation name="M3U"/>
+      <variation name="64kbps M3U" preextension="_64kb"/>
+      <variation name="128kbps M3U" preextension="_128kb"/>
+      <variation name="VBR M3U" preextension="_vbr"/>
+    </variations>
+  </format>
+
+  <format name="PURETAR">
+    <class/>
+    <extension>tar</extension>
+    <variations>
+      <variation name="Single Page Pure JP2 Tar" preextension="_pure_jp2"/>
+    </variations>
+  </format>
+
+  <format name="PUREZIP">
+    <class/>
+    <extension>zip</extension>
+    <variations>
+      <variation name="Single Page Pure JP2 ZIP" preextension="_pure_jp2"/>
+    </variations>
+  </format>
+
+  <format name="LIBJP2TAR">
+    <class/>
+    <extension>tar</extension>
+    <variations>
+      <variation name="Single Page Library JP2 Tar" preextension="_lib_jp2"/>
+    </variations>
+  </format>
+
+  <format name="LIBJP2ZIP">
+    <class/>
+    <extension>zip</extension>
+    <variations>
+      <variation name="Single Page Library JP2 ZIP" preextension="_lib_jp2"/>
+    </variations>
+  </format>
+
+  <format name="LIBTIFFZIP">
+    <class/>
+    <extension>zip</extension>
+    <variations>
+      <variation name="Single Page Library TIFF ZIP" preextension="_lib_tif"/>
+    </variations>
+  </format>
+
+  <format name="WMJP2TAR">
+    <class>WatermarkImages</class>
+    <extension>tar</extension>
+    <variations>
+      <variation name="Single Page Watermark JP2 Tar" preextension="_wm_jp2">
+        <!-- <dependency format="PJP2TAR"  variation="Single Page Processed JP2 Tar"/> disabled 5/23/08 -->
+      </variation>
+     </variations>
+  </format>
+
+  <format name="WMJP2ZIP">
+    <class>WatermarkImages</class>
+    <extension>zip</extension>
+    <variations>
+      <variation name="Single Page Watermark JP2 ZIP" preextension="_wm_jp2">
+        <!-- <dependency format="PJP2ZIP"  variation="Single Page Processed JP2 ZIP"/> disabled 5/23/08 -->
+        <!-- <dependency format="PTIFFZIP" variation="Single Page Processed TIFF ZIP"/> Not yet on mfilm books -->
+      </variation>
+    </variations>
+  </format>
+
+  <format name="GrayscalePDF">
+    <extension>pdf</extension>
+    <class>GrayscalePdf</class>
+    <variations>
+      <variation name="Grayscale LuraTech PDF" preextension="_bw" conditionally="{'collection':['biodiversity']}">
+        <dependency format="DjvuXML" variation="Djvu XML"/>
+      </variation>
+    </variations>
+  </format>
+
+  <!-- obsolete legacy format; include def so that the several hundred we still have lying around -->
+  <!-- don't get misrecognized as a separate Processed JPEG ZIP, with "_bitonal" as part of the name -->
+  <!-- (can't easily just delete them because they unfortunately have source="original") -->
+  <format name="BWJPGZIP">
+    <extension>zip</extension>
+    <variations>
+      <variation name="Single Page B/W JPG ZIP" preextension="_bitonal_jpg"/>
+    </variations>
+  </format>
+
+  <format name="CR2TAR">
+    <class/>
+    <extension>tar</extension>
+    <variations>
+      <variation name="Single Page Original CR2 Tar" preextension="_orig_cr2"/>
+    </variations>
+  </format>
+
+  <format name="FJPGZIP">
+    <class/>
+    <extension>zip</extension>
+    <variations>
+      <variation name="Single Page FIXME JPEG ZIP" preextension="_fixme_jpg"/>
+    </variations>
+  </format>
+
+  <format name="FJPGTAR">
+    <class/>
+    <extension>tar</extension>
+    <variations>
+      <variation name="Single Page FIXME JPEG Tar" preextension="_fixme_jpg"/>
+    </variations>
+  </format>
+
+  <format name="RJPGZIP">
+    <class/>
+    <extension>zip</extension>
+    <variations>
+      <variation name="Single Page Raw JPEG ZIP" preextension="_raw_jpg"/>
+    </variations>
+  </format>
+
+  <format name="RJPGTAR">
+    <class/>
+    <extension>tar</extension>
+    <variations>
+      <variation name="Single Page Raw JPEG Tar" preextension="_raw_jpg"/>
+    </variations>
+  </format>
+
+  <format name="OTIFFZIP">
+    <class/>
+    <extension>zip</extension>
+    <variations>
+      <variation name="Microfilm Original TIFF ZIP" preextension="_orig_tif">
+      </variation>
+    </variations>
+  </format>
+
+  <format name="PTIFFZIP">
+    <class>ProcessTIFF</class>
+    <extension>zip</extension>
+    <variations>
+      <variation name="Single Page Processed TIFF ZIP" preextension="_tif">
+        <dependency format="OTIFFZIP" variation="Microfilm Original TIFF ZIP"/>
+        <dependency format="ZIP" variation="Raw China Book Zip"/>
+        <dependency format="ZIP" variation="Raw Michigan Book Zip"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="RJP2ZIP">
+    <class>ProcessJP2</class>
+    <extension>zip</extension>
+    <variations>
+      <variation name="Single Page Raw JP2 ZIP" preextension="_raw_jp2">
+        <!-- This is done as a pre-derive book op, so source=original.
+        <dependency format="CR2TAR" variation="Single Page Original CR2 Tar"/>
+        -->
+      </variation>
+    </variations>
+  </format>
+
+  <format name="RJP2TAR">
+    <class>ProcessJP2</class>
+    <extension>tar</extension>
+    <variations>
+      <variation name="Single Page Raw JP2 Tar" preextension="_raw_jp2">
+        <!-- This is done as a pre-derive book op, so source=original.
+        <dependency format="CR2TAR" variation="Single Page Original CR2 Tar"/>
+        -->
+      </variation>
+    </variations>
+  </format>
+
+  <format name="OJP2ZIP">
+    <class>ProcessJP2</class>
+    <extension>zip</extension>
+    <variations>
+      <variation name="Single Page Original JP2 ZIP" preextension="_orig_jp2">
+      </variation>
+    </variations>
+  </format>
+
+  <format name="OJP2TAR">
+    <class>ProcessJP2</class>
+    <extension>tar</extension>
+    <variations>
+      <variation name="Single Page Original JP2 Tar" preextension="_orig_jp2">
+      </variation>
+    </variations>
+  </format>
+
+  <format name="PJP2ZIP">
+    <class>ProcessJP2</class>
+    <extension>zip</extension>
+    <variations>
+      <variation name="Single Page Processed JP2 ZIP" preextension="_jp2">
+        <dependency format="OJP2TAR" variation="Single Page Original JP2 Tar"/>
+        <dependency format="OJP2ZIP" variation="Single Page Original JP2 ZIP"/>
+        <dependency format="RJP2TAR" variation="Single Page Raw JP2 Tar"/>
+        <dependency format="RJP2ZIP" variation="Single Page Raw JP2 ZIP"/>
+        <dependency format="RJPGTAR" variation="Single Page Raw JPEG Tar"/>
+        <dependency format="RJPGZIP" variation="Single Page Raw JPEG ZIP"/>
+        <dependency format="FJPGZIP" variation="Single Page FIXME JPEG ZIP"/>
+        <dependency format="ZIP" variation="Raw Cornell Book Zip"/>
+        <dependency format="ZIP" variation="Raw Yale Book Zip"/>
+        <dependency format="ZIP" variation="Raw Yale Medical Book Zip"/>
+        <dependency format="ZIP" variation="Raw NIH Book Zip"/>
+        <dependency format="ZIP" variation="Generic Raw Book Zip"/>
+        <dependency format="TransContents" variation="Texts Transclusion Contents"/>
+        <!-- for the next two, must exit early if the source PDF was derived -->
+        <dependency format="ImagePDF" variation="Image Container PDF"/>
+        <dependency format="PDF" variation="Text PDF"/>
+      </variation>
+    </variations>
+  </format>
+
+
+  <format name="PJP2TAR">
+    <class>ProcessJP2</class>
+    <extension>tar</extension>
+    <variations>
+      <variation name="Single Page Processed JP2 Tar" preextension="_jp2" />
+    </variations>
+  </format>
+
+
+
+  <format name="PJPGZIP">
+    <class>ProcessJP2</class>
+    <extension>zip</extension>
+    <variations>
+      <variation name="Single Page Processed JPEG ZIP" preextension="_jpg">
+        <!-- nope...let's save space!
+        <dependency format="PJP2ZIP" variation="Single Page Processed JP2 ZIP"/>
+        -->
+      </variation>
+    </variations>
+  </format>
+
+  <format name="ZIP">
+    <extension>zip</extension>
+    <class>ZIP</class>
+    <variations>
+      <variation name="Single Page Original JPEG ZIP" multifile="true" />
+      <variation name="Single Page Original TIFF ZIP" multifile="true" />
+      <!-- <variation name="Single Page Processed TIFF ZIP" preextension="_tif" multifile="true" /> -->
+      <!-- Removed, we need these as a targets for a CR2 or JP2 source. -->
+      <!--
+      <variation name="Single Page Original JP2 ZIP" preextension="_jp2" multifile="true"/>
+      <variation name="Single Page Processed JPEG ZIP" preextension="_jpg" multifile="true" />
+       -->
+      <variation name="Scribe Scandata ZIP" preextension="scandata" multifile="true" />
+
+
+      <variation name="Abbyy ZIP" preextension="_abbyy"/>
+
+      <variation name="Raw China Book Zip" preextension="_cnbook"/>
+      <variation name="Raw China Books RAR Zip" preextension="_cnrar"/>
+      <variation name="Raw Cornell Book Zip" preextension="_cubook"/>
+      <variation name="Raw Yale Book Zip" preextension="_yalebook"/>
+      <variation name="Raw Yale Medical Book Zip" preextension="_yalemedbook"/>
+      <variation name="Raw Michigan Book Zip" preextension="_umichbook"/>
+      <variation name="Raw NIH Book Zip" preextension="_nihbook"/>
+      <variation name="Generic Raw Book Zip" preextension="_images"/>
+
+      <variation name="ZIP" multifile="true"/> <!--generic default in /editxml-->
+    </variations>
+  </format>
+
+
+  <format name="Checksums">
+    <extension>md5</extension>
+    <class>MD5</class>
+    <variations>
+      <!-- NOTE: explicitly allowed to be derived from another derivative -->
+      <!-- Eg: WAVE  =>  Flac  => Checksums -->
+      <variation rank="8" name="Checksums" multifile="true" derivativesource="allowed">
+        <dependency format="Flac" variation="24bit Flac" />
+        <dependency format="Flac" variation="Flac"/>
+      </variation>
+    </variations>
+  </format>
+
+
+  <format name="Flac FingerPrint">
+    <extension>ffp</extension>
+    <class>FFP</class>
+    <variations>
+      <!-- NOTE: explicitly allowed to be derived from another derivative -->
+      <!-- Eg: WAVE  =>  Flac  =>  Flac FingerPrint -->
+      <variation rank="8" name="Flac FingerPrint" multifile="true" derivativesource="allowed">
+        <dependency format="Flac" variation="24bit Flac" />
+        <dependency format="Flac" variation="Flac"/>
+      </variation>
+    </variations>
+  </format>
+
+
+  <format name="MPEG2">
+    <extension>mpeg</extension>
+    <extension>mp2</extension>
+    <extension>mpeg2</extension>
+    <extension>m2v</extension>
+    <class>MPEG2</class>
+    <variations>
+      <!-- NOTE: this needs to run **first** since it can replace source files!-->
+      <!-- pegssc == PEG Server-Standards-Compliant -->
+      <variation rank="0" name="MPEG2" preextension=".pegssc" conditionally="[{'collection':['denveropenmedia','SeattleCommunityMedia'],'parameter':'-acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -s 720x480 -g 15 -b:v 7000000 -maxrate 8000000 -minrate 5000000 -bufsize 835008 -packetsize 2048 -muxrate 10080000'},
+                                                                             {'collection':['tedtalks'],'parameter':'-acodec mp2 -ar 48000 -b:a 160k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -s 720x480 -g 15 -b:v 5000000 -maxrate 6000000 -minrate 4000000 -bufsize 635008 -packetsize 2048 -muxrate 10080000'}]">
+        <dependency format="h.264 HD" variation="h.264 HD" />
+        <dependency format="DV Video" variation="DV Video" />
+        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2" variation="MPEG2"/>
+        <dependency format="WebM" variation="WebM" />
+        <dependency format="MPEG4" variation="h.264 MPEG4" />
+        <dependency format="MPEG1" variation="MPEG1"/>
+        <dependency format="Motion JPEG" variation="Motion JPEG" />
+        <dependency format="QuickTime" variation="256Kb QuickTime" />
+        <dependency format="MPEG4" variation="MPEG4" />
+        <dependency format="QuickTime" variation="64Kb QuickTime" />
+        <dependency format="QuickTime" variation="56Kb QuickTime" />
+        <dependency format="QuickTime" variation="QuickTime" />
+        <dependency format="Windows Media" variation="Windows Media" />
+        <dependency format="DivX" variation="DivX" />
+        <dependency format="Intel Video" variation="IV50" />
+        <dependency format="Cinepack" variation="Cinepack" />
+        <dependency format="Ogg Theora" variation="Ogg Theora" />
+        <dependency format="Real Media" variation="Real Media" />
+        <dependency format="ISO Image" variation="ISO Image" />
+        <dependency format="Flash Video" variation="Flash Video" />
+        <dependency format="MPEG4" variation="256Kb MPEG4" />
+        <dependency format="MPEG4" variation="64Kb MPEG4" />
+        <dependency format="3GP" variation="3GP" />
+        <dependency format="Matroska" variation="Matroska" />
+      </variation>
+    </variations>
+  </format>
+
+  <format name="MPEG1">
+    <extension>mpg</extension>
+    <extension>mp1</extension>
+    <extension>mpeg1</extension>
+    <class />
+    <variations>
+      <variation name="MPEG1" />
+    </variations>
+  </format>
+
+  <format name="DV Video">
+    <extension>dv</extension>
+    <class />
+    <variations>
+      <variation name="DV Video" />
+    </variations>
+  </format>
+
+  <format name="Ogg Video">
+    <extension>ogv</extension>
+    <class>Ogv</class>
+    <category>lossy</category>
+    <variations>
+      <variation rank="9" name="Ogg Video" conditionally="{'!collection':['tvarchive']}">
+        <dependency format="h.264 HD" variation="h.264 HD" />
+        <dependency format="DV Video" variation="DV Video" />
+        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2" variation="MPEG2"/>
+        <dependency format="WebM" variation="WebM" />
+        <dependency format="MPEG4" variation="h.264 MPEG4" />
+        <dependency format="MPEG1" variation="MPEG1"/>
+        <dependency format="Motion JPEG" variation="Motion JPEG" />
+        <dependency format="QuickTime" variation="256Kb QuickTime" />
+        <dependency format="MPEG4" variation="MPEG4" />
+        <dependency format="QuickTime" variation="64Kb QuickTime" />
+        <dependency format="QuickTime" variation="56Kb QuickTime" />
+        <dependency format="QuickTime" variation="QuickTime" />
+        <dependency format="Windows Media" variation="Windows Media" />
+        <dependency format="DivX" variation="DivX" />
+        <dependency format="Intel Video" variation="IV50" />
+        <dependency format="Cinepack" variation="Cinepack" />
+        <dependency format="Ogg Theora" variation="Ogg Theora" />
+        <dependency format="Real Media" variation="Real Media" />
+        <dependency format="ISO Image" variation="ISO Image" />
+        <dependency format="Flash Video" variation="Flash Video" />
+        <dependency format="MPEG4" variation="256Kb MPEG4" />
+        <dependency format="MPEG4" variation="64Kb MPEG4" />
+        <dependency format="3GP" variation="3GP" />
+        <dependency format="Matroska" variation="Matroska" />
+      </variation>
+    </variations>
+  </format>
+
+  <format name="Flash Video">
+    <extension>flv</extension>
+    <class />
+    <variations>
+      <variation name="Flash Video"/>
+    </variations>
+  </format>
+
+
+  <format name="h.264 HD">
+    <extension>mp4</extension>
+    <extension>mpeg4</extension>
+    <extension>m4v</extension>
+    <extension>mov</extension>
+    <variations>
+      <variation name="h.264 HD" preextension=".HD"/>
+    </variations>
+  </format>
+
+
+  <format name="MPEG4">
+    <extension>mp4</extension>
+    <extension>mpeg4</extension>
+    <extension>m4v</extension>
+    <category>lossy</category>
+    <class>MPEG4</class>
+    <variations>
+      <variation rank="8" name="h.264" parameter="640x480 -fpre /petabox/sw/lib/ffmpeg/libx264-IA.ffpreset">
+        <dependency format="h.264 HD" variation="h.264 HD" />
+        <dependency format="DV Video" variation="DV Video" />
+        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2" variation="MPEG2" />
+        <dependency format="WebM" variation="WebM" />
+        <dependency format="MPEG4" variation="h.264 MPEG4" />
+        <dependency format="MPEG1" variation="MPEG1" />
+        <dependency format="Motion JPEG" variation="Motion JPEG" />
+        <dependency format="QuickTime" variation="256Kb QuickTime" />
+        <dependency format="MPEG4" variation="MPEG4" />
+        <dependency format="QuickTime" variation="64Kb QuickTime" />
+        <dependency format="QuickTime" variation="56Kb QuickTime" />
+        <dependency format="QuickTime" variation="QuickTime" />
+        <dependency format="Windows Media" variation="Windows Media" />
+        <dependency format="DivX" variation="DivX" />
+        <dependency format="Intel Video" variation="IV50" />
+        <dependency format="Cinepack" variation="Cinepack" />
+        <dependency format="Ogg Theora" variation="Ogg Theora" />
+        <dependency format="Real Media" variation="Real Media" />
+        <dependency format="ISO Image" variation="ISO Image" />
+        <dependency format="Flash Video" variation="Flash Video" />
+        <dependency format="3GP" variation="3GP" />
+        <dependency format="Matroska" variation="Matroska" />
+      </variation>
+      <variation rank="8" name="h.264 720P" parameter="1280x720 -fpre /petabox/sw/lib/ffmpeg/libx264-IA-720p.ffpreset" preextension="_720p" conditionally="{'collection':['35mmstockfootage']}">
+        <dependency format="DV Video" variation="DV Video" />
+        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2" variation="MPEG2" />
+        <dependency format="WebM" variation="WebM" />
+        <dependency format="MPEG4" variation="h.264 MPEG4" />
+        <dependency format="Motion JPEG" variation="Motion JPEG" />
+        <dependency format="MPEG4" variation="MPEG4" />
+        <dependency format="QuickTime" variation="QuickTime" />
+        <dependency format="Windows Media" variation="Windows Media" />
+        <dependency format="DivX" variation="DivX" />
+        <dependency format="Intel Video" variation="IV50" />
+        <dependency format="Cinepack" variation="Cinepack" />
+        <dependency format="Ogg Theora" variation="Ogg Theora" />
+        <dependency format="Real Media" variation="Real Media" />
+        <dependency format="Flash Video" variation="Flash Video" />
+        <dependency format="Matroska" variation="Matroska" />
+      </variation>
+      <!-- our prior h.264 derivative (smaller bitrate, way less pixels) -->
+      <variation name="512Kb MPEG4" preextension="_512kb" />
+      <!-- these two are prior default mpeg4 derived formats -->
+      <variation name="256Kb MPEG4" preextension="_256kb" />
+      <variation name="64Kb MPEG4"  preextension="_64kb" />
+      <!-- this is for prelinger items that usually have 'movie_edit.mp4' -->
+      <!-- and we want to NOT derive anim GIFs and thumbs from it, too! -->
+      <variation name="HiRes MPEG4" preextension="_edit" />
+      <variation name="h.264 MPEG4"/>
+      <variation name="MPEG4" />
+    </variations>
+  </format>
+
+  <format name="QuickTime">
+    <extension>mov</extension>
+    <extension>qt</extension>
+    <class />
+    <variations>
+      <variation name="56Kb QuickTime" preextension="_56kb" />
+      <variation name="64Kb QuickTime" preextension="_64kb" />
+      <variation name="256Kb QuickTime" preextension="_256kb" />
+      <variation name="QuickTime" />
+    </variations>
+  </format>
+
+  <format name="Motion JPEG">
+    <extension>jmpeg</extension>
+    <extension>jmpg</extension>
+    <extension>mjpg</extension>
+    <extension>avi</extension>
+    <class/>
+    <variations>
+      <variation name="Motion JPEG" />
+    </variations>
+  </format>
+
+  <format name="DivX">
+    <extension>divx</extension>
+    <extension>avi</extension>
+    <class />
+    <variations>
+      <variation name="DivX" />
+    </variations>
+  </format>
+
+  <format name="Intel Video">
+    <extension>avi</extension>
+    <class />
+    <variations>
+      <variation name="IV50" />
+    </variations>
+  </format>
+
+  <format name="Windows Media">
+    <extension>wmv</extension>
+    <class />
+    <variations>
+      <variation name="Windows Media" />
+    </variations>
+  </format>
+
+  <format name="ISO Image">
+    <extension>iso</extension>
+    <extension>cdr</extension>
+    <extension>img</extension>
+    <class />
+    <variations>
+      <variation name="ISO Image" />
+    </variations>
+  </format>
+
+  <format name="Movie Frames">
+    <extension>zip</extension>
+    <variations>
+      <variation name="Movie Frames" preextension="_frames" />
+    </variations>
+  </format>
+
+
+  <format name="Ogg Theora">
+    <extension>ogm</extension>
+    <class />
+    <variations>
+      <variation name="Ogg Theora"/>
+    </variations>
+  </format>
+
+  <format name="3GP">
+    <extension>3gp</extension>
+    <extension>3gpp</extension>
+    <extension>3gpp2</extension>
+    <class />
+    <variations>
+      <variation name="3GP"/>
+    </variations>
+  </format>
+
+  <format name="3GP Audio">
+    <extension>amr</extension>
+    <extension>samr</extension>
+    <class />
+    <variations>
+      <variation name="3GP Audio"/>
+    </variations>
+  </format>
+
+  <format name="MIDI">
+    <extension>mid</extension>
+    <class />
+    <variations>
+      <variation name="MIDI"/>
+    </variations>
+  </format>
+
+  <format name="WebM">
+    <extension>webm</extension>
+    <class>WebM</class>
+    <category>lossy</category>
+    <variations>
+      <variation rank="11" name="WebM" parameter="640x480" conditionally="{'!collection':['tvarchive']}">
+<!--COMING SOON: WEBM
+        <dependency format="h.264 HD" variation="h.264 HD" />
+        <dependency format="DV Video" variation="DV Video" />
+        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2" variation="MPEG2" />
+        <dependency format="WebM" variation="WebM" />
+        <dependency format="MPEG4" variation="h.264 MPEG4" />
+        <dependency format="MPEG1" variation="MPEG1" />
+        <dependency format="Motion JPEG" variation="Motion JPEG" />
+        <dependency format="QuickTime" variation="256Kb QuickTime" />
+        <dependency format="MPEG4" variation="MPEG4" />
+        <dependency format="QuickTime" variation="64Kb QuickTime" />
+        <dependency format="QuickTime" variation="56Kb QuickTime" />
+        <dependency format="QuickTime" variation="QuickTime" />
+        <dependency format="Windows Media" variation="Windows Media" />
+        <dependency format="DivX" variation="DivX" />
+        <dependency format="Intel Video" variation="IV50" />
+        <dependency format="Cinepack" variation="Cinepack" />
+        <dependency format="Ogg Theora" variation="Ogg Theora" />
+        <dependency format="Real Media" variation="Real Media" />
+        <dependency format="ISO Image" variation="ISO Image" />
+        <dependency format="Flash Video" variation="Flash Video" />
+        <dependency format="MPEG4" variation="256Kb MPEG4" />
+        <dependency format="MPEG4" variation="64Kb MPEG4" />
+        <dependency format="3GP" variation="3GP" />
+        <dependency format="Matroska" variation="Matroska" />
+-->
+      </variation>
+    </variations>
+  </format>
+
+  <format name="WebA">
+    <extension>weba</extension>
+    <class />
+    <variations>
+      <variation name="WebA"/>
+    </variations>
+  </format>
+
+  <format name="Matroska">
+    <extension>mkv</extension>
+    <class />
+    <variations>
+      <variation name="Matroska"/>
+    </variations>
+  </format>
+
+  <format name="Cinepack">
+    <extension>avi</extension>
+    <class>AVI</class>
+    <variations>
+      <variation rank="0" name="Cinepack">
+        <dependency format="Movie Frames" variation="Movie Frames"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="Shockwave Flash">
+    <extension>swf</extension>
+    <class />
+    <variations>
+      <variation name="Shockwave Flash" />
+    </variations>
+  </format>
+
+  <format name="Real Media">
+    <extension>rm</extension>
+    <extension>rmvb</extension>
+    <class />
+    <variations>
+      <variation name="Real Media" />
+    </variations>
+  </format>
+
+  <format name="Real Audio">
+    <extension>ra</extension>
+    <class />
+    <variations>
+      <variation name="Real Audio" />
+    </variations>
+  </format>
+
+  <format name="Closed Caption Text">
+    <extension>txt</extension>
+    <class>Captions</class>
+    <variations>
+      <!-- NOTE: the 6th variant here is "dummy" but fixes an issue -->
+      <!-- with deriver for the dest name of the *5th* CC file... -->
+      <variation rank="4" name="Closed Caption Text" preextension=".cc1" conditionally="{'collection':['tvarchive']}">
+        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2" variation="MPEG2" />
+        <dependency format="MPEG1" variation="MPEG1" />
+      </variation>
+      <variation name="Closed Caption Text" preextension=".cc2"/>
+      <variation name="Closed Caption Text" preextension=".cc3"/>
+      <variation name="Closed Caption Text" preextension=".cc4"/>
+      <variation name="Closed Caption Text" preextension=".cc5"/>
+      <variation rank="4" name="Closed Caption Text" preextension=".cc6"/>
+    </variations>
+  </format>
+
+  <format name="TV Text Stream">
+    <extension>txt</extension>
+    <variations>
+      <variation name="TV Text Stream" preextension=".text1"/>
+      <variation name="TV Text Stream" preextension=".text2"/>
+      <variation name="TV Text Stream" preextension=".text3"/>
+      <variation name="TV Text Stream" preextension=".text4"/>
+      <variation name="TV Text Stream" preextension=".text5"/>
+    </variations>
+  </format>
+
+  <format name="Extended Data Services">
+    <extension>txt</extension>
+    <variations>
+      <variation name="Extended Data Services" preextension=".xds"/>
+    </variations>
+  </format>
+
+  <format name="Item Image">
+    <extension>gif</extension>
+    <extension>jpg</extension>
+    <class />
+    <variations>
+      <variation name="Item Image" />
+    </variations>
+  </format>
+
+  <format name="Collection Header">
+    <extension>gif</extension>
+    <extension>jpg</extension>
+    <class />
+    <variations>
+      <variation name="Collection Header" />
+    </variations>
+  </format>
+
+  <!-- front, back, and spine cover for a 'print on demand' book -->
+  <format name="Book Cover">
+    <extension>jpg</extension>
+    <class />
+    <variations>
+      <variation name="Book Cover" preextension="_cover"/>
+    </variations>
+  </format>
+
+  <!-- image contained within the front cover of a 'print on demand' book -->
+  <format name="Book Cover Image">
+    <extension>jpg</extension>
+    <class />
+    <variations>
+      <variation name="Book Cover Image" preextension="_cover_image"/>
+    </variations>
+  </format>
+
+  <format name="Animated GIF">
+    <extension>gif</extension>
+    <class>AnimatedGIF</class>
+    <variations>
+      <variation rank="1" name="Animated GIF">
+        <!-- possible movies related source formats -->
+        <dependency format="h.264 HD" variation="h.264 HD" />
+        <dependency format="DV Video" variation="DV Video" />
+        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2" variation="MPEG2"/>
+        <dependency format="WebM" variation="WebM" />
+        <dependency format="MPEG4" variation="h.264 MPEG4" />
+        <dependency format="MPEG1" variation="MPEG1"/>
+        <dependency format="Motion JPEG" variation="Motion JPEG" />
+        <dependency format="QuickTime" variation="256Kb QuickTime" />
+        <dependency format="MPEG4" variation="MPEG4" />
+        <dependency format="QuickTime" variation="64Kb QuickTime" />
+        <dependency format="QuickTime" variation="56Kb QuickTime" />
+        <dependency format="QuickTime" variation="QuickTime" />
+        <dependency format="Windows Media" variation="Windows Media" />
+        <dependency format="DivX" variation="DivX" />
+        <dependency format="Intel Video" variation="IV50" />
+        <dependency format="Cinepack" variation="Cinepack" />
+        <dependency format="Ogg Theora" variation="Ogg Theora" />
+        <dependency format="Real Media" variation="Real Media" />
+        <dependency format="ISO Image" variation="ISO Image" />
+        <dependency format="Flash Video" variation="Flash Video" />
+        <dependency format="MPEG4" variation="256Kb MPEG4" />
+        <dependency format="MPEG4" variation="64Kb MPEG4" />
+        <dependency format="3GP" variation="3GP" />
+        <dependency format="Matroska" variation="Matroska" />
+
+
+
+        <!-- possible books related source formats -->
+        <dependency format="PJP2ZIP"  variation="Single Page Processed JP2 ZIP"/>
+        <dependency format="PJP2TAR"  variation="Single Page Processed JP2 Tar"/>
+        <!-- <dependency format="PJPGZIP"  variation="Single Page Processed JPEG ZIP"/> -->
+        <dependency format="PJPGTAR"  variation="Single Page Processed JPEG Tar"/>
+        <!-- <dependency format="JPEG" variation="Single Page Processed JPEG"/> -->
+        <dependency format="ZIP"  variation="Single Page Processed TIFF ZIP"/>
+        <dependency format="TIFF" variation="Single Page Processed TIFF"/>
+        <dependency format="TIFF" variation="Multi Page Processed TIFF"/>
+        <dependency format="ZIP"  variation="Single Page Original TIFF ZIP"/>
+        <dependency format="TIFF" variation="Single Page Original TIFF"/>
+        <dependency format="TIFF" variation="Multi Page Original TIFF"/>
+      </variation>
+    </variations>
+  </format>
+
+
+  <format name="Thumbnail">
+    <extension>jpg</extension>
+    <class>Thumbnails</class>
+    <subdir>.thumbs</subdir>
+    <variations>
+      <variation rank="3" name="Thumbnail" preextension="_000001">
+        <dependency format="h.264 HD" variation="h.264 HD" />
+        <dependency format="DV Video" variation="DV Video" />
+        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2" variation="MPEG2"/>
+        <dependency format="WebM" variation="WebM" />
+        <dependency format="MPEG4" variation="h.264 MPEG4" />
+        <dependency format="MPEG1" variation="MPEG1"/>
+        <dependency format="Motion JPEG" variation="Motion JPEG" />
+        <dependency format="QuickTime" variation="256Kb QuickTime" />
+        <dependency format="MPEG4" variation="MPEG4" />
+        <dependency format="QuickTime" variation="64Kb QuickTime" />
+        <dependency format="QuickTime" variation="56Kb QuickTime" />
+        <dependency format="QuickTime" variation="QuickTime" />
+        <dependency format="Windows Media" variation="Windows Media" />
+        <dependency format="DivX" variation="DivX" />
+        <dependency format="Intel Video" variation="IV50" />
+        <dependency format="Cinepack" variation="Cinepack" />
+        <dependency format="Ogg Theora" variation="Ogg Theora" />
+        <dependency format="Real Media" variation="Real Media" />
+        <dependency format="ISO Image" variation="ISO Image" />
+        <dependency format="Flash Video" variation="Flash Video" />
+        <dependency format="MPEG4" variation="256Kb MPEG4" />
+        <dependency format="MPEG4" variation="64Kb MPEG4" />
+        <dependency format="3GP" variation="3GP" />
+        <dependency format="Matroska" variation="Matroska" />
+      </variation>
+    </variations>
+  </format>
+
+
+  <format name="Video Index">
+    <extension>idx</extension>
+    <class>Idx</class>
+    <variations>
+      <variation rank="2" name="Video Index" preextension=".mpg">
+        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2" variation="MPEG2"/>
+        <dependency format="MPEG1" variation="MPEG1"/>
+      </variation>
+    </variations>
+  </format>
+
+
+  <format name="JPEG Thumb">
+    <extension>jpg</extension>
+    <class>JPEGThumb</class>
+    <variations>
+      <variation rank="10" name="JPEG Thumb" preextension="_thumb">  <!-- JPEGThumb may make the next two variations, too -->
+        <dependency format="TIFF" variation="TIFF" />
+        <dependency format="JP2" variation="JPEG 2000" />
+        <dependency format="JPEG" variation="JPEG" />
+        <dependency format="PNG" variation="PNG" />
+      </variation>
+      <variation name="JPEG 250px Thumb" preextension="_thumb250" />
+      <variation name="JPEG 500px Thumb" preextension="_thumb500" />
+    </variations>
+  </format>
+
+  <format name="JPEG">
+    <extension>jpg</extension>
+    <extension>jpeg</extension>
+    <variations>
+      <variation name="JPEG" />
+      <!-- <variation name="Single Page Original JPEG" /> -->
+      <!-- <variation name="Single Page Processed JPEG" /> -->
+    </variations>
+  </format>
+
+  <format name="JP2">
+    <extension>jp2</extension>
+    <variations>
+      <variation name="JPEG 2000" />
+    </variations>
+  </format>
+
+  <format name="TIFF">
+    <extension>tif</extension>
+    <extension>tiff</extension>
+    <class>TIFF</class>
+    <variations>
+      <variation name="TIFF" />
+      <!-- following disabled June 2009 to enable simple "TIFF" => "JPEG Thumb" pathway for NASA items -->
+      <!-- <variation name="Single Page Original TIFF" /> -->
+      <!-- <variation name="Single Page Processed TIFF" /> -->
+      <!-- <variation name="Multi Page Original TIFF" preextension="_orig" multifile="true"> -->
+        <!-- <dependency format="TIFF" variation="Single Page Original TIFF" /> -->
+      <!-- </variation> -->
+      <!-- <variation name="Multi Page Processed TIFF" multifile="true"> -->
+        <!-- <dependency format="TIFF" variation="Single Page Processed TIFF" /> -->
+      <!-- </variation> -->
+    </variations>
+  </format>
+
+  <format name="PNG">
+    <extension>png</extension>
+    <class>PNG</class>
+    <variations>
+      <variation rank="11" name="PNG" conditionally="{'collection':['album_recordings']}" derivativesource="allowed">
+        <dependency format="Flac"  variation="Flac"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="AI">
+    <extension>ai</extension>
+    <variations>
+      <variation name="Adobe Illustrator" />
+    </variations>
+  </format>
+
+  <format name="PDF">
+    <extension>pdf</extension>
+    <class>PDF</class> <!-- may make ImagePDF instead -->
+    <variations>
+      <variation name="Text PDF">
+        <dependency format="DjvuXML" variation="Djvu XML"/>
+      </variation>
+    </variations>
+  </format>
+
+  <!-- can be derived by PDF class, substituted for the main target -->
+  <format name="ImagePDF">
+    <extension>pdf</extension>
+    <variations>
+      <variation name="Image Container PDF"/>
+    </variations>
+  </format>
+
+  <!-- ewwww. now that a single item can have both a contributed no-text pdf -->
+  <!-- and a derived with-text pdf, we need an alternative filename for      -->
+  <!-- with-text pdfs, to be used only when there's already a no-text one    -->
+  <format name="HackPDF">
+    <extension>pdf</extension>
+    <class>HackPDF</class>
+    <variations>
+      <variation name="Additional Text PDF" preextension="_text">
+        <dependency format="DjvuXML" variation="Djvu XML"/>
+      </variation>
+    </variations>
+  </format>
+
+  <!-- this oddity is because Adobe Digital Editions doesn't currently -->
+  <!-- handle pdfs that use jp2 compression; we make it only for items -->
+  <!-- in the lendinglibrary collection                                -->
+  <format name="JPEGPDF">
+    <extension>pdf</extension>
+    <class>JPEGCompPDF</class>
+    <variations>
+      <variation name="JPEG-Compressed PDF" preextension="_jpg" conditionally="{'collection':['lendinglibrary','printdisabled']}">
+        <dependency format="DjvuXML" variation="Djvu XML"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="ZippedPDF">
+    <extension>zip</extension>
+    <class>PDF</class>
+    <variations>
+      <variation name="Single Page Zipped PDF" preextension="_pdf">
+        <dependency format="DjvuXML" variation="Djvu XML"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="ScanFactors">
+    <extension>xml</extension>
+    <class>ScanFactors</class>
+    <variations>
+      <variation name="Scan Factors" preextension="_scanfactors">
+        <!-- derivation turned off May 2009 -->
+        <!-- <dependency format="DjvuXML" variation="Djvu XML"/> -->
+      </variation>
+    </variations>
+  </format>
+
+  <format name="DjVuTXT">
+    <extension>txt</extension>
+    <class>DJVUTXT</class>
+    <variations>
+      <variation name="DjVuTXT" preextension="_djvu">
+        <dependency format="DjVu" variation="Original DjVu" />
+        <dependency format="DjVu" variation="DjVu" />
+      </variation>
+    </variations>
+  </format>
+
+  <format name="djvuXML">
+    <extension>xml</extension>
+    <class>DjvuXML</class>
+    <variations>
+      <variation name="Djvu XML" preextension="_djvu">
+        <!-- Original DjVu gets higher priority so it gets used as the source -->
+        <!-- when we can make one with hiddentext while preprocessing a raw   -->
+        <!-- book, and the language is one we can't OCR with Abbyy (true for  -->
+        <!-- some of the books transferred from China)                        -->
+        <dependency format="DjVu" variation="Original DjVu"/>
+        <dependency format="AbbyyGZ" variation="Abbyy GZ"/>
+        <dependency format="abbyyXML" variation="ABBYY XML"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="MARCSource">
+    <extension>xml</extension>
+    <variations>
+      <variation name="MARC Source" preextension="_metasource"/>
+    </variations>
+  </format>
+
+  <format name="MARCBinary">
+    <extension>mrc</extension>
+    <variations>
+      <variation name="MARC Binary" preextension="_meta"/>
+    </variations>
+  </format>
+
+  <format name="MARC">
+    <extension>xml</extension>
+    <variations>
+      <variation name="MARC" preextension="_marc"/>
+    </variations>
+  </format>
+
+  <format name="Dublin">
+    <extension>xml</extension>
+    <variations>
+      <variation name="Dublin Core" preextension="_dc"/>
+    </variations>
+  </format>
+
+  <format name="Scandata">
+    <extension>xml</extension>
+    <class>ScandataXML</class> <!-- class "Scandata" already taken -->
+    <variations>
+      <variation name="Scandata" preextension="scandata"/> <!-- no '_' to match Old Skul "scandata.xml" -->
+      <variation name="Scandata" preextension="_scandata">
+        <dependency format="DjvuXML" variation="Djvu XML"/>
+      </variation>
+      <variation name="Preliminary Scandata" preextension="_prelimscandata"/>
+      <variation name="Development Scandata" preextension="_dev_scandata"/>
+    </variations>
+  </format>
+
+  <format name="Segment Data">
+    <extension>xml</extension>
+    <variations>
+      <variation name="Segment Data" preextension="_segments"/>
+    </variations>
+  </format>
+
+  <format name="Metadata">
+    <extension>xml</extension>
+    <variations>
+      <variation name="Metadata" preextension="_meta"/>
+    </variations>
+  </format>
+
+  <!-- for <file>_meta.txt, which contains http headers used to load S3 files  -->
+  <format name="Metadata">
+    <extension>txt</extension>
+    <variations>
+      <variation name="Metadata" preextension="_meta"/>
+    </variations>
+  </format>
+
+  <!-- These are made, via the ArticleMeta book op, from the Djvu XML -->
+  <format name="StructuralMeta">
+    <extension>xml</extension>
+    <variations>
+      <variation name="Structural Metadata" preextension="_structuralmeta"/>
+    </variations>
+  </format>
+
+  <!-- two formats produced and uploaded by Biodiversity Heritage Library Project -->
+  <!-- this one contains an index of scientific names used in the text -->
+  <format name="Names">
+    <extension>xml</extension>
+    <variations>
+      <variation name="Name Metadata" preextension="_names"/>
+    </variations>
+  </format>
+  <!-- and this one contains BHL's version of METS metadata -->
+  <format name="BHLMETS">
+    <extension>xml</extension>
+    <variations>
+      <variation name="Biodiversity Heritage Library METS" preextension="_bhlmets"/>
+    </variations>
+  </format>
+
+  <!-- This replaces the former AbbyyZIP -->
+  <format name="AbbyyGZ">
+    <extension>gz</extension>
+    <class>AbbyyXML</class>
+    <variations>
+      <variation name="Abbyy GZ" preextension="_abbyy">
+        <dependency format="ZIP" variation="Single Page Processed JP2 ZIP"/>
+        <dependency format="ZIP" variation="Single Page Processed JP2 Tar"/>
+        <dependency format="ZIP" variation="Single Page Processed JPEG ZIP"/>
+        <dependency format="ZIP" variation="Single Page Processed TIFF ZIP"/>
+        <dependency format="TAR" variation="Single Page Processed JPEG Tar"/>
+      </variation>
+    </variations>
+  </format>
+
+
+  <format name="DjVu">
+    <extension>djvu</extension>
+    <class>DjVu</class>
+    <variations>
+      <variation name="DjVu">
+        <dependency format="djvuXML" variation="Djvu XML"/>
+      </variation>
+      <variation name="Original DjVu" preextension="_orig"/>
+    </variations>
+  </format>
+
+  <format name="Tar">
+    <extension>tar</extension>
+    <class/>
+    <variations>
+      <variation name="Single Page Original JPEG Tar" preextension="_orig_jpg" multifile="true" />
+      <variation name="Single Page Processed JPEG Tar" preextension="_jpg" multifile="true"/>
+      <variation name="Raw Mekel Tar" preextension="_mekel"/>
+      <variation name="RePublisher Proxy Tar" preextension="_proxy_jpg"/>
+      <variation name="Raw China Books RAR Tar" preextension="_cnrar"/>
+      <variation name="TAR" multifile="true"/> <!--generic default in /editxml-->
+    </variations>
+  </format>
+
+
+
+  <format name="Flippy ZIP">
+    <extension>zip</extension>
+    <class>JpgFlipBookZip</class>
+    <variations>
+      <variation name="Flippy ZIP" preextension="_flippy">
+      <!-- making of flippies turned off, November 2009 -->
+      <!--  <dependency format="WMJP2TAR" variation="Single Page Watermark JP2 Tar"/> -->
+      <!--  <dependency format="WMJP2ZIP" variation="Single Page Watermark JP2 ZIP"/> -->
+      <!--  <dependency format="PJP2ZIP" variation="Single Page Processed JP2 ZIP" /> -->
+      <!--  <dependency format="PJP2TAR" variation="Single Page Processed JP2 Tar"/> -->
+      <!--  <dependency format="PJPGZIP" variation="Single Page Processed JPEG ZIP" /> -->
+      <!--  <dependency format="PJPGTAR" variation="Single Page Processed JPEG Tar"/> -->
+      <!--  <dependency format="ZIP"  variation="Single Page Processed TIFF ZIP"/> -->
+      <!--  <dependency format="ZIP"  variation="Single Page Processed TIFF Tar"/> -->
+      </variation>
+    </variations>
+  </format>
+
+
+
+  <format name="Text">
+    <extension>txt</extension>
+    <class />
+    <variations>
+      <variation name="Single Book Page Text" />
+      <variation name="Text" />
+    </variations>
+  </format>
+
+  <format name="EPUB">
+    <extension>epub</extension>
+    <class>EPUB</class>
+    <variations>
+      <variation name="EPUB">
+        <dependency format="AbbyyGZ" variation="Abbyy GZ"/>
+        <dependency format="ZIP" variation="Abbyy ZIP"/>
+        <dependency format="abbyyXML" variation="ABBYY XML"/>
+      </variation>
+    </variations>
+  </format>
+
+  <!-- next two formats related to OCR corrections UI -->
+  <format name="AbbyyHTML">
+    <extension>html</extension>
+    <class>AbbyyHTML</class>
+    <variations>
+      <variation name="Abbyy HTML" preextension="_abbyy">
+        <!-- <dependency format="AbbyyGZ" variation="Abbyy GZ"/> don't start deriving yet -->
+      </variation>
+    </variations>
+  </format>
+
+  <format name="CorrAbbyyHTML">
+    <extension>html</extension>
+    <variations>
+      <variation name="Corrected Abbyy HTML" preextension="_corrected" />
+    </variations>
+  </format>
+
+
+  <format name="Contents">
+    <extension>xml</extension>
+    <class>TOC</class>
+    <variations>
+      <variation name="Contents" preextension="_toc">
+        <dependency format="djvuXML" variation="Djvu XML"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="MOBI">
+    <extension>mobi</extension>
+    <variations>
+      <variation name="MOBI" />
+    </variations>
+  </format>
+
+  <format name="Tar GZip">
+    <extension>gz</extension>
+    <!-- <class>TarGz</class> no longer exists -->
+    <variations>
+      <variation name="TGZiped Text Files" preextension=".txt.tar" multifile="true">
+        <!-- <dependency format="Text" variation="Single Book Page Text" /> not any more -->
+      </variation>
+    </variations>
+  </format>
+
+  <format name="Cover">
+    <extension>sxw</extension>
+    <class>BookCover</class>
+    <variations>
+      <variation name="Book Cover" preextension="_cover">
+        <dependency format="Metadata" variation="Book Metadata" />
+      </variation>
+    </variations>
+  </format>
+
+
+  <format name="JSON GZ">
+    <extension>gz</extension>
+    <variations>
+      <variation name="JSON GZ" preextension=".json"/>
+    </variations>
+  </format>
+
+  <format name="DAT">
+    <extension>gz</extension>
+    <class>ProcARC</class>
+    <variations>
+      <variation name="DAT" preextension=".dat">
+        <!-- <dependency format="ARC" variation="ARC" /> disabled 12/5/2010 -->
+      </variation>
+    </variations>
+  </format>
+
+  <format name="Encrypted DAT">
+    <extension>gpg</extension>
+    <class />
+    <variations>
+      <variation name="Encrypted DAT" preextension=".dat.gz" />
+    </variations>
+  </format>
+
+  <format name="CDX Index">
+    <extension>gz</extension>
+    <class>CDXIndex</class>
+    <variations>
+      <variation name="ARC CDX Index" preextension=".arc.os.cdx">
+        <dependency format="ARC_IA" variation="Internet Archive ARC"/>
+        <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
+      </variation>
+      <variation name="WARC CDX Index" preextension=".warc.os.cdx">
+        <dependency format="WARC" variation="Web ARChive"/>
+        <dependency format="WARC GZ" variation="Web ARChive GZ"/>
+      </variation>
+    </variations>
+  </format>
+
+  <!-- format names for ARC files drawn from http://www.digitalpreservation.gov/formats/fdd/fdd000235.shtml -->
+  <format name="ARC_IA">
+    <extension>arc</extension>
+    <variations>
+      <variation name="Internet Archive ARC" />
+    </variations>
+  </format>
+
+  <format name="ARC_IA GZ">
+    <extension>gz</extension>
+    <class />
+    <variations>
+      <variation name="Internet Archive ARC GZ" preextension=".arc" />
+    </variations>
+  </format>
+
+  <format name="Encrypted ARC_IA GZ">
+    <extension>gpg</extension>
+    <class />
+    <variations>
+      <variation name="Encrypted Internet Archive ARC GZ" preextension=".arc.gz" />
+    </variations>
+  </format>
+
+  <!-- format names for WARC files drawn from http://www.digitalpreservation.gov/formats/fdd/fdd000236.shtml -->
+  <format name="WARC">
+    <extension>warc</extension>
+    <variations>
+      <variation name="Web ARChive" />
+    </variations>
+  </format>
+
+  <format name="WARC GZ">
+    <extension>gz</extension>
+    <variations>
+      <variation name="Web ARChive GZ" preextension=".warc" />
+    </variations>
+  </format>
+
+  <format name="Encrypted WARC GZ">
+    <extension>gpg</extension>
+    <variations>
+      <variation name="Encrypted Web ARChive GZ" preextension=".warc.gz" />
+    </variations>
+  </format>
+
+
+  <format name="RAR">
+    <extension>rar</extension>
+    <variations>
+      <variation name="RAR" />
+    </variations>
+  </format>
+
+  <!-- generic default for .gz files that don't match any of the more specific formats -->
+  <format name="GZ">
+    <extension>gz</extension>
+    <variations>
+      <variation name="GZIP" />
+    </variations>
+  </format>
+
+  <format name="EXE">
+    <extension>exe</extension>
+    <variations>
+      <variation name="Windows Executable" />
+    </variations>
+  </format>
+
+  <format name="SubRip">
+    <extension>srt</extension>
+    <class>SubRip</class>
+    <variations>
+      <!-- NOTE: explicitly allowed to be derived from another derivative -->
+      <!-- Eg: MPEG2  =>  Closed Caption Text  =>  SubRip -->
+      <variation rank="11" name="SubRip" derivativesource="allowed">
+        <dependency format="Closed Caption Text" variation="Closed Caption Text" />
+      </variation>
+    </variations>
+  </format>
+
+  <format name="Metadata Log">
+    <extension>log</extension>
+    <class>ExtractMeta</class>
+    <variations>
+      <variation name="Metadata Log" preextension="_meta">
+        <dependency format="Metadata" variation="MusicBrainz Metadata"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="Metadata">
+    <extension>xml</extension>
+    <class />
+    <variations>
+      <variation name="Metadata" />
+      <variation name="TV Electronic Program Guide" preextension="epg"/>
+      <variation name="MusicBrainz Metadata" preextension="_mb_metadata"/>
+    </variations>
+  </format>
+
+  <format name="HTML">
+    <extension>htm</extension>
+    <extension>html</extension>
+    <variations>
+      <variation name="HTML"/>
+    </variations>
+  </format>
+
+  <format name="RDF">
+    <extension>rdf</extension>
+    <variations>
+      <variation name="Zotero RDF" preextension="zotero"/>
+    </variations>
+  </format>
+
+  <format name="DRules">
+    <extension>conf</extension>
+    <variations>
+      <variation name="Derivation Rules" preextension="rules"/>
+    </variations>
+  </format>
+
+  <format name="BitTorrentContents">
+    <extension>txt</extension>
+    <class>Torrent</class>
+    <variations>
+      <variation name="BitTorrentContents" preextension="_torrent">
+        <dependency format="BitTorrent" variation="BitTorrent"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="BitTorrent">
+    <extension>torrent</extension>
+    <variations>
+      <variation name="BitTorrent">
+      </variation>
+    </variations>
+  </format>
+
+  <format name="HeritrixJobLog">
+    <extension>txt</extension>
+    <class>HeritrixJob</class>
+    <variations>
+      <variation name="HeritrixCrawlLog" preextension="_cxml">
+        <dependency format="HeritrixJob" variation="HeritrixJob"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="HeritrixJob">
+    <extension>cxml</extension>
+    <variations>
+      <variation name="HeritrixJob">
+      </variation>
+    </variations>
+  </format>
+
+  <format name="PersonalArchiveLog">
+    <extension>txt</extension>
+    <class>PersonalArchive</class>
+    <variations>
+      <variation name="PersonalArchiveLog" preextension="_parch">
+        <dependency format="PersonalArchive" variation="PersonalArchive"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="PersonalArchive">
+    <extension>parch</extension>
+    <variations>
+      <variation name="PersonalArchive"/>
+    </variations>
+  </format>
+
+  <!-- will be deriving from this format shortly -->
+  <!-- (adjust RawBookPreprocessor to unpack RARs as well as ZIPs, then run through -->
+  <!-- RawImagesBookPreprocessor; also move .cbz here from FormatGetter.inc)        -->
+  <format name="Comic Book RAR">
+    <extension>cbr</extension>
+    <variations>
+      <variation name="Comic Book RAR"/>
+    </variations>
+  </format>
+
+  <format name="TransContents">
+    <extension>xml</extension>
+    <variations>
+      <variation name="Texts Transclusion Contents" preextension="_texts_trans"/>
+      <variation name="Audio Transclusion Contents" preextension="_audio_trans"/>
+      <variation name="Movies Transclusion Contents" preextension="_movies_trans"/>
+    </variations>
+  </format>
+
+  <format name="Symlink Instructions">
+    <extension>txt</extension>
+    <variations>
+      <variation name="Symlink Instructions" preextension="_symlinks"/>
+    </variations>
+  </format>
+
+  <format name="CSV">
+    <extension>csv</extension>
+    <variations>
+      <variation name="Comma-Separated Values" />
+      <variation name="Catalog History CSV" preextension="_history" />
+    </variations>
+  </format>
+
+</formats>

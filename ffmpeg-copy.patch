@@ -1,0 +1,13 @@
+# this error condition is a *bit* too restrictive if we are in stream copy
+# mode (eg: copying a single video and audio stream from a multiplexed-TS file)
+--- a/libavformat/utils.c
++++ b/libavformat/utils.c
+@@ -3008,7 +3008,7 @@ int avformat_write_header(AVFormatContext *s, AVDictionary **options)
+                 ret = AVERROR(EINVAL);
+                 goto fail;
+             }
+-            if((st->codec->width<=0 || st->codec->height<=0) && !(s->oformat->flags & AVFMT_NODIMENSIONS)){
++            if((st->codec->width<=0 || st->codec->height<=0) && !(s->oformat->flags & AVFMT_NODIMENSIONS)  &&  !st->stream_copy){
+                 av_log(s, AV_LOG_ERROR, "dimensions not set\n");
+                 ret = AVERROR(EINVAL);
+                 goto fail;

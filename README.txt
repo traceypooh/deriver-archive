@@ -1,7 +1,3 @@
-deriver-archive
-===============
-
-Internet Archive's setup for creating h.264, creating ogg theora, and creating thumbnails
 
 This is intended to allow an external user to derive video files in the same way
 (and using most of the same code) that Internet Archive does.

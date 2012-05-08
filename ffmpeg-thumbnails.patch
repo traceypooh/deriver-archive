@@ -1,0 +1,38 @@
+####################################################################################
+# patch to make output thumbnails use the frame number of the input
+# file *instead* of an ever-incrementing rather meaningless counter
+#
+#   tracey jan2011 (last update: mar2012)
+# 
+####################################################################################
+diff --git a/ffmpeg.c b/ffmpeg.c
+index 6d1d3f7..453773f 100644
+--- a/ffmpeg.c
++++ b/ffmpeg.c
+@@ -1652,6 +1652,7 @@ static void do_video_out(AVFormatContext *s, OutputStream *ost,
+                 if (format_video_sync == VSYNC_DROP)
+                     pkt.pts = pkt.dts = AV_NOPTS_VALUE;
+ 
++                s->ist_frame_number = ist->st->codec->frame_number;
+                 write_frame(s, &pkt, ost);
+                 frame_size = pkt.size;
+                 video_size += pkt.size;
+diff --git a/libavformat/avformat.h b/libavformat/avformat.h
+index 5a11fdc..f9ad381 100644
+--- a/libavformat/avformat.h
++++ b/libavformat/avformat.h
+@@ -1087,0 +1088 @@ typedef struct AVFormatContext {
++    int ist_frame_number;
+diff --git a/libavformat/img2enc.c b/libavformat/img2enc.c
+index 9b4b30e..e8abc7d 100644
+--- a/libavformat/img2enc.c
++++ b/libavformat/img2enc.c
+@@ -66,7 +66,7 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
+ 
+     if (!img->is_pipe) {
+         if (av_get_frame_filename(filename, sizeof(filename),
+-                                  img->path, img->img_number) < 0 && img->img_number>1 && !img->updatefirst) {
++                                  img->path, (s->ist_frame_number ? s->ist_frame_number : img->img_number)) < 0 && img->img_number>1 && !img->updatefirst) {
+             av_log(s, AV_LOG_ERROR,
+                    "Could not get frame filename number %d from pattern '%s'\n",
+                    img->img_number, img->path);
