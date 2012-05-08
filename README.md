@@ -30,3 +30,7 @@ and then run (on bash/shell):
 
 NOTE: if you are interested extracting recorded TV captions embedded in MPEG-TS files
 (eg: "line 21" (AKA "EIA-608")) then I've included "ccextractor-README.txt".
+
+
+# to setup a readonly version of this on your machine:
+git clone git://github.com/traceypooh/deriver-archive.git
