@@ -47,11 +47,11 @@ sudo apt-get -y install  \
     libvorbis-dev \
     libxvidcore-dev \
     libdc1394-22-dev \
+    libasound2-dev \
     libavfilter-dev \
     libvpx-dev \
     libfreetype6-dev \
     oggz-tools
-
 
 
 ###############################################################################
