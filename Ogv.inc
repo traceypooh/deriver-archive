@@ -7,7 +7,7 @@ class Ogv extends Module
 
 
   public function version()
-  { return '$Revision: 43652 $ $Date: 2012-05-07 06:48:41 +0000 (Mon, 07 May 2012) $'; }
+  { return '$Revision: 43732 $ $Date: 2012-05-09 02:29:36 +0000 (Wed, 09 May 2012) $'; }
   
   public function derive()
   {
@@ -60,39 +60,6 @@ class Ogv extends Module
 
     Util::cmdQT("$cmd -pass 1 -an     -f null /dev/null", $times10);
     Util::cmdQT("$cmd -pass 2 $acoder $meta $tmp"       , $times10);
-
-
-    // This item /details/Orphanworksandmassdigitization20120412  killed this
-    // technique (bad length in (only!) final ogv).  This way also fails for
-    // /details/ShaneBrennanSittingTourBreathe  to be able to create an .ogv
-    if (false  &&  $identify['audio']!=='false')
-    {
-      // why *only* put the $meta for videos with audio?
-      // because for video-track-only oggs, libtheora makes the first
-      // frame *not* a keyframe and that makes some players/browsers sad.
-      //   eg: /details/DIA40   /details/commute
-      $meta = Shared::videoMeta($this, array(
-                                  'title'            => 'TITLE=',
-                                  'director'         => 'ARTIST=',
-                                  'licenseurl'       => 'LICENSE=',
-                                  'date'             => 'DATE=',
-                                  'publisher'        => 'ORGANIZATION='),
-                                false).
-        " LOCATION=http://archive.org/details/{$this->identifier} ";
-
-      $vfi = "video.ogg";
-      $afi = "audio.ogg";
-      $afiC= "audioC.ogg";
-      Util::cmdQT("$ffmpeg -i $tmp -vn -acodec copy $afi",$times2);
-      Util::cmdQT("$ffmpeg -i $tmp -an -vcodec copy $vfi",$times2);
-
-      $oggzcomment= configGetValue('bin-oggz-comment');
-      $oggzmerge  = configGetValue('bin-oggz-merge');
-      Util::cmdQT("$oggzcomment $afi -o $afiC $meta", $times2);
-      Util::cmdQT("$oggzmerge $vfi $afiC -o tmp2.ogv", $times2);
-      Util::cmd("rm -f $tmp $vfi $afi $afiC"); //cleanup
-      $tmp = 'tmp2.ogv';
-    }
 
 
     // backfills in any current metadata information

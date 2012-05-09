@@ -492,7 +492,7 @@
       <!-- NOTE: this needs to run **first** since it can replace source files!-->
       <!-- pegssc == PEG Server-Standards-Compliant -->
       <variation rank="0" name="MPEG2" preextension=".pegssc" conditionally="[{'collection':['denveropenmedia','SeattleCommunityMedia'],'parameter':'-acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -s 720x480 -g 15 -b:v 7000000 -maxrate 8000000 -minrate 5000000 -bufsize 835008 -packetsize 2048 -muxrate 10080000'},
-                                                                             {'collection':['tedtalks'],'parameter':'-acodec mp2 -ar 48000 -b:a 160k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -s 720x480 -g 15 -b:v 5000000 -maxrate 6000000 -minrate 4000000 -bufsize 635008 -packetsize 2048 -muxrate 10080000'}]">
+                                                                             {'collection':['tedtalks'],'parameter':                                '-acodec mp2 -ar 48000 -b:a 160k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -s 720x480 -g 15 -b:v 5000000 -maxrate 6000000 -minrate 4000000 -bufsize 635008 -packetsize 2048 -muxrate 10080000'}]">
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
