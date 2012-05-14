@@ -11,7 +11,6 @@
 PET=$HOME/petabox
 UBU_NAME=$(lsb_release -cs); # eg: "natty"
 DIR=/tmp/f;
-REV=
 PAT=$PET/sw/lib/ffmpeg; # patches
 PRESETS=$PET/sw/lib/ffmpeg; # where presets will live
 
@@ -19,15 +18,9 @@ PRESETS=$PET/sw/lib/ffmpeg; # where presets will live
 function line(){ perl -e 'print "_"x80; print "\n\n";'; }
 
 
-if [ "$UBU_NAME" == "natty" ]; then
-    true;
-elif [ "$UBU_NAME" == "oneiric" ]; then
-    true;
-else
+if [ "$UBU_NAME" != "natty"  -a  "$UBU_NAME" != "oneiric"  -a  "$UBU_NAME" != "precise" ]; then
     echo "unsupported OS"; exit 1;
 fi
-
-
 
 
 mkdir -p $DIR;
@@ -35,6 +28,10 @@ mkdir -p $DIR;
 sudo apt-get install yasm; # make sure we have an assembler!
 
 # make sure we have basic needed pkgs!
+# http://packages.ubuntu.com/search?searchon=contents&arch=any&mode=exactfilename&suite=precise&keywords=libasound.a
+
+
+
 sudo apt-get -y install  \
     libschroedinger-dev  libdirac-dev  dirac \
     libx264-dev \
@@ -46,9 +43,10 @@ sudo apt-get -y install  \
     libopencore-amrnb-dev  libopencore-amrwb-dev \
     libvorbis-dev \
     libxvidcore-dev \
-    libdc1394-22-dev \
     libasound2-dev \
     libavfilter-dev \
+    libsdl1.2-dev \
+    libtheora-dev \
     libvpx-dev \
     libfreetype6-dev \
     oggz-tools
@@ -122,51 +120,6 @@ env DESTDIR=$DIR  make install;
 
 
 
-###############################################################################
-# continue to make as many libs as we can *statically* bake into ffmpeg binary!
-
-cd $DIR/usr/local/lib/; # NOTE: subdir made in x264 "make install"!
-set +x;
-for i in $(echo '
-    libasound.a
-    libfaac.a
-    libfreetype.a
-    libgsm.a
-    libmp3lame.a
-    libogg.a
-    libopencore-amrnb.a
-    libopencore-amrwb.a
-    libopenjpeg.a
-    libraw1394.a
-    libspeex.a
-    libvorbis.a
-    libvorbisenc.a
-    libvpx.a
-    libxvidcore.a
-    libSDL.a
-    libschroedinger-1.0.a
-    libtheora.a
-    libtheoradec.a
-    libtheoraenc.a
-'); do
-#xxx
-#   libdc1394.a
-   DEST=/usr/lib/$i;
-   if [ ! -e $DEST ]; then
-       # hmmm.... retry a 64bit version (safe/cool??)
-       DEST=/usr/lib/x86_64-linux-gnu/$i;
-       if [ ! -e $DEST ]; then
-           echo "BOOM.  library missing/moved??  $DEST";
-           exit 1;
-       fi
-   fi
-   echo ln -s $DEST  $DIR/usr/local/lib/$i;
-   ln -s $DEST
-done
-set -x;
-
-
-
 
 ###############################################################################
 # ffmpeg -- patch
@@ -206,7 +159,6 @@ cd ffmpeg;
 
 --enable-avfilter
 --enable-gpl
---enable-libdc1394
 --enable-libfaac
 --enable-libfreetype
 --enable-libgsm
@@ -230,6 +182,8 @@ cd ffmpeg;
 
 --extra-cflags=-I${DIR?}/usr/local/include
 --extra-ldflags=-L${DIR?}/usr/local/lib
+--extra-cflags=-static
+--extra-ldflags=-static
 ");
 
 #xxx --enable-libschroedinger # hmm stopped working in natty/oneiric ~oct2011...
@@ -249,13 +203,10 @@ make alltools;
 
 cp ffmpeg               $PET/sw/bin/ffmpeg.$UBU_NAME;
 cp ffprobe              $PET/sw/bin/ffprobe.$UBU_NAME;
-cp   presets/*.ffpreset $PRESETS/;
-cp ffpresets/*.ffpreset $PRESETS/;
+cp presets/*.ffpreset   $PRESETS/;
 
 
 
 
 set -x;
-echo;echo;echo "NOTE: audit list of shared libraries..."
-ldd $PET/sw/bin/ffmpeg.$UBU_NAME;
 echo;echo;echo "NOTE: any changes to $PET/sw/{bin,lib} need to be committed..."
