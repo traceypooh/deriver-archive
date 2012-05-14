@@ -1516,7 +1516,13 @@ class Video
 
     
     $filters = array();
-    if ($tvarchive) $filters[] = 'setpts=PTS-STARTPTS';
+
+    // hmm, this *helps* for Thumbnails and tricky MPEG-TS items, but
+    // not reliable enough for mp4 for some shows, eg:
+    //   /details/MSNBCW_20120502_010000_The_Rachel_Maddow_Show
+    if ($tvarchive  &&  !$h264) $filters[] = 'setpts=PTS-STARTPTS';
+
+
     // OK, it's prolly more ideal for majority of videos to do this:
     //   $filters = array('yadif=0:-1:1');
     // and *not* deinterlace if the source is progressive (or claims to be).

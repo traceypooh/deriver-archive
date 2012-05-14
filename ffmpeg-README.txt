@@ -75,7 +75,7 @@ git status;
 ###############################################################################
 # ffmpeg -- get source
 ###############################################################################
-function ffmpeg-src()
+function ffmpeg_src()
 {
     cd $DIR;
 
@@ -98,7 +98,7 @@ function ffmpeg-src()
 # ffmpeg -- do 1st pass default config and compile *and* install so
 #           we can get modern libavutil, etc. installed in place for x264 build
 ###############################################################################
-ffmpeg-src;
+ffmpeg_src;
 cd $DIR/ffmpeg;
 ./configure;
 make -j4;
@@ -124,7 +124,7 @@ env DESTDIR=$DIR  make install;
 ###############################################################################
 # ffmpeg -- patch
 ###############################################################################
-ffmpeg-src;
+ffmpeg_src;
 
 # tracey patches:
 #    -AAC audio (nondecreasing timestamps is fine; monotonic is too restrictive!)
