@@ -1239,7 +1239,7 @@ class Video
   // returns null if maker hangs and timesout
   //
   // NOTE: throws exception on errors
-  public static function frames($file, $outDir, $tvarchive, $maxThumbs=0,
+  public static function frames($file, $outDir, $tvarchive=false, $maxThumbs=0,
                                 $identify=null, $timestampBaseName=null,
                                 $dimens='-s 160x110', $xtraArgs='-b:v 1K')
   {
@@ -1250,7 +1250,7 @@ class Video
     // frames per second (note might have decimal accuracy)
     if (!$identify)
     {
-      $identify = Video::identify($file, true);
+      $identify = Video::identify($file, true, 150, $tvarchive);
       print_r($identify);
     }
 

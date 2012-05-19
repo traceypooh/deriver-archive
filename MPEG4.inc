@@ -7,7 +7,7 @@ class MPEG4 extends Module
   
   
   public function version()
-  { return '$Revision: 43080 $ $Date: 2012-04-09 20:43:17 +0000 (Mon, 09 Apr 2012) $'; }
+  { return '$Revision: 43990 $ $Date: 2012-05-18 01:32:34 +0000 (Fri, 18 May 2012) $'; }
 
   
   public function derive()
@@ -33,7 +33,7 @@ class MPEG4 extends Module
     
     // first, print clip info to log (since we'll throw out all ffmpeg output)
     if (!$identify)
-      $identify = Shared::identify($src);
+      $identify = Shared::identify($src, $this->is_tvarchive());
 
 
     $times3 = Util::timeoutTime($identify,  '3x',  '4h');
