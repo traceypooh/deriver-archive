@@ -135,7 +135,7 @@ ffmpeg_src;
 #             not using MPEG-TS copy at the moment... (and certainly basic MPEG-TS
 #             stream copying is working for video w/ detected width/height now...)
 cd $DIR/ffmpeg;
-for p in $PAT/ffmpeg-aac.patch $PAT/ffmpeg-thumbnails.patch $PAT/ffmpeg-theora.patch; do # $PAT/ffmpeg-copy.patch
+for p in $PAT/ffmpeg-aac.patch $PAT/ffmpeg-thumbnails.patch $PAT/ffmpeg-theora.patch $PAT/ffmpeg-showinfo.patch; do # $PAT/ffmpeg-copy.patch
   patch -p1 < $p;
 done
 
