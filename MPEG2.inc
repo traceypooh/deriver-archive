@@ -9,7 +9,7 @@ require_once('Module.inc');
 class MPEG2 extends Module
 {
   public function version() 
-  { return '$Revision: 43671 $ $Date: 2012-05-07 22:15:47 +0000 (Mon, 07 May 2012) $'; }
+  { return '$Revision: 44080 $ $Date: 2012-05-22 19:17:21 +0000 (Tue, 22 May 2012) $'; }
   
   public function derive()
   {
@@ -26,8 +26,14 @@ class MPEG2 extends Module
       fatal("Video width/height not calculable -- likely no video track!");
 
 
+    // john hauser especially wanted the rect pixel 720x480 instead of
+    // the square pixel 640x480 we'd be making...
     list($vf) = Video::vf("-s 640x480", $identify, false, true);
-    $vf = Video::yadif_nix($vf);
+    // ...so rescale once more!
+    // (and remove our normal deinterlace step since these are intended
+    //  for TV interlaced broadcast anyway)
+    $vf = Video::yadif_nix($vf) .  ',scale=720:480  -aspect 4:3 ';
+    
 
 
     if ($identify['length'] > 12*3600)
