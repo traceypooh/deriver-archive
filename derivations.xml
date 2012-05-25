@@ -392,6 +392,9 @@
         <dependency format="ZIP" variation="Raw Yale Medical Book Zip"/>
         <dependency format="ZIP" variation="Raw NIH Book Zip"/>
         <dependency format="ZIP" variation="Generic Raw Book Zip"/>
+        <dependency format="Tar" variation="Generic Raw Book Tar"/>
+        <dependency format="Comic Book ZIP" variation="Comic Book ZIP"/>
+        <dependency format="Comic Book RAR" variation="Comic Book RAR"/>
         <dependency format="TransContents" variation="Texts Transclusion Contents"/>
         <!-- for the next two, must exit early if the source PDF was derived -->
         <dependency format="ImagePDF" variation="Image Container PDF"/>
@@ -1301,6 +1304,7 @@
       <variation name="Single Page Processed JPEG Tar" preextension="_jpg" multifile="true"/>
       <variation name="Raw Mekel Tar" preextension="_mekel"/>
       <variation name="RePublisher Proxy Tar" preextension="_proxy_jpg"/>
+      <variation name="Generic Raw Book Tar" preextension="_images"/>
       <variation name="Raw China Books RAR Tar" preextension="_cnrar"/>
       <variation name="TAR" multifile="true"/> <!--generic default in /editxml-->
     </variations>
@@ -1622,9 +1626,13 @@
     </variations>
   </format>
 
-  <!-- will be deriving from this format shortly -->
-  <!-- (adjust RawBookPreprocessor to unpack RARs as well as ZIPs, then run through -->
-  <!-- RawImagesBookPreprocessor; also move .cbz here from FormatGetter.inc)        -->
+  <format name="Comic Book ZIP">
+    <extension>cbz</extension>
+    <variations>
+      <variation name="Comic Book ZIP"/>
+    </variations>
+  </format>
+
   <format name="Comic Book RAR">
     <extension>cbr</extension>
     <variations>
