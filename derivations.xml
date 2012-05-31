@@ -483,7 +483,7 @@
       </variation>
     </variations>
   </format>
-
+    
 
   <format name="MPEG2">
     <extension>mpeg</extension>
@@ -499,6 +499,7 @@
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2-TS" variation="MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2"/>
         <dependency format="WebM" variation="WebM" />
         <dependency format="MPEG4" variation="h.264 MPEG4" />
@@ -522,6 +523,15 @@
         <dependency format="3GP" variation="3GP" />
         <dependency format="Matroska" variation="Matroska" />
       </variation>
+    </variations>
+  </format>
+
+  <format name="MPEG2-TS">
+    <extension>ts</extension>
+    <extension>m2ts</extension>
+    <class />
+    <variations>
+      <variation name="MPEG2-TS" />
     </variations>
   </format>
 
@@ -552,6 +562,7 @@
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2-TS" variation="MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2"/>
         <dependency format="WebM" variation="WebM" />
         <dependency format="MPEG4" variation="h.264 MPEG4" />
@@ -609,6 +620,7 @@
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2-TS" variation="MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2" />
         <dependency format="WebM" variation="WebM" />
         <dependency format="MPEG4" variation="h.264 MPEG4" />
@@ -633,6 +645,7 @@
       <variation rank="8" name="h.264 720P" parameter="1280x720 -fpre /petabox/sw/lib/ffmpeg/libx264-IA-720p.ffpreset" preextension="_720p" conditionally="{'collection':['35mmstockfootage']}">
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2-TS" variation="MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2" />
         <dependency format="WebM" variation="WebM" />
         <dependency format="MPEG4" variation="h.264 MPEG4" />
@@ -772,6 +785,7 @@
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2-TS" variation="MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2" />
         <dependency format="WebM" variation="WebM" />
         <dependency format="MPEG4" variation="h.264 MPEG4" />
@@ -932,6 +946,7 @@
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2-TS" variation="MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2"/>
         <dependency format="WebM" variation="WebM" />
         <dependency format="MPEG4" variation="h.264 MPEG4" />
@@ -983,6 +998,7 @@
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2-TS" variation="MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2"/>
         <dependency format="WebM" variation="WebM" />
         <dependency format="MPEG4" variation="h.264 MPEG4" />
@@ -1016,6 +1032,7 @@
     <variations>
       <variation rank="2" name="Video Index" preextension=".mpg">
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2-TS" variation="MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2"/>
         <dependency format="MPEG1" variation="MPEG1"/>
       </variation>

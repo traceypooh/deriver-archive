@@ -1,38 +1,81 @@
 #!/bin/bash -ex
 
 ###############################################################################
+# author: Tracey Jaquith.  Software license GPL version 2.
+# last updated:   $Date: 2012-05-30 23:11:52 +0000 (Wed, 30 May 2012) $
+###############################################################################
 # We compile our own ffmpeg because we have config options we want differently
 # from the std ubuntu package AND because we have patches.
 #
 # For example, we want builtin mp3 creation (lame),
 # AAC audio encoding and decoding (faac and faad) support,
-# and x.264 and ... and a pony 8-) ....
+# and h.264/x264 and ... and a pony 8-) ....
 ###############################################################################
-PET=$HOME/petabox
-UBU_NAME=$(lsb_release -cs); # eg: "natty"
 DIR=/tmp/f;
-PAT=$PET/sw/lib/ffmpeg; # patches
-PRESETS=$PET/sw/lib/ffmpeg; # where presets will live
+DIRIN=$DIR/usr;
+SHORTNAME=mac;
 
-
-function line(){ perl -e 'print "_"x80; print "\n\n";'; }
-
-
-if [ "$UBU_NAME" != "natty"  -a  "$UBU_NAME" != "oneiric"  -a  "$UBU_NAME" != "precise" ]; then
-    echo "unsupported OS"; exit 1;
+unset LD_LIBRARY_PATH; #avoid any contamination when set!
+MYDIR=$(d=`dirname $0`; echo $d | grep '^/' || echo `pwd`/$d);
+PRESETS=$MYDIR; # where presets will live
+if [ -e "$MYDIR/../lib/ffmpeg" ]; then
+  PRESETS="$MYDIR/../lib/ffmpeg";
 fi
 
 
-mkdir -p $DIR;
-
-sudo apt-get install yasm; # make sure we have an assembler!
-
-# make sure we have basic needed pkgs!
-# http://packages.ubuntu.com/search?searchon=contents&arch=any&mode=exactfilename&suite=precise&keywords=libasound.a
 
 
+MYCC="";
+FFXTRA="";
+if [ $(uname -s) == 'Darwin' ]; then
+  FFXTRA="
+--prefix=/opt/local
+--extra-cflags=-I/opt/local/include
+--extra-cflags=-I/opt/local/include/SDL
 
-sudo apt-get -y install  \
+--extra-ldflags=-L/opt/local/lib
+";
+
+  DIR=/opt/local/x;
+  DIRIN=$DIR/opt;
+
+  # NOTE "CC=clang" is esp. for mac lion!
+  # NOTE "disable-vda" is esp. for mac lion!
+  if [ "$OSTYPE" != "darwin10.0" ]; then
+    MYCC="--cc=clang  --disable-vda" 
+  fi
+ 
+  echo "step 1: install  macports -- see http://www.macports.org/install.php"
+
+  # Some generally useful port commands (in "terminal" app):
+  #   sudo port -v selfupdate
+  #   sudo port upgrade outdated
+  #   port installed
+  #   port search <portname>
+  #   sudo port install <portname>
+
+  sudo port install  git-core lame libtheora libvorbis openjpeg faac bzip2 freetype yasm opencore-amr;
+  sudo port install  libsdl  xorg-libXfixes;   # X and SDL stuff for ffplay
+
+else
+  FFXTRA="
+--prefix=/usr         
+--enable-libfreetype
+--enable-libgsm
+--enable-libspeex 
+--extra-ldflags=-static
+";
+
+  SHORTNAME=$(lsb_release -cs); # eg: "precise"
+  if [ "$SHORTNAME" != "natty"  -a  "$SHORTNAME" != "oneiric"  -a  "$SHORTNAME" != "precise" ]; then
+    echo "unsupported OS"; exit 1;
+  fi
+
+  # Make sure we have basic needed pkgs!
+  sudo apt-get install yasm; # make sure we have an assembler!
+
+  # http://packages.ubuntu.com/search?searchon=contents&arch=any&mode=exactfilename&suite=precise&keywords=libasound.a
+  sudo apt-get -y install  \
     libschroedinger-dev  libdirac-dev  dirac \
     libx264-dev \
     libfaac-dev \
@@ -48,8 +91,27 @@ sudo apt-get -y install  \
     libsdl1.2-dev \
     libtheora-dev \
     libvpx-dev \
-    libfreetype6-dev \
-    oggz-tools
+    libfreetype6-dev
+
+fi;
+
+function line(){ perl -e 'print "_"x80; print "\n\n";'; }
+
+
+################################################################################
+# ffmpeg, ffprobe, qt-faststart, x264, mplayer
+#       compile directly an ffmpeg that can create x264 and WebM
+#       and by compiling directly, we can make qt-faststart, too!
+################################################################################
+
+
+
+sudo mkdir -p $DIR;
+sudo chown $USER $DIR;
+cd $DIR;
+
+
+
 
 
 ###############################################################################
@@ -57,7 +119,7 @@ sudo apt-get -y install  \
 #         set it up so that we'll compile it in *statically*
 ###############################################################################
 cd $DIR;
-rm -rfv $DIR/usr/;
+rm -rfv $DIRIN;
 if [ ! -e x264 ]; then
   git clone git://git.videolan.org/x264.git;
 fi
@@ -66,9 +128,6 @@ git reset --hard;
 git clean -f;
 git pull;
 git status;
-#make clean;
-
-
 
 
 
@@ -82,16 +141,14 @@ function ffmpeg_src()
     if [ ! -e ffmpeg ]; then
         git clone git://git.videolan.org/ffmpeg.git;
     fi
-    # reverse any mod.s (eg: the patches below!) in case we are rerunning
+
     cd ffmpeg;
-    rm -fv {ffpresets,presets}/*;
     git reset --hard;
+    git clean -f;
     git pull;
-    rm -fv 666xx666 $(find . -name '*.orig' -o -name '*.rej');
     line; git status; line;
     # git diff
 }
-
 
 
 ###############################################################################
@@ -105,15 +162,15 @@ make -j4;
 env DESTDIR=$DIR  make install;
 
 
-
 ###############################################################################
 # BACK to x264 -- now we can compile it and use most recent libavutil, etc.
 #                 (installed above with first ffmpeg config+compile base pass)
 ###############################################################################
 cd $DIR/x264;
 ./configure --enable-static --enable-pic \
---extra-cflags=-I${DIR?}/usr/local/include \
---extra-ldflags=-L${DIR?}/usr/local/lib
+--extra-cflags=-I${DIRIN?}/local/include \
+--extra-ldflags=-L${DIRIN?}/local/lib
+# xxxx mac     ./configure --prefix=$DIRIN/local --enable-static --enable-shared;
 
 make -j4;
 env DESTDIR=$DIR  make install;
@@ -121,6 +178,7 @@ env DESTDIR=$DIR  make install;
 
 
 
+    
 ###############################################################################
 # ffmpeg -- patch
 ###############################################################################
@@ -135,8 +193,21 @@ ffmpeg_src;
 #             not using MPEG-TS copy at the moment... (and certainly basic MPEG-TS
 #             stream copying is working for video w/ detected width/height now...)
 cd $DIR/ffmpeg;
-for p in $PAT/ffmpeg-aac.patch $PAT/ffmpeg-thumbnails.patch $PAT/ffmpeg-theora.patch $PAT/ffmpeg-showinfo.patch; do # $PAT/ffmpeg-copy.patch
-  patch -p1 < $p;
+PATDIR=
+for p in ffmpeg-aac.patch  ffmpeg-thumbnails.patch  ffmpeg-theora.patch  ffmpeg-showinfo.patch; do # ffmpeg-copy.patch
+  if [ "$PATDIR" == "" ]; then
+    # find the patches dir!
+    if [ -e "$MYDIR/$p" ]; then
+      PATDIR=file://$MYDIR; 
+    elif [ -e "$MYDIR/../lib/ffmpeg/$p" ]; then
+      PATDIR=file://$MYDIR/../lib/ffmpeg;
+    else
+      PATDIR=http://archive.org/~tracey/downloads/patches;
+    fi
+  fi
+
+  curl "$PATDIR/$p" >| ../$p;
+  patch -p1 < ../$p;
 done
 
 
@@ -151,6 +222,7 @@ cd $DIR;
 cd ffmpeg;
 # NOTE: options are alphabetized, thankyouverymuch (makes comparison easier)
 # NOTE: --enable-version3  is for prores decoding
+# NOTE: libopenjpeg allows motion-JPEG jp2 variant
 
 ./configure $(echo "
 --disable-shared
@@ -160,13 +232,10 @@ cd ffmpeg;
 --enable-avfilter
 --enable-gpl
 --enable-libfaac
---enable-libfreetype
---enable-libgsm
 --enable-libmp3lame
 --enable-libopencore-amrnb
 --enable-libopencore-amrwb
 --enable-libopenjpeg
---enable-libspeex 
 --enable-libtheora
 --enable-libvorbis
 --enable-libxvid
@@ -175,38 +244,79 @@ cd ffmpeg;
 --enable-pthreads
 --enable-static
 
---prefix=/usr         
---enable-version3 
+--enable-ffplay
 --enable-libvpx 
 --enable-libx264
+--enable-version3
 
---extra-cflags=-I${DIR?}/usr/local/include
---extra-ldflags=-L${DIR?}/usr/local/lib
+$MYCC
+$FFXTRA
+
+--extra-cflags=-I${DIRIN?}/local/include
+--extra-ldflags=-L${DIRIN?}/local/lib
+
 --extra-cflags=-static
---extra-ldflags=-static
 ");
 
 #xxx --enable-libschroedinger # hmm stopped working in natty/oneiric ~oct2011...
 
 
-make -j4 V=1;
-make alltools;
+    make -j4 V=1;
+    make alltools;
+    env DESTDIR=$DIR make install;
+    cp presets/*.ffpreset   $PRESETS/;
+    if [ "$SHORTNAME" == "mac" ]; then
+      sudo cp ffmpeg ffprobe tools/qt-faststart  /opt/local/bin/;
+      if [ -x ffplay ]; then # fixxxme no ffplay still for Lion
+          sudo cp ffplay /opt/local/bin/;
+      fi
+    else
+      cp ffmpeg               $MYDIR/ffmpeg.$SHORTNAME;
+      cp ffprobe              $MYDIR/ffprobe.$SHORTNAME;
+      cp ffplay               $MYDIR/ffplay.$SHORTNAME;
+      set -x;
+      echo;echo;echo "NOTE: any changes to $MYDIR and $PRESETS need to be committed..."
+    fi
+      
+
+    
 
 
-# dont do this because will overstomp /usr/lib/libavcodec* etc
-# and we are making a **static** ffmpeg that will not use those shared libs
-# anyway (it can make other tools muckup if those libs rev/change out from them)
-#
-# make install;  
+
+if [ "$SHORTNAME" == "mac" ]; then
+    # now build mplayer from source (uses libx264 above and ffmpeg)
+    cd $DIR;
+    svn checkout svn://svn.mplayerhq.hu/mplayer/trunk mplayer;
+    cd mplayer;
+    mv ../ffmpeg .; # needed by mplayer -- will reconfig & remake it, sigh...
+
+    # make it **not** recompile our ffmpeg (and later install bad libs) on us!!
+    perl -i -p \
+        -e 's/^\$\(FFMPEGLIBS\)\: \$\(FFMPEGFILES\) config\.h\n//;' \
+        -e 's/^.*C ffmpeg.*\n//;' \
+        Makefile;
+    
+    # worked finally!
+    export LD_LIBRARY_PATH=/opt/local/lib:/usr/lib:/usr/local/lib:/lib;
+    if [ "$OSTYPE" == "darwin11" ]; then
+        perl -i -pe 's/\-mdynamic-no-pic //' configure;
+    fi;
+
+    # NOTE:  "disable-tremor" (seemed to be getting in way of vorbis)
+    ./configure --prefix=/opt/local  $MYCC  --enable-menu  --enable-x264 --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor-internal  --disable-ffmpeg_so  --extra-cflags="-I$DIR/opt/local/include -I/opt/local/include" --extra-ldflags="$DIR/opt/local/lib/libx264.a ";
 
 
+    sudo chown -R $USER .; #should NOT have to do this, something screwy, fixit!
+    make -j3;
+    sudo make install;
 
-cp ffmpeg               $PET/sw/bin/ffmpeg.$UBU_NAME;
-cp ffprobe              $PET/sw/bin/ffprobe.$UBU_NAME;
-cp presets/*.ffpreset   $PRESETS/;
+    mv ffmpeg ..;
 
 
-
-
-set -x;
-echo;echo;echo "NOTE: any changes to $PET/sw/{bin,lib} need to be committed..."
+  ################################################################################
+  #    unrelated ports packages that tracey likes/uses:
+  # sudo port install pcre wget ddrescue lftp spidermonkey ImageMagick avidemux
+  # sudo port install p7zip unrar wine colordiff
+  # sudo port install gimp
+  # sudo port install dvdauthor cdrtools dvdrw-tools
+fi

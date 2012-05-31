@@ -8,7 +8,7 @@ class Thumbnails extends Module
   
   
   public function version()
-  { return '$Revision: 37636 $ $Date: 2011-08-11 23:04:15 +0000 (Thu, 11 Aug 2011) $'; }
+  { return '$Revision: 44162 $ $Date: 2012-05-27 04:47:39 +0000 (Sun, 27 May 2012) $'; }
   
   public function derive()
   {
@@ -59,7 +59,7 @@ class Thumbnails extends Module
     if (!$thumbnails)
       return; // couldn't make thumbs for this movie.  move on to next module!
     
-    Util::cmdPP("mkdir -p $baseDir");
+    Util::cmdPP('mkdir -p '.Util::esc($baseDir));
     Util::cmdPP('rm -rf '.Util::esc($baseName).'[0-9]*.jpg');//remove any prior thumbnails!
     echo count($thumbnails)." thumbnails\n";
 
