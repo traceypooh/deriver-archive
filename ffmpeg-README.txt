@@ -249,13 +249,12 @@ cd ffmpeg;
 --enable-libx264
 --enable-version3
 
+--extra-cflags=-I${DIR?}/usr/local/include
+--extra-ldflags=-L${DIR?}/usr/local/lib
+--extra-cflags=-static
+
 $MYCC
 $FFXTRA
-
---extra-cflags=-I${DIRIN?}/local/include
---extra-ldflags=-L${DIRIN?}/local/lib
-
---extra-cflags=-static
 ");
 
 #xxx --enable-libschroedinger # hmm stopped working in natty/oneiric ~oct2011...
@@ -303,7 +302,7 @@ if [ "$SHORTNAME" == "mac" ]; then
     fi;
 
     # NOTE:  "disable-tremor" (seemed to be getting in way of vorbis)
-    ./configure --prefix=/opt/local  $MYCC  --enable-menu  --enable-x264 --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor-internal  --disable-ffmpeg_so  --extra-cflags="-I$DIR/opt/local/include -I/opt/local/include" --extra-ldflags="$DIR/opt/local/lib/libx264.a ";
+    ./configure --prefix=/opt/local  $MYCC  --enable-menu  --enable-x264 --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor-internal  --disable-ffmpeg_so  --extra-cflags="-I$DIR/usr/local/include -I/opt/local/include" --extra-ldflags="$DIR/opt/local/lib/libx264.a ";
 
 
     sudo chown -R $USER .; #should NOT have to do this, something screwy, fixit!
