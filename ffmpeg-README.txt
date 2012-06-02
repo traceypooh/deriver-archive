@@ -54,7 +54,7 @@ if [ $(uname -s) == 'Darwin' ]; then
   #   port search <portname>
   #   sudo port install <portname>
 
-  sudo port install  git-core lame libtheora libvorbis openjpeg faac bzip2 freetype yasm opencore-amr;
+  sudo port install  git-core lame libtheora libvorbis openjpeg faac bzip2 freetype yasm opencore-amr xvid libvpx pkgconfig;
   sudo port install  libsdl  xorg-libXfixes;   # X and SDL stuff for ffplay
 
 else
@@ -62,7 +62,7 @@ else
 --prefix=/usr         
 --enable-libfreetype
 --enable-libgsm
---enable-libspeex 
+--enable-libspeex
 --extra-ldflags=-static
 ";
 
