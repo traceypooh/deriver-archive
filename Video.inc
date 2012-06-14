@@ -1831,11 +1831,91 @@ class Video
     }
     
     
-    
-    
     return array($cmd, $acoder);
   }
   
+
+  // This is used (only) by the deriver by video modules.
+  // very similar to "metadataString()", but with an array of mapped names...
+  // see also:   http://wiki.multimedia.cx/index.php?title=FFmpeg_Metadata
+  private static $videoMetaCache=null;
+  public static function videoMeta(&$module, $mapping, $addurl=false)
+  {
+    $url = "http://archive.org/details/{$module->identifier}";
+
+    // add any relevant metadata
+    if (!self::$videoMetaCache)
+    {
+      // parse the _meta.xml
+      self::$videoMetaCache = array();
+      $xml = simplexml_load_file("{$module->itemDir}{$module->identifier}_meta.xml");
+      if ($xml)
+      {
+        foreach ($xml->children() as $child)
+        {
+          $tag = $child->getName();
+          $val = trim((string)$child[0]);
+          if ($val  &&  !isset(self::$videoMetaCache[$tag]))//keep 1st instance when 2 elems
+            self::$videoMetaCache[$tag] = array($val);
+        }
+      }
+
+      // if no title, make it the /details/ url
+      if (!isset(self::$videoMetaCache['title']))
+        self::$videoMetaCache['title'] = array($url);
+    }
+    
+
+    $m = '';
+    foreach ($mapping as $metaName => $pre)
+    {
+      if ($metaName=='date'  &&  $pre=='-metadata year=')
+      {
+        // special case extra needed check to make sure it's a 4-digit number!
+        if (!preg_match('/^\d\d\d\d$/', self::$videoMetaCache['date'][0]))
+          continue;
+      }
+      
+      // append /details/ url to the title, if desired (and not already the title)
+      $valpost = (($addurl  &&  $metaName == 'title'  &&
+                   self::$videoMetaCache['title'][0] != $url) ? " - $url" : '');
+      
+      // try to get any **<file> tag specific** <title> element first.  if none,
+      // get the overall item's <title>
+      if ($tmp=self::metadataString($module->metadata,$metaName,$pre,'',$valpost))
+        $m .= " $tmp";
+      else
+        $m.=" ".self::metadataString(self::$videoMetaCache, $metaName, $pre, '', $valpost);
+    }
+
+    return $m;
+  }
+  
+
+  // Only used by video and audio deriver modules.
+  // Use a tag/key from the metadata (IFF it exists)
+  // and return a string like [returned w/o quotes]:
+  //    "$pre[TAG VALUE]$post"
+  // suitable for a cmd-line invocation.
+  // If tag is not set in metadata, return ""
+  public static function metadataString($metadata, $tag, $pre='', $post='',
+                                        $valpost='')
+  {
+    if ($metadata  &&  isset($metadata[$tag]))
+    {
+      if (is_array($metadata[$tag])) // SHOULD always be true!
+        $val = $metadata[$tag][0];
+      else
+        $val = $metadata[$tag];
+      
+      // NOTE: we use newer/better way to escape args...
+      return $pre.Util::esc($val.$valpost).$post;
+    }
+    return "";
+  }
+
+
+
   
   public static function regress($all=false)
   {

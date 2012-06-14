@@ -7,7 +7,7 @@ class Ogv extends Module
 
 
   public function version()
-  { return '$Revision: 43732 $ $Date: 2012-05-09 02:29:36 +0000 (Wed, 09 May 2012) $'; }
+  { return '$Revision: 44611 $ $Date: 2012-06-14 19:27:19 +0000 (Thu, 14 Jun 2012) $'; }
   
   public function derive()
   {
@@ -32,7 +32,7 @@ class Ogv extends Module
     
     // first, print clip info to log (since we'll throw out all ffmpeg output)
     if (!$identify)
-      $identify = Shared::identify($src);
+      $identify = Module::identify($src);
 
 
     // for any relevant metadata, make relevant cmd-line args to the cmd
@@ -48,7 +48,7 @@ class Ogv extends Module
                            $params, $this->is_tvarchive());
 
     // metadata inserter
-    $meta = Shared::videoMeta($this, array(
+    $meta = Video::videoMeta($this, array(
                                 'title'         => '-metadata TITLE=',
                                 'licenseurl'    => '-metadata LICENSE=',
                                 'date'          => '-metadata DATE=',

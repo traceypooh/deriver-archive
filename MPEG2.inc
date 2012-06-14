@@ -9,7 +9,7 @@ require_once('Module.inc');
 class MPEG2 extends Module
 {
   public function version() 
-  { return '$Revision: 44080 $ $Date: 2012-05-22 19:17:21 +0000 (Tue, 22 May 2012) $'; }
+  { return '$Revision: 44611 $ $Date: 2012-06-14 19:27:19 +0000 (Thu, 14 Jun 2012) $'; }
   
   public function derive()
   {
@@ -21,7 +21,7 @@ class MPEG2 extends Module
     $params = $this->parameter;
     $ffmpeg =  configGetPetaboxPath('bin-ffmpeg').' -v 0';
 
-    $identify = Shared::identify($src);
+    $identify = Module::identify($src);
     if (!$identify['width']  ||  !$identify['height'])
       fatal("Video width/height not calculable -- likely no video track!");
 
@@ -44,7 +44,7 @@ class MPEG2 extends Module
       $copy = $this->tmp.'copy.mpg';
       echo "\n\nNOTE: this video had a implausibly long length -- streamcopy to temp dest to try to \"launder\" it\n\n";
       Util::cmdQT("$ffmpeg -i ".Util::esc($src)." -acodec copy -vcodec copy $copy", 4);
-      $identify = Shared::identify($copy);
+      $identify = Module::identify($copy);
     }
 
     $audio = ($identify['audio']  &&  $identify['audio'] != 'false');
@@ -58,7 +58,7 @@ class MPEG2 extends Module
     // it somehow starts magically working w/ ffmpeg updates or otherwise...
 
     // for inserting metadata
-    $meta = Shared::videoMeta($this, array(
+    $meta = Video::videoMeta($this, array(
                                 'title'         => '-metadata title=',
                                 'date'          => '-metadata year=',
                                 'director'      => '-metadata author=',

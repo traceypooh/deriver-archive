@@ -874,6 +874,7 @@
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2" />
         <dependency format="MPEG1" variation="MPEG1" />
+        <dependency format="ISO Image" variation="ISO Image" />
       </variation>
       <variation name="Closed Caption Text" preextension=".cc2"/>
       <variation name="Closed Caption Text" preextension=".cc3"/>
@@ -904,9 +905,10 @@
   <format name="Item Image">
     <extension>gif</extension>
     <extension>jpg</extension>
+    <extension>png</extension>
     <class />
     <variations>
-      <variation name="Item Image" />
+      <variation name="Item Image" preextension="_itemimage"/>
     </variations>
   </format>
 
@@ -1587,6 +1589,14 @@
     <extension>conf</extension>
     <variations>
       <variation name="Derivation Rules" preextension="rules"/>
+    </variations>
+  </format>
+
+  <format name="Archive BitTorrent">
+    <extension>torrent</extension>
+    <class>Torrent</class>
+    <variations>
+      <variation name="Archive BitTorrent" preextension="_archive"/>
     </variations>
   </format>
 

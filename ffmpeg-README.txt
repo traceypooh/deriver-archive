@@ -26,6 +26,7 @@ fi
 
 
 MYCC="";
+MYCC2="";
 FFXTRA="";
 if [ $(uname -s) == 'Darwin' ]; then
   FFXTRA="
@@ -39,10 +40,9 @@ if [ $(uname -s) == 'Darwin' ]; then
   DIR=/opt/local/x;
   DIRIN=$DIR/opt;
 
-  # NOTE "CC=clang" is esp. for mac lion!
-  # NOTE "disable-vda" is esp. for mac lion!
   if [ "$OSTYPE" != "darwin10.0" ]; then
-    MYCC="--cc=clang  --disable-vda" 
+    MYCC="--cc=clang"; # NOTE: esp. for mac lion!
+    MYCC2="--disable-vda"; # NOTE: esp. for mac lion!
   fi
  
   echo "step 1: install  macports -- see http://www.macports.org/install.php"
@@ -54,7 +54,7 @@ if [ $(uname -s) == 'Darwin' ]; then
   #   port search <portname>
   #   sudo port install <portname>
 
-  sudo port install  git-core lame libtheora libvorbis openjpeg faac bzip2 freetype yasm opencore-amr xvid libvpx pkgconfig;
+  sudo port install  git-core lame libtheora libvorbis openjpeg faac bzip2 freetype yasm opencore-amr xvid openjpeg libvpx pkgconfig;
   sudo port install  libsdl  xorg-libXfixes;   # X and SDL stuff for ffplay
 
 else
@@ -254,6 +254,7 @@ cd ffmpeg;
 --extra-cflags=-static
 
 $MYCC
+$MYCC2
 $FFXTRA
 ");
 
@@ -302,7 +303,7 @@ if [ "$SHORTNAME" == "mac" ]; then
     fi;
 
     # NOTE:  "disable-tremor" (seemed to be getting in way of vorbis)
-    ./configure --prefix=/opt/local  $MYCC  --enable-menu  --enable-x264 --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor-internal  --disable-ffmpeg_so  --extra-cflags="-I$DIR/usr/local/include -I/opt/local/include" --extra-ldflags="$DIR/opt/local/lib/libx264.a ";
+    ./configure --prefix=/opt/local  $MYCC  --enable-menu  --enable-x264 --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor-internal  --disable-ffmpeg_so  --extra-cflags="-I$DIR/usr/local/include -I/opt/local/include" --extra-ldflags="$DIR/usr/local/lib/libx264.a ";
 
 
     sudo chown -R $USER .; #should NOT have to do this, something screwy, fixit!
@@ -315,7 +316,7 @@ if [ "$SHORTNAME" == "mac" ]; then
   ################################################################################
   #    unrelated ports packages that tracey likes/uses:
   # sudo port install pcre wget ddrescue lftp spidermonkey ImageMagick avidemux
-  # sudo port install p7zip unrar wine colordiff
+  # sudo port install p7zip unrar wine colordiff jp2a freetype
   # sudo port install gimp
   # sudo port install dvdauthor cdrtools dvdrw-tools
 fi
