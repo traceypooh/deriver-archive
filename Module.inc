@@ -38,6 +38,11 @@ abstract class Module
   protected function extraTarget(){}
   protected function shortName(){}
   protected function is_tvarchive(){ return false; }
+  protected function identify($file){
+    $identify = Video::identify($file,1);
+    print_r($identify);
+    return $identify;
+  }
 
   abstract public function derive();
 
