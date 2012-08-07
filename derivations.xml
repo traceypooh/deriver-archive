@@ -616,7 +616,15 @@
     <category>lossy</category>
     <class>MPEG4</class>
     <variations>
-      <variation rank="8" name="h.264" parameter="640x480 -fpre /petabox/sw/lib/ffmpeg/libx264-IA.ffpreset">
+      <variation rank="8" name="h.264" parameter="640x480 -fpre /petabox/sw/lib/ffmpeg/libx264-IA.ffpreset  -ac 2 -b:a 128k -ar 44100">
+<!-- for now we decided to make TV !news same HQ deriv.  we can make a 1/4 pixel-size deriv that
+     targets about 10% (compared to ~25%) the original by swapping prior line with this:
+      <variation rank="8" name="h.264" conditionally="[
+{ 'collection':['tvnews'],   'parameter':'640x480 -fpre /petabox/sw/lib/ffmpeg/libx264-IA.ffpreset       -ac 2 -b:a 128k -ar 44100'},
+{'!collection':['tvarchive'],'parameter':'640x480 -fpre /petabox/sw/lib/ffmpeg/libx264-IA.ffpreset       -ac 2 -b:a 128k -ar 44100'},
+{ 'collection':['tvarchive'],'parameter':'320x240 -fpre /petabox/sw/lib/ffmpeg/libx264-IA-320p.ffpreset  -ac 1 -b:a 32k  -ar 44100'}
+]">
+-->
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
@@ -1405,6 +1413,14 @@
     <extension>mobi</extension>
     <variations>
       <variation name="MOBI" />
+    </variations>
+  </format>
+
+  <format name="PalmOS Database">
+    <extension>pdb</extension>
+    <variations>
+      <variation name="PalmOS Database"/>
+      <variation name="PalmOS Plucker" preextension=".plucker"/>
     </variations>
   </format>
 

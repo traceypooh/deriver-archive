@@ -7,7 +7,7 @@ class MPEG4 extends Module
   
   
   public function version()
-  { return '$Revision: 44611 $ $Date: 2012-06-14 19:27:19 +0000 (Thu, 14 Jun 2012) $'; }
+  { return '$Revision: 45089 $ $Date: 2012-07-15 04:31:30 +0000 (Sun, 15 Jul 2012) $'; }
 
   
   public function derive()
@@ -30,10 +30,12 @@ class MPEG4 extends Module
     $ffmpeg             = configGetPetaboxPath('bin-ffmpeg').' -v 0';
     $qtfaststart        = configGetValue('bin-qt-faststart');
 
-    
     // first, print clip info to log (since we'll throw out all ffmpeg output)
     if (!$identify)
       $identify = Module::identify($src, $this->is_tvarchive());
+
+    if ($this->is_tvarchive()  &&  TV::is_audio_only($this->identifier, $identify))
+      return;
 
 
     $times3 = Util::timeoutTime($identify,  '3x',  '4h');
@@ -58,11 +60,13 @@ class MPEG4 extends Module
 
     $params = str_replace(' /petabox/', " {$_SERVER['PETABOX_HOME']}/", $this->parameter);
 
+    if (preg_match('/-fpre ([^ ]+)/', $params, $mat))
+      Util::cmdPP("egrep -v '^#' {$mat[1]}");
 
 
     list($cmd, $acoder) =
       Video::ffmpeg_params($cmd, $identify, $this->sourceFormat,
-                           self::ACODER." -ab 128k -ac 2 -ar 44100",
+                           self::ACODER,
                            $params, $this->is_tvarchive(), true);
     
     

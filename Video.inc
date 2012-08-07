@@ -134,12 +134,22 @@ class Video
     
     $groupsA = array();
     $groupsV = array();
+    $haxLP = false;
     foreach ($files as $filocation => $fi)
     {
       $short = ltrim($filocation, '/');
       $formatLC = strtolower($fi['FORMAT']);
       $suffixLC = strtolower(strrchr($short, '.'));
 
+      if ($fi['ORIGINAL']=="{$item->identifier}_segments.xml"  &&  $suffixLC=='.mp3'){
+        // pretend this mp3 is an original and not "derived from"
+        // an XML file...
+        $haxLP=true;//you think i $&*@# like this?  thx4gun2head...
+        unset($fi['ORIGINAL']);
+        $fi['SOURCE']='original';
+        //printr($fi);
+      }
+      
       if ($suffixLC == '.srt')
       {
         $srts[] = $short; // save for later
@@ -282,6 +292,12 @@ class Video
     }
     ksort($groups);
 
+    if ($haxLP){
+      // yank "entire album" tracks from being shown in A/V player
+      unset($groups["{$item->identifier}.flac"]);
+      unset($groups["{$item->identifier}.ogg"]);
+      unset($groups["{$item->identifier}.mp3"]);
+    }
 
 
     $nAudio = count($groupsA);
@@ -500,7 +516,8 @@ class Video
   //  [ac]      => aac
   //  [vc]      => h264
   // )
-  public static function identify($file, $print=false, $head=150, $skip_rotation_check=false)
+  public static function       id($file=''){ $r=Video::identify($file?$file:array_pop(glob('*.{mp4,mpeg4,m4v,mov,avi,mpg}',GLOB_BRACE)), true, 500, true); printr($r); return $r; }
+  public static function identify($file, $print=false, $head=2000, $skip_rotation_check=false)
   {
     $ffmpeg = configGetPetaboxPath('bin-ffmpeg');
 
@@ -556,6 +573,7 @@ class Video
       'height'  => $height,
       'fps'     => null,
       'audio'   => 'false',
+      'bytes'   => filesize($file),
       
       'length' => (preg_match('/\n *Duration: (\d+):(\d+):([\d\.]+)/', $out,
                               $mat) ? ((60 * 60 * $mat[1]) +
@@ -568,17 +586,27 @@ class Video
                            $mat[2] : '')),
       );
 
-    /*if (($sec = $arr['length']) > 86400)//hold off for now...
+
+    // sanity check the overall bytes/sec!  (see if the "length" is waaaaay off)
+    if ($arr['bytes']>0  &&  $arr['length']!=0  &&  
+        ($kbs = ($arr['bytes'] / $arr['length'] / 1024 * 8)) &&
+        ($kbs < 10  ||  $kbs > 1000000))
     {
-      echo "Duration of $sec seconds seems wrong...";
+      $kbs = round($kbs,1);
+      echo "Duration of {$arr['length']} seconds (=> ~$kbs kb/s) seems wrong...\n";
       $mylen = TV::alt_duration($file);
-      if ($mylen < $sec  &&  $mylen > 10)
+      if ($mylen > 10  &&
+          ($kbs = ($arr['bytes'] / $mylen / 1024 * 8))  &&
+          ($kbs >= 10  ||  $kbs <= 1000000))
       {
         // Seems like we have a more accurate length.
-        echo "Using alternate method!\n";
+        $kbs = round($kbs,1);
+        echo "Using alternate method of $mylen seconds (=> ~$kbs kb/s)!\n";
         $arr['length'] = $mylen;
       }
-    }*/
+    }
+    //error_log("$kbs kb/s");
+    
     
 
     // For TV archive items, we want to always use the first audio track found
@@ -588,7 +616,9 @@ class Video
       //printr($alines);
       $arr['astreams'] = '';
       $arr['audio_nchannels'] = 0;
-      $best = array(); // prefer mono and stereo
+      $eng  = array(); // prefer eng "5.1" ( when HD, eg: /details/KQED_20120625_210000_Rick_Steves_Europe )
+      $hd   = array(); // .. then prefer "5.1" ( when HD, eg: /details/KNTV_20120625_210000_We_the_People_With_Gloria_Allred )
+      $best = array(); // .. then prefer stereo then mono
       $rest = array(); // .. and o/w take any riff-raff if need be...
       for ($lineN=0; $lineN < count($alines[0]); $lineN++)
       {
@@ -618,7 +648,19 @@ class Video
           continue;
         }
         
-        if (preg_match('/, (\d+) channels, /', $aline, $m))
+        if ($arr['height']>=720  &&  preg_match('$\]\(eng\): Audio: .*?, (5\.1)(\(side\))*, $', $aline, $m))
+        {
+          // HD recordings -- we should actually prioritize "eng"(lish) 5.1 channels first
+          $eng[] = $streamID;
+          $arr['audio_nchannels'] += $m[2];
+        }
+        else if ($arr['height']>=720  &&  preg_match('$: Audio: .*?, (5\.1)(\(side\))*, $', $aline, $m))
+        {
+          // HD recordings -- we should actually prioritize 5.1 channels
+          $hd[] = $streamID;
+          $arr['audio_nchannels'] += $m[2];
+        }
+        else if (preg_match('/, (\d+) channels, /', $aline, $m))
         {
           if ($m[1]==0)
           {
@@ -667,10 +709,12 @@ class Video
         }
       }
  
-      // basically make comma-separated string of: $best,$rest
+      // basically make comma-separated string of: $eng,$hd,$best,$rest
+      $eng  = array_flip($eng);
+      $hd   = array_flip($hd);
       $best = array_flip($best);
       $rest = array_flip($rest);
-      $arr['astreams'] = join(',', array_keys($best + $rest));
+      $arr['astreams'] = join(',', array_keys($eng + $hd + $best + $rest));
     }
     
 
@@ -754,7 +798,9 @@ class Video
     // only keep the first 250 lines (in case it went crazy logging)
     $retval = null;
     
-    $info = exec(Util::timeout(600)." $mplayer -identify -nosound -novideo -nolirc -frames 0 ".Util::esc($file).($dvddevice ? ' -dvd-device '.Util::esc($dvddevice) : '')." 2>/dev/null | ".Util::timeout(600)." head -250",
+    $cmd = " $mplayer -identify -nosound -novideo -nolirc -frames 0 ".Util::esc($file).($dvddevice ? ' -dvd-device '.Util::esc($dvddevice) : '')." 2>/dev/null ";
+    //error_log($cmd);
+    $info = exec(Util::timeout(600)."$cmd | ".Util::timeout(600)." head -250",
                  $lines, $retval);
     return implode($lines, "\n");
   }
@@ -1076,11 +1122,11 @@ class Video
       }
       catch (Exception $e)
       {
-        fclose($fh);
+        pclose($fh);
         throw($e);
       }
       if ($fh)
-        fclose($fh);
+        pclose($fh);
     }
     
     //printr(Video::$frame2sec);
@@ -1250,10 +1296,13 @@ class Video
     // frames per second (note might have decimal accuracy)
     if (!$identify)
     {
-      $identify = Video::identify($file, true, 150, $tvarchive);
+      $identify = Video::identify($file, true, 2000, $tvarchive);
       print_r($identify);
     }
 
+
+    if ($tvarchive  &&  TV::is_audio_only(basename($file), $identify))
+      return null;
     
     list($vf,$outW,$outH) = Video::vf($dimens, $identify,
                                       $tvarchive,
@@ -1343,7 +1392,8 @@ class Video
     //   2 hr ==> 3   hr timeout
     //   3 hr ==> 4.5 hr timeout
     // (min 1 hours for timeout)
-    $maxtime = Util::timeoutTime($length, '1.5x', '1h');
+    $hd = ($tvarchive  &&  $identify['height']>=720);
+    $maxtime = Util::timeoutTime($length, ($hd ? '6x' : '1.5x'), ($hd ? '4h' : '2h'));
 
     // TV archive should red row if fails...
     if (Util::cmdQT($cmd, $maxtime, 'WARN'))
