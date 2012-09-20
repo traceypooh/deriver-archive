@@ -6,25 +6,17 @@
 # 
 ####################################################################################
 diff --git a/ffmpeg.c b/ffmpeg.c
-index a97327b..5f8d43b 100644
+index c48aec7..a6f92b6 100644
 --- a/ffmpeg.c
 +++ b/ffmpeg.c
-@@ -1873,13 +1873,14 @@ static void do_video_out(AVFormatContext *s,
+@@ -829,6 +829,7 @@ static void do_video_out(AVFormatContext *s,
+         av_log(NULL, AV_LOG_VERBOSE, "*** %d dup!\n", nb_frames - 1);
      }
  
- 
-+    s->ist_frame_number = ist->st->codec->frame_number;
- duplicate_frame:
++  s->ist_frame_number = ist->st->codec->frame_number;
+   /* duplicates frame if needed */
+   for (i = 0; i < nb_frames; i++) {
      av_init_packet(&pkt);
-     pkt.data = NULL;
-     pkt.size = 0;
- 
-     in_picture->pts = ost->sync_opts;
--
-+     
-     if (s->oformat->flags & AVFMT_RAWPICTURE &&
-         enc->codec->id == CODEC_ID_RAWVIDEO) {
-         /* raw pictures are written as AVPicture structure to
 diff --git a/libavformat/avformat.h b/libavformat/avformat.h
 index 5a11fdc..f9ad381 100644
 --- a/libavformat/avformat.h

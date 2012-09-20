@@ -1106,7 +1106,7 @@ class Video
       
       // Example output:
       // [showinfo @ 0x2f469a0] n:0 pts:1992578 pts_time:1.99258 pos:264892 fmt:yuv420p sar:10/11 s:704x480 i:T iskey:1 type:I checksum:0541DE56 plane_checksum:[13E0F3DC 9D24758E 5DF874DD 00000000]
-      $fh=popen("$ffmpeg -i ".Util::esc($src)." -vf showinfo=n -f null . 2>&1 |fgrep showinfo", "r");
+      $fh=popen("$ffmpeg -i ".Util::esc($src)." -vf showinfo=n -f null . 2>&1", "r");
       try
       {
         while (($line = fgets($fh)))
@@ -1161,12 +1161,12 @@ class Video
     {
       // format we are parsing out will be group of pictures (starts with 'V')
       // followed by a comment that indicates the start time position
-
+      
       // construct the map(ping) of [framenum] => [timestamp] from the .idx file
       if (Video::$lastmapSrc != $src)
       {
         $lastTS = -666;
-        $cmd = "egrep '^# Timestamp 2>/dev/null |^V ' ".Util::esc("$src.idx")."|egrep -A1 '^V ' 2>/dev/null";
+        $cmd = "egrep '^# Timestamp |^V ' 2>/dev/null ".Util::esc("$src.idx")."|egrep -A1 '^V ' 2>/dev/null";
         $fh = popen($cmd, "r");
         try
         {
@@ -1182,9 +1182,9 @@ class Video
             $line = trim(fgets($fh));
             if ($line=="")
               continue;
-            //error_log($line);
             
             $tok = preg_split('/[\s]+/', $line);
+            // printr($tok);
             
             if ($tok[0]=='V'  &&  is_numeric($tok[2]))
             {
@@ -1205,8 +1205,9 @@ class Video
               //error_log("$ts < $lastTS");
               if ($ts < $lastTS)
               {
-                error_log("UHOH .idx file timestamps are not monotonic!  Fallback to alternate method...");
+                error_log("UHOH .idx file timestamps are not monotonic!  ($ts >= $lastTS) Fallback to alternate method...");
                 Video::$lastmapALT = true;
+                Video::$lastmap = array();//wipe out prior bad map to avoid memory bloat
                 break;
               }
               
@@ -1225,6 +1226,7 @@ class Video
           {
             error_log("UHOH .idx all timestamps are identical!  Fallback to alternate method...");
             Video::$lastmapALT = true;
+            Video::$lastmap = array();//wipe out prior bad map to avoid memory bloat
           }
         }
         catch (Exception $e)
@@ -1240,9 +1242,13 @@ class Video
 
       
         
-      if (Video::$lastmapALT)
+      if (Video::$lastmapALT){
+        // huge videos exceed 200+MB limit, eg:
+        //   /details/MSNBC_20120802_130000_XXX_Summer_Olympics
+        Util::memory_limit('1G');
         return Video::framenum2secALT($src, $framenum);
-
+      }
+      
       $best = 0;
       $bestfound = false;
       foreach (Video::$lastmap as $framen => $ts)
@@ -1257,7 +1263,7 @@ class Video
         return -1;  // give up! (caller can fallback)
 
       // this is the I-frame that is at or before the passed in frame number!
-      // echo "\n\nNEW TS: $best\n";
+      //echo "\n\nNEW TS: $best\n";
       return $best;
     }
     else if ($identify['fps'])
@@ -1270,11 +1276,7 @@ class Video
 
   public static function yadif_nix($str)
   {
-    return
-      str_replace('-vf yadif=0:-1:1,','-vf ',
-                  str_replace('-vf yadif=1:-1:0 ',' ',
-                              str_replace('-vf yadif,','-vf ',
-                                          str_replace('-vf yadif ', ' ', $str))));
+    return str_replace('yadif=0:-1:1,',' ', str_replace('yadif,', '', $str));
   }
   
 
@@ -1393,19 +1395,34 @@ class Video
     //   3 hr ==> 4.5 hr timeout
     // (min 1 hours for timeout)
     $hd = ($tvarchive  &&  $identify['height']>=720);
-    $maxtime = Util::timeoutTime($length, ($hd ? '6x' : '1.5x'), ($hd ? '4h' : '2h'));
+    $maxtime = Util::timeoutTime($length, ($hd ? '6x' : '1.5x'), ($hd ? '4h' : '2h'), $identify['bytes']);
 
-    // TV archive should red row if fails...
-    if (Util::cmdQT($cmd, $maxtime, 'WARN'))
+
+    // Some items have so much damage they can fail deep into the
+    // extraction and segfault ffmpeg when deinterlace-ing, eg:
+    //    /details/TELECONGO_20110812_190000
+    // so try failures one more time w/o the deinterlacing...
+    $tries = array();
+    $tries[] = $cmd;
+    $tries[] = Video::yadif_nix($tries[count($tries)-1]);
+    $tries[] = str_replace('setpts=PTS-STARTPTS,','', $tries[count($tries)-1]);
+    $tries = array_values(array_unique($tries)); // nix dupes; retains order!
+    //printr($tries);
+
+    foreach ($tries as $idx=>$cmd)
     {
-      // fail.  some items have so much damage they can fail deep into the
-      // extraction and segfault ffmpeg when deinterlace-ing, eg:
-      //    /details/TELECONGO_20110812_190000
-      // so try one more time w/o the deinterlacing...
-      $cmd = Video::yadif_nix($cmd);
-      if (Util::cmdQT($cmd, $maxtime, ($tvarchive ? 'THROW':'WARN')))
-        return null; // ffmpeg failed or, more likely, timed out!
+      // TV archive should red row if last attempt fails...
+      $last = ($idx==(count($tries)-1));
+      if (($err = Util::cmdQT($cmd, $maxtime, ($last && $tvarchive ? 'THROW':'CONTINUE'))))
+        echo "   ==> FAILED!\n";
+      else if (!count(glob("$outDir/*.jpg")))
+        echo "   ==> NO THUMBS MADE!\n";
+      else
+        break;
     }
+    if ($err)
+      return null; // ffmpeg failed or, more likely, timed out!
+
     
     $thumbnails = glob("$outDir/*.jpg");
     sort($thumbnails);

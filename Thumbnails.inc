@@ -8,7 +8,7 @@ class Thumbnails extends Module
   
   
   public function version()
-  { return '$Revision: 44162 $ $Date: 2012-05-27 04:47:39 +0000 (Sun, 27 May 2012) $'; }
+  { return '$Revision: 45797 $ $Date: 2012-08-14 22:25:21 +0000 (Tue, 14 Aug 2012) $'; }
   
   public function derive()
   {
@@ -60,18 +60,26 @@ class Thumbnails extends Module
       return; // couldn't make thumbs for this movie.  move on to next module!
     
     Util::cmdPP('mkdir -p '.Util::esc($baseDir));
-    Util::cmdPP('rm -rf '.Util::esc($baseName).'[0-9]*.jpg');//remove any prior thumbnails!
+    Util::cmdPP('rm -rf '.Util::esc($baseName).'[0-9]*.jpg');//remove any prior thumbnails! (think this is actually noop/broken!  tracey aug2012)
     echo count($thumbnails)." thumbnails\n";
 
     chdir($this->tmp);
 
-    $cmd = "mv ";
-    foreach ($thumbnails as $thumb)
-      $cmd .= Util::esc($thumb)." ";
-    Util::cmdPP("$cmd ".Util::esc("$baseDir/"));
+    // make sure glob and list of $thumbnails is identical!!
+    $check = glob("*_[0-9][0-9][0-9][0-9][0-9][0-9].jpg");
+    if ((($diff = array_diff($check, $thumbnails))  &&  count($diff))  ||
+        (($diff = array_diff($thumbnails, $check))  &&  count($diff))){
+      StatsD::increment('thumbnails.badframes');
+      fatal("logic error: ".print_r($diff,1));
+    }
 
-    foreach ($thumbnails as $thumbFile)
-      $this->extraTarget($this->shortName("$baseDir/$thumbFile"), 'Thumbnail');
+    // glob for pathological long/broken items (esp. TV!) that wind up with 5000 thumbs.
+    // Also makes us not exceed cmd-line max len.
+    // Also makes for quieter catalog task logs. ;-)
+    Util::cmdPP("mv *_[0-9][0-9][0-9][0-9][0-9][0-9].jpg ".Util::esc("$baseDir/"));
+
+    foreach ($thumbnails as $thumb)
+      $this->extraTarget($this->shortName("$baseDir/$thumb"), 'Thumbnail');
   }
 }
 ?>

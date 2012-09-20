@@ -7,7 +7,7 @@ class MPEG4 extends Module
   
   
   public function version()
-  { return '$Revision: 45089 $ $Date: 2012-07-15 04:31:30 +0000 (Sun, 15 Jul 2012) $'; }
+  { return '$Revision: 45682 $ $Date: 2012-08-08 05:33:23 +0000 (Wed, 08 Aug 2012) $'; }
 
   
   public function derive()
@@ -126,7 +126,11 @@ class MPEG4 extends Module
       fatal("MPEG4 FAILED ALL ATTEMPTS");
     
     
-    Util::cmdQT("$qtfaststart $tmp ".Util::esc($dest),$times3);
+    
+    if (($err=Util::cmdQT("$qtfaststart $tmp ".Util::esc($dest),$times3, 'CONTINUE'))){
+      // eg: /details/CNBC_20120717_040000_The_Costco_Craze_Inside_the
+      Util::cmdQT("/home/tracey/petabox/sw/lib/python/qtfaststart/bin/qtfaststart $tmp ".Util::esc($dest),$times3);
+    }
 
     $this->copyOrigMeta(); // backfills in any current metadata information
   }

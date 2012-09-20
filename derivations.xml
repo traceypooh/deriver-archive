@@ -1566,6 +1566,16 @@
     </variations>
   </format>
 
+  <format name="JSON">
+    <extension>json</extension>
+    <class>JSON</class>
+    <variations>
+      <variation rank="12" name="JSON" derivativesource="allowed" conditionally="{'collection':['tvarchive']}">
+        <dependency format="SubRip" variation="SubRip" />
+      </variation>
+    </variations>
+  </format>
+
   <format name="Metadata Log">
     <extension>log</extension>
     <class>ExtractMeta</class>
