@@ -18,13 +18,17 @@ index c48aec7..a6f92b6 100644
    for (i = 0; i < nb_frames; i++) {
      av_init_packet(&pkt);
 diff --git a/libavformat/avformat.h b/libavformat/avformat.h
-index 5a11fdc..f9ad381 100644
+index 166fdbb..2758269 100644
 --- a/libavformat/avformat.h
 +++ b/libavformat/avformat.h
-@@ -1093,0 +1094 @@ typedef struct AVFormatContext {
+@@ -1156,6 +1156,7 @@ typedef struct AVFormatContext {
+      * to know how the duration was estimated.
+      */
+     enum AVDurationEstimationMethod duration_estimation_method;
 +    int ist_frame_number;
-diff --git a/libavformat/img2enc.c b/libavformat/img2enc.c
-index 9b4b30e..e8abc7d 100644
+ } AVFormatContext;
+ 
+ /**
 --- a/libavformat/img2enc.c
 +++ b/libavformat/img2enc.c
 @@ -66,7 +66,7 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
