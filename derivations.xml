@@ -650,7 +650,7 @@
         <dependency format="3GP" variation="3GP" />
         <dependency format="Matroska" variation="Matroska" />
       </variation>
-      <variation rank="8" name="h.264 720P" parameter="1280x720 -fpre /petabox/sw/lib/ffmpeg/libx264-IA-720p.ffpreset" preextension="_720p" conditionally="{'collection':['35mmstockfootage']}">
+      <variation rank="8" name="h.264 720P" parameter="1280x720 -fpre /petabox/sw/lib/ffmpeg/libx264-IA-720p.ffpreset  -ac 2 -b:a 128k -ar 44100" preextension="_720p" conditionally="{'collection':['35mmstockfootage']}">
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2-TS" variation="MPEG2-TS" />
@@ -1482,6 +1482,7 @@
         <dependency format="WARC" variation="Web ARChive"/>
         <dependency format="WARC GZ" variation="Web ARChive GZ"/>
       </variation>
+      <variation name="Item CDX Index" preextension=".cdx"/>
     </variations>
   </format>
 

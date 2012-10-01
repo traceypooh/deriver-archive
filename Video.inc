@@ -638,10 +638,12 @@ class Video
             (strpos($aline, ': Audio: mp1,')>0  ||
              // throw out suspected-decoded-wrong audio streams like:
              // /details/WUSA_20091019_160000_9News_Now_at_Noon
+             strpos($aline, ': Audio: aac, 8 channels (FL+FR+FC+LFE+BL+BR+FLC+FRC)')>0  || //sep2012 version
              strpos($aline, ': Audio: aac, 24000 Hz, 8 channels (FL+FR+FC+LFE+BL+BR+FLC+FRC)')>0  || //mar2012 version
              strpos($aline, ': Audio: aac, 24000 Hz, 7.1(wide)')>0  || //nov2011 version
              // throw out suspected-decoded-wrong audio streams like:
              // /details/WUSA_20091118_140000_9News_Now_at_9am    -- it should be noted this item is botched/glitchy
+             strpos($aline, ': Audio: aac, 3.0, s16, 258 kb/s')>0  || //sep2012 version
              strpos($aline, ': Audio: aac, 24000 Hz, 8 channels (FL+FR+FC+LFE+BL+BR+FLC+FRC)')>0  || //mar2012 version
              strpos($aline, ': Audio: aac, 7350 Hz, 3 channels')>0 )) //nov2011 version
         {
@@ -2069,7 +2071,7 @@ class Video
     'BayrampasaVaillantServisi444_1_494VaillantServisi_1000/8.flv' => 23.98,
     'Bij_de_Italiaan/Italiaan.3gp' => 15,
     'BraveNewFilmsFoxAttacksObama/foxattacksobama320.mov' => 29.97,
-    'BrokeNProud/Bnp_finalCut_intro_explicit_720.mov' => '',
+    'BrokeNProud/Bnp_finalCut_intro_explicit_720.mov' => '23.98',//NOTE: sep2012+ ffmpeg is now *not* ''...
     'BurningDowntheSuburbs/HoldenBurningSuburbs.mov' => 30,
     'CNNW_20110518_000000_In_the_Arena/CNNW_20110518_000000_In_the_Arena.mpg' => 29.97,
     'CNNW_20110601_130000_CNN_Newsroom/CNNW_20110601_130000_CNN_Newsroom.mpg' => 29.97,
@@ -2166,7 +2168,7 @@ class Video
     'inauguration2009/inauguration2009.mp4' => 29.97,
     'k2000/k2000.mov' => 15,
     'kalow_cable_car/kalow_cable_car.mpeg' => 29.97,
-    'lotus-drifting/lotus-drifting.mov' => 29.97,
+    'lotus-drifting/lotus-drifting.HD.mp4' => 29.97,
     'meteorocino/meteorocino.mp4' => 10,
     'morebooks/morebooks.mov' => 29.97,
     'mwaheb-7/na7n-alafdl.rmvb' => 8,
@@ -2304,6 +2306,7 @@ php -r 'require_once(\"/petabox/setup.inc\"); echo json_encode(Video::identify(\
         ksort($ffi);
 
         unset($ffi['ffmpeg-version']);
+        unset($ffi['bytes']);
         if ($ary != $ffi)
         {
           error_log("NOT EQUAL!");
