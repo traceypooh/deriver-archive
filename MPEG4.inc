@@ -7,7 +7,7 @@ class MPEG4 extends Module
   
   
   public function version()
-  { return '$Revision: 45682 $ $Date: 2012-08-08 05:33:23 +0000 (Wed, 08 Aug 2012) $'; }
+  { return '$Revision: 47279 $ $Date: 2012-10-12 01:52:58 +0000 (Fri, 12 Oct 2012) $'; }
 
   
   public function derive()
@@ -64,7 +64,7 @@ class MPEG4 extends Module
       Util::cmdPP("egrep -v '^#' {$mat[1]}");
 
 
-    list($cmd, $acoder) =
+    list($tries, $acoder) =
       Video::ffmpeg_params($cmd, $identify, $this->sourceFormat,
                            self::ACODER,
                            $params, $this->is_tvarchive(), true);
@@ -74,24 +74,12 @@ class MPEG4 extends Module
 
     $p1 = "-pass 1 -an";
     $p2 = "-pass 2 $acoder $meta";
-
-    // This item failed pass 1 but worked when removed the more experimental
-    // efforts to avoid A/V drift...
-    //    /details/KICU_20110602_153000_Heidi_Klums_Skin_Secrets
-    // NOTE: /details/KSTS_20110606_020000_Las_Cronicas_de_Spiderwick failed
-    // pass 1 *sporadically* but passed 1x; also passed w/ "-deinterlace" nixed
-    // (we shifted to yadif so possibly worth a shot to retry w/o...)
-    $tries = array();
-    $tries[] = "$cmd $p1 $tmp";
-    $tries[] = str_replace(Video::AV_ANTI_DRIFT, '',     $tries[count($tries)-1]);
-    $tries[] = Video::yadif_nix($tries[count($tries)-1]);
-    $tries = array_values(array_unique($tries)); // nix dupes; retains order!
-    //printr($tries);
     
-
     
-    foreach ($tries as $cmd)
+    foreach ($tries as $trie)
     {
+      $cmd = "$trie $p1 $tmp";
+
       // now let's get pass1 done...
       $err = Util::cmdQT($cmd, $timesX, 'CONTINUE');echo "\n";
       if ($err)

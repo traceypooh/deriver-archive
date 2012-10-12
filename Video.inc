@@ -172,6 +172,8 @@ class Video
         // derivative!
         $deriv = true;
         $key = $fi['ORIGINAL'];
+        if (is_array($key))
+          $key = (count($key) ? $key[0] : '');
       }
       else
       {
@@ -532,7 +534,8 @@ class Video
     // only keep the first 150 lines (in case it went crazy logging)
     $lines = array();
     $retval = null;
-    exec(Util::timeout(600)." $ffmpeg -an -vn -i ".Util::esc($file)." 2>&1 | ".Util::timeout(600)." head -$head",
+    $xxx = '';//' -analyzeduration 999999999 -probesize 999999999 ';
+    exec(Util::timeout(600)." $ffmpeg -an -vn $xxx -i ".Util::esc($file)." 2>&1 | ".Util::timeout(600)." head -$head",
          $lines, $retval);
     
     if ($print)
@@ -1308,11 +1311,16 @@ class Video
     if ($tvarchive  &&  TV::is_audio_only(basename($file), $identify))
       return null;
     
-    list($vf,$outW,$outH) = Video::vf($dimens, $identify,
-                                      $tvarchive,
-                                      /*padBlack==*/true);
-
-
+    // There can be MPEG-TS source frame size changes that caused the "-vf crop" filter to fail.  example:
+    // /details/GALA_20121006_100000_Programa_Pagado
+    //   Input stream #0:0 frame changed from size:720x480 fmt:yuv420p to size:528x480 fmt:yuv420pop=44410    
+    //   Input stream #0:0 frame changed from size:528x480 fmt:yuv420p to size:720x480 fmt:yuv420pop=46386    
+    // So if we can't do the *ideal* of black padding and TV cropping, give up 
+    // and just do a (nonideal) straight (possibly aspect distorting!) scale.
+    // For non-TV, if these end up being the same command, we just uniq in "tries" below...
+    list($vf      ) = Video::vf($dimens, $identify, $tvarchive, /*padBlack==*/true, /*h264==*/false, /*noCrop==*/false);
+    list($vfNoCrop) = Video::vf($dimens, $identify, $tvarchive, /*padBlack==*/true, /*h264==*/false, /*noCrop==*/true );
+    
     
     $length = ($identify['length'] ? $identify['length'] : 0);
     
@@ -1406,6 +1414,7 @@ class Video
     // so try failures one more time w/o the deinterlacing...
     $tries = array();
     $tries[] = $cmd;
+    $tries[] = str_replace($vf, $vfNoCrop, $tries[count($tries)-1]);
     $tries[] = Video::yadif_nix($tries[count($tries)-1]);
     $tries[] = str_replace('setpts=PTS-STARTPTS,','', $tries[count($tries)-1]);
     $tries = array_values(array_unique($tries)); // nix dupes; retains order!
@@ -1526,10 +1535,10 @@ class Video
   
 
   // first two parameters are the *target* video dimensions
-  private static function vfilters($width, $height, &$identify, $tvarchive,
-                                   $h264, $paddingTB=0, $paddingLR=0)
+  private static function vfilters($width, $height, &$identify, $tvarchive, $padBlack,
+                                   $h264, $noCrop, $paddingTB=0, $paddingLR=0)
   {
-    //echo "VF:$width $height $tvarchive $paddingTB $paddingLR\n";
+    //error_log("vfilters($width,$height,".($tvarchive?1:0).",".($padBlack?1:0).",".($h264?1:0).",".($noCrop?1:0).",$paddingTB,$paddingLR)");
     
     if ($h264  &&  $width==426  &&  $height==240)
     {
@@ -1557,7 +1566,7 @@ class Video
     // which frequently contain programming information "hidden" in them, making
     // them look like static at the top of the image
     $topclip = $topclipScaled = 0;
-    if ($tvarchive)
+    if ($tvarchive  &&  !$noCrop)
     {
       $topclip = 4; // Make sure always a multiple of 2!!
 
@@ -1652,7 +1661,8 @@ class Video
                             $identify,
                             $tvarchive=false,
                             $padBlack=false,
-                            $h264=false)
+                            $h264=false,
+                            $noCrop=false)
   {
     if (!preg_match('/^\-s (\d+)x(\d+)$/', $targetScale, $mat))
       fatal("bad input param!");
@@ -1722,7 +1732,8 @@ class Video
                 ($targetHeight - $newTargetHeight) / 2);
             
               return Video::vfilters($targetWidth, $targetHeight, $identify,
-                                     $tvarchive, $h264, $padding);
+                                     $tvarchive, $padBlack, $h264, $noCrop, 
+                                     $padding);
             }
             else
             {
@@ -1737,7 +1748,8 @@ class Video
               
               // echo "$newTargetWidth x $targetHeight $padding \n";
               return Video::vfilters($targetWidth, $targetHeight, $identify,
-                                     $tvarchive, $h264, 0, $padding);
+                                     $tvarchive, $padBlack, $h264, $noCrop, 
+                                     0, $padding);
             }
           }
           else
@@ -1745,14 +1757,14 @@ class Video
             // we want to stretch out the created derivative film's width
             $newTargetWidth = Video::roundToMultipleOf2($newTargetWidth);
             return Video::vfilters($newTargetWidth, $targetHeight, $identify,
-                                   $tvarchive, $h264);
+                                   $tvarchive, $padBlack, $h264, $noCrop);
           }
         }
       }
     }
 
-    return Video::vfilters($targetWidth, $targetHeight, $identify, $tvarchive,
-                           $h264);
+    return Video::vfilters($targetWidth, $targetHeight, $identify, 
+                           $tvarchive, $padBlack, $h264, $noCrop);
   }
 
 
@@ -1797,13 +1809,14 @@ class Video
   
 
   private static function ffmpeg_vf(&$identify,
-                                    $wh="640x480", $is_tv=false, $h264=false)
+                                    $wh="640x480", $is_tv=false, $h264=false, $noCrop=false)
   {
     // for "rectangular pixel" video -- "stretch" width to square pixels
-    list($vf,$outW,$outH) = Video::vf("-s $wh", $identify,
-                                      $is_tv,
-                                      /*padBlack==*/false,
-                                      $h264);
+    list($vf,$outW) = Video::vf("-s $wh", $identify,
+                                $is_tv,
+                                /*padBlack==*/false,
+                                $h264, 
+                                $noCrop);
     if ($h264  &&  $wh=='640x480'  &&  $outW > 640)
     {
       // OK, for widescreen 16x9 videos, they'll expand to 852x480
@@ -1811,10 +1824,11 @@ class Video
       // to play videos wider than 640 pixels.
       // So scale it back down to 360P at least for now...
       
-      list($vf,$outW,$outH) = Video::vf('-s 480x360', $identify,
-                                             $is_tv,
-                                             /*padBlack==*/false,
-                                             $h264);
+      list($vf) = Video::vf('-s 480x360', $identify,
+                            $is_tv,
+                            /*padBlack==*/false,
+                            $h264,
+                            $noCrop);
     }
     
     return $vf;
@@ -1839,15 +1853,16 @@ class Video
         
 
 
-    $vf = Video::ffmpeg_vf($identify, $wh, $is_tv, $h264);
+    $vf1 = Video::ffmpeg_vf($identify, $wh, $is_tv, $h264);
+    $vf2 = Video::ffmpeg_vf($identify, $wh, $is_tv, $h264, /*noCrop==*/true);
     
     
     $rate = ($identify['fps'] ? " -r {$identify['fps']} " : "");
     //$rate = "";//xxxx
 
 
-    $cmd .=
-      " $vf $rest $rate -threads 2 ".
+    $args =
+      " $rest $rate -threads 2 ".
     
       // http://webcache.googleusercontent.com/search?q=cache:m16Nv-PyqZsJ:ffmpeg-users.933282.n4.nabble.com/DVB-transports-streams-a-v-line-up-sort-of-like-projectx-does-td1009651.html+ffmpeg+%22dts_delta_threshold%22&cd=4&hl=en
       ($identify['audio']!=='false'  && 
@@ -1862,7 +1877,7 @@ class Video
     // normally, we'd be ready to run!  however, quick test first second...
     {
       $tmpf = "/tmp/rawvidtmp.".getmypid().".avi";
-      $retval = Util::cmdQT("$cmd -an -t 1.0 -y $tmpf", 0.5, 'WARN');
+      $retval = Util::cmdQT("$cmd $vf1 $args -an -t 1.0 -y $tmpf", 0.5, 'WARN');
       `rm -f $tmpf`;
       if ($retval)
       {
@@ -1871,7 +1886,7 @@ class Video
         //    /details/AlcTestClip
         // or source is yuv 444, eg:
         //    /details/SamsFrames
-        $cmd .= ' -pix_fmt yuv420p ';
+        $args .= ' -pix_fmt yuv420p ';
       }
     }
 
@@ -1898,9 +1913,23 @@ class Video
         echo "\nWARNING! NO CHANNELS FOUND IN AUDIO STREAM(S)!\n\n";
       }
     }
+
+
+    // This item failed pass 1 but worked when removed the more experimental
+    // efforts to avoid A/V drift...
+    //    /details/KICU_20110602_153000_Heidi_Klums_Skin_Secrets
+    // NOTE: /details/KSTS_20110606_020000_Las_Cronicas_de_Spiderwick failed
+    // pass 1 *sporadically* but passed 1x; also passed w/ "-deinterlace" nixed
+    // (we shifted to yadif so possibly worth a shot to retry w/o...)
+    $tries = array();
+    $tries[] = "$cmd $vf1 $args";
+    $tries[] = "$cmd $vf2 $args";
+    $tries[] = str_replace(Video::AV_ANTI_DRIFT, '', $tries[count($tries)-1]);
+    $tries[] = Video::yadif_nix($tries[count($tries)-1]);
+    $tries = array_values(array_unique($tries)); // nix dupes; retains order!
+    //printr($tries);
     
-    
-    return array($cmd, $acoder);
+    return array($tries, $acoder);
   }
   
 

@@ -7,7 +7,7 @@ class Ogv extends Module
 
 
   public function version()
-  { return '$Revision: 44611 $ $Date: 2012-06-14 19:27:19 +0000 (Thu, 14 Jun 2012) $'; }
+  { return '$Revision: 47279 $ $Date: 2012-10-12 01:52:58 +0000 (Fri, 12 Oct 2012) $'; }
   
   public function derive()
   {
@@ -42,10 +42,11 @@ class Ogv extends Module
     
     $cmd = "$ffmpeg -y -i ".Util::esc($src)." -q:vscale 3 -b:v 512k -vcodec libtheora -pix_fmt yuv420p";
 
-    list($cmd, $acoder) =
+    list($tries, $acoder) =
       Video::ffmpeg_params($cmd, $identify, $this->sourceFormat,
                            self::ACODER,
                            $params, $this->is_tvarchive());
+    $cmd=$tries[0];
 
     // metadata inserter
     $meta = Video::videoMeta($this, array(
