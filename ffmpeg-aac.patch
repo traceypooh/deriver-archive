@@ -5,16 +5,16 @@
 # two adjacent frames *decrease* in timestamps).  Example video:
 #   http://archive.org/details/Xacti1010_trim2_test_2010_02_04
 #   --tracey aug2009
-diff --git a/libavformat/utils.c b/libavformat/utils.c
-index d19e427..051f018 100644
---- a/libavformat/utils.c
-+++ b/libavformat/utils.c
-@@ -3318,7 +3318,7 @@ static int compute_pkt_fields2(AVFormatContext *s, AVStream *st, AVPacket *pkt){
+diff --git a/libavformat/mux.c b/libavformat/mux.c
+index 9bcee99..b30091e 100644
+--- a/libavformat/mux.c
++++ b/libavformat/mux.c
+@@ -450,7 +450,7 @@ static int compute_pkt_fields2(AVFormatContext *s, AVStream *st, AVPacket *pkt)
          av_log(s, AV_LOG_ERROR,
                 "Application provided invalid, non monotonically increasing dts to muxer in stream %d: %s >= %s\n",
                 st->index, av_ts2str(st->cur_dts), av_ts2str(pkt->dts));
 -        return AVERROR(EINVAL);
 +        if (st->cur_dts > pkt->dts  &&  st->codec->codec_type!=AVMEDIA_TYPE_AUDIO) return AVERROR(EINVAL);
      }
-     if(pkt->dts != AV_NOPTS_VALUE && pkt->pts != AV_NOPTS_VALUE && pkt->pts < pkt->dts){
+     if (pkt->dts != AV_NOPTS_VALUE && pkt->pts != AV_NOPTS_VALUE && pkt->pts < pkt->dts) {
          av_log(s, AV_LOG_ERROR, "pts (%s) < dts (%s) in stream %d\n",
