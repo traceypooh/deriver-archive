@@ -48,6 +48,7 @@
         <dependency format="Ogg Vorbis" variation="Ogg Vorbis" />
         <dependency format="MP3"        variation="96Kbps MP3"/>
         <dependency format="Real Audio" variation="Real Audio"/>
+        <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MIDI"       variation="MIDI" />
       </variation>
@@ -70,6 +71,7 @@
         <dependency format="Ogg Vorbis" variation="Ogg Vorbis" />
         <dependency format="MP3"        variation="96Kbps MP3"/>
         <dependency format="Real Audio" variation="Real Audio"/>
+        <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
       </variation>
       <variation rank="6" name="VBR MP3" parameter="--preset standard">
@@ -89,6 +91,7 @@
         <dependency format="MP3"        variation="128Kbps MP3"/>
         <dependency format="Ogg Vorbis" variation="Ogg Vorbis"/>
         <dependency format="Real Audio" variation="Real Audio"/>
+        <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MIDI"       variation="MIDI" />
       </variation>
@@ -155,6 +158,7 @@
         <dependency format="MP3" variation="96Kbps MP3"/>
         <dependency format="MP3" variation="64Kbps MP3"/>
         <dependency format="Real Audio" variation="Real Audio"/>
+        <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MIDI"       variation="MIDI" />
       </variation>
@@ -1054,11 +1058,14 @@
     <extension>jpg</extension>
     <class>JPEGThumb</class>
     <variations>
-      <variation rank="10" name="JPEG Thumb" preextension="_thumb">  <!-- JPEGThumb may make the next two variations, too -->
+      <variation rank="10" name="JPEG Thumb" preextension="_thumb">  <!-- module may make the 250px and 500px Thumbs, below, too -->
         <dependency format="TIFF" variation="TIFF" />
         <dependency format="JP2" variation="JPEG 2000" />
         <dependency format="JPEG" variation="JPEG" />
         <dependency format="PNG" variation="PNG" />
+      </variation>
+      <variation rank="10" name="JPEG Thumb" preextension="_thumb" conditionally="{'collection':['coverartarchive']}">
+        <dependency format="Animated GIF" variation="Animated GIF" />
       </variation>
       <variation name="JPEG 250px Thumb" preextension="_thumb250" />
       <variation name="JPEG 500px Thumb" preextension="_thumb500" />
