@@ -1,13 +1,13 @@
 diff --git a/libavfilter/vf_showinfo.c b/libavfilter/vf_showinfo.c
-index ece6230..b593b26 100644
+index 07b42db..cbc9d20 100644
 --- a/libavfilter/vf_showinfo.c
 +++ b/libavfilter/vf_showinfo.c
-@@ -48,7 +48,7 @@ static void end_frame(AVFilterLink *inlink)
+@@ -51,7 +51,7 @@ static int end_frame(AVFilterLink *inlink)
      uint32_t plane_checksum[4] = {0}, checksum = 0;
-     int i, plane, vsub = av_pix_fmt_descriptors[inlink->format].log2_chroma_h;
+     int i, plane, vsub = desc->log2_chroma_h;
  
 -    for (plane = 0; picref->data[plane] && plane < 4; plane++) {
 +    for (plane = 0; picref->data[plane] && plane < 0; plane++) {
-         size_t linesize = av_image_get_linesize(picref->format, picref->video->w, plane);
+         int64_t linesize = av_image_get_linesize(picref->format, picref->video->w, plane);
          uint8_t *data = picref->data[plane];
          int h = plane == 1 || plane == 2 ? inlink->h >> vsub : inlink->h;
