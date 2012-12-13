@@ -1063,9 +1063,7 @@
         <dependency format="JP2" variation="JPEG 2000" />
         <dependency format="JPEG" variation="JPEG" />
         <dependency format="PNG" variation="PNG" />
-      </variation>
-      <variation rank="10" name="JPEG Thumb" preextension="_thumb" conditionally="{'collection':['coverartarchive']}">
-        <dependency format="Animated GIF" variation="Animated GIF" />
+        <dependency format="Animated GIF" variation="Animated GIF" conditionally="{'collection':['coverartarchive']}" />
       </variation>
       <variation name="JPEG 250px Thumb" preextension="_thumb250" />
       <variation name="JPEG 500px Thumb" preextension="_thumb500" />
@@ -1490,6 +1488,13 @@
         <dependency format="WARC GZ" variation="Web ARChive GZ"/>
       </variation>
       <variation name="Item CDX Index" preextension=".cdx"/>
+    </variations>
+  </format>
+
+  <format name="CDX Meta-Index">
+    <extension>idx</extension>
+    <variations>
+      <variation name="Item CDX Meta-Index" preextension=".cdx" />
     </variations>
   </format>
 

@@ -128,6 +128,8 @@ class Video
     $audio = array();
     $srts  = array();
     $durations = array();
+    $heights = array(); // for SD/HD toggling!
+    $widths  = array(); // for SD/HD toggling!
     $lengths = array(); // used to "prefer" the <length> in deriv <file>
 
     $t2 = Video::$PLAYABLES['thumbnail2'];
@@ -201,6 +203,11 @@ class Video
         if ($fi['TITLE']  &&  !isset($groups[$key]['TITLE']))
           $groups[$key]['TITLE'] = $fi['TITLE'];
       }
+
+      if (isset($fi['HEIGHT']))
+        $heights[$short] = $fi['HEIGHT'];
+      if (isset($fi['WIDTH']))
+        $widths[$short] = $fi['WIDTH'];
 
       if (isset($fi['LENGTH']))
       {
@@ -312,6 +319,10 @@ class Video
     {
       msg("DURATIONS");
       printr($durations);
+      msg("HEIGHTS");
+      printr($heights);
+      msg("WIDTHS");
+      printr($widths);
       msg("PLAYABLES");
       printr(Video::$PLAYABLES);
       msg("GROUPS");
@@ -402,7 +413,9 @@ class Video
                  count($groupsAV),
                  $showing,
                  $captions,
-                 $durations);
+                 $durations,
+                 $heights,
+                 $widths);
   }
 
 
@@ -1414,9 +1427,10 @@ class Video
     // so try failures one more time w/o the deinterlacing...
     $tries = array();
     $tries[] = $cmd;
-    $tries[] = str_replace($vf, $vfNoCrop, $tries[count($tries)-1]);
-    $tries[] = Video::yadif_nix($tries[count($tries)-1]);
-    $tries[] = str_replace('setpts=PTS-STARTPTS,','', $tries[count($tries)-1]);
+    $tries[] = str_replace($vf, $vfNoCrop,              $tries[count($tries)-1]);
+    $tries[] = Video::yadif_nix(                        $tries[count($tries)-1]);
+    $tries[] = str_replace('setpts=PTS-STARTPTS,','',   $tries[count($tries)-1]);
+    $tries[] = str_replace(' -i ', ' -err_detect 0 -i ',$tries[count($tries)-1]);
     $tries = array_values(array_unique($tries)); // nix dupes; retains order!
     //printr($tries);
 
@@ -1924,8 +1938,9 @@ class Video
     $tries = array();
     $tries[] = "$cmd $vf1 $args";
     $tries[] = "$cmd $vf2 $args";
-    $tries[] = str_replace(Video::AV_ANTI_DRIFT, '', $tries[count($tries)-1]);
-    $tries[] = Video::yadif_nix($tries[count($tries)-1]);
+    $tries[] = str_replace(Video::AV_ANTI_DRIFT, '',    $tries[count($tries)-1]);
+    $tries[] = Video::yadif_nix(                        $tries[count($tries)-1]);
+    $tries[] = str_replace(' -i ', ' -err_detect 0 -i ',$tries[count($tries)-1]);
     $tries = array_values(array_unique($tries)); // nix dupes; retains order!
     //printr($tries);
     

@@ -59,7 +59,7 @@ class Ogv extends Module
       " -metadata LOCATION=http://archive.org/details/{$this->identifier} ";
 
 
-    Util::cmdQT("$cmd -pass 1 -an     -f null /dev/null", $times10);
+    Util::cmdQT("$cmd -pass 1 $acoder -f null /dev/null", $times10);
     Util::cmdQT("$cmd -pass 2 $acoder $meta $tmp"       , $times10);
 
 

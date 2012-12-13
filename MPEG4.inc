@@ -72,7 +72,7 @@ class MPEG4 extends Module
     
     $tmp = 'tmp.mp4'; echo "\n";
 
-    $p1 = "-pass 1 -an";
+    $p1 = "-pass 1 $acoder";
     $p2 = "-pass 2 $acoder $meta";
     
     
