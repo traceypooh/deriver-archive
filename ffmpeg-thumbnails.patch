@@ -17,13 +17,15 @@ index c48aec7..a6f92b6 100644
    /* duplicates frame if needed */
    for (i = 0; i < nb_frames; i++) {
      av_init_packet(&pkt);
+diff --git a/libavformat/img2enc.c b/libavformat/img2enc.c
+index 9621d3c..6402ba2 100644
 --- a/libavformat/img2enc.c
 +++ b/libavformat/img2enc.c
-@@ -66,7 +66,7 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
+@@ -76,7 +76,7 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
  
      if (!img->is_pipe) {
          if (av_get_frame_filename(filename, sizeof(filename),
--                                  img->path, img->img_number) < 0 && img->img_number>1 && !img->updatefirst) {
+-                                  img->path, img->img_number) < 0 && img->img_number > 1 && !img->updatefirst) {
 +                                  img->path, (s->ist_frame_number ? s->ist_frame_number : img->img_number)) < 0 && img->img_number>1 && !img->updatefirst) {
              av_log(s, AV_LOG_ERROR,
                     "Could not get frame filename number %d from pattern '%s'\n",
