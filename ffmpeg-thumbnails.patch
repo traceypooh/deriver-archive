@@ -1,43 +1,75 @@
-####################################################################################
-# patch to make output thumbnails use the frame number of the input
-# file *instead* of an ever-incrementing rather meaningless counter
-#
-#   tracey jan2011 (last update: mar2012)
-# 
-####################################################################################
 diff --git a/ffmpeg.c b/ffmpeg.c
-index c48aec7..a6f92b6 100644
+index 956f5b6..416ca75 100644
 --- a/ffmpeg.c
 +++ b/ffmpeg.c
-@@ -829,6 +829,7 @@ static void do_video_out(AVFormatContext *s,
-         av_log(NULL, AV_LOG_VERBOSE, "*** %d dup!\n", nb_frames - 1);
-     }
+@@ -802,2 +802,8 @@ static void do_video_out(AVFormatContext *s,
+     nb_frames = 1;
++    {
++      s->ist_frame_number = ist->st->codec->frame_number;   
++      s->ptsxxx           = ist->decoded_frame->pts;
++      s->tbnxxx.num       = tbnxxx.num;
++      s->tbnxxx.den       = tbnxxx.den;
++    }
  
-+  s->ist_frame_number = ist->st->codec->frame_number;
-   /* duplicates frame if needed */
-   for (i = 0; i < nb_frames; i++) {
-     av_init_packet(&pkt);
-diff --git a/libavformat/img2enc.c b/libavformat/img2enc.c
-index 9621d3c..6402ba2 100644
---- a/libavformat/img2enc.c
-+++ b/libavformat/img2enc.c
-@@ -76,7 +76,7 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
+@@ -3163,6 +3169,7 @@ static void parse_cpuflags(int argc, char **argv, const OptionDef *options)
+ int main(int argc, char **argv)
+-{
++{tbnxxx.num=0; tbnxxx.den=0;
++
++
+     OptionsContext o = { 0 };
+     int64_t ti;
+-
+     atexit(exit_program);
+diff --git a/ffmpeg.h b/ffmpeg.h
+index afef6fb..cbaf51b 100644
+--- a/ffmpeg.h
++++ b/ffmpeg.h
+@@ -48,2 +48,4 @@
+ #include "libswresample/swresample.h"
++AVRational tbnxxx;
++
  
-     if (!img->is_pipe) {
-         if (av_get_frame_filename(filename, sizeof(filename),
--                                  img->path, img->img_number) < 0 && img->img_number > 1 && !img->updatefirst) {
-+                                  img->path, (s->ist_frame_number ? s->ist_frame_number : img->img_number)) < 0 && img->img_number>1 && !img->updatefirst) {
-             av_log(s, AV_LOG_ERROR,
-                    "Could not get frame filename number %d from pattern '%s'\n",
-                    img->img_number, img->path);
+diff --git a/ffmpeg_opt.c b/ffmpeg_opt.c
+index c846a10..7f8b55f 100644
+--- a/ffmpeg_opt.c
++++ b/ffmpeg_opt.c
+@@ -821,2 +821,6 @@ static int opt_input_file(void *optctx, const char *opt, const char *filename)
+     av_dump_format(ic, nb_input_files, filename, 0);
++if (tbnxxx.num==0 && tbnxxx.den==0){
++tbnxxx.num = ic->tbnxxx.num;
++tbnxxx.den = ic->tbnxxx.den;
++}
+ 
+diff --git a/libavformat/avformat.h b/libavformat/avformat.h
+index 7500881..79def0a 100644
 --- a/libavformat/avformat.h
 +++ b/libavformat/avformat.h
-@@ -1181,7 +1181,7 @@ typedef struct AVFormatContext {
-      */
- #define RAW_PACKET_BUFFER_SIZE 2500000
+@@ -1208,3 +1208,3 @@ typedef struct AVFormatContext {
      int raw_packet_buffer_remaining_size;
 -} AVFormatContext;
-+int ist_frame_number; } AVFormatContext;
++  int ist_frame_number; long ptsxxx; AVRational tbnxxx; } AVFormatContext;
  
- /**
-  * Returns the method used to set ctx->duration.
+diff --git a/libavformat/img2enc.c b/libavformat/img2enc.c
+index 9621d3c..6b5e999 100644
+--- a/libavformat/img2enc.c
++++ b/libavformat/img2enc.c
+@@ -84,2 +84,9 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
+         }
++{
++  long sec = (s->ptsxxx==AV_NOPTS_VALUE || s->ptsxxx<0 ? 0 : (long int)floor( av_q2d(s->tbnxxx) * s->ptsxxx ));
++  if (av_get_frame_filename(filename, sizeof(filename), img->path, sec) < 0)
++    return AVERROR(EINVAL);
++
++  av_log(NULL, AV_LOG_WARNING, "pts:%ld tbn:%d/%d frame:%d ==> %ld\n", s->ptsxxx, s->tbnxxx.num, s->tbnxxx.den, s->ist_frame_number, sec);
++}
+         for (i = 0; i < 4; i++) {
+diff --git a/libavformat/utils.c b/libavformat/utils.c
+index 596253b..39aa61d 100644
+--- a/libavformat/utils.c
++++ b/libavformat/utils.c
+@@ -3362,2 +3362,4 @@ static void dump_stream_format(AVFormatContext *ic, int i, int index, int is_out
+             print_fps(1/av_q2d(st->time_base), "tbn");
++if(!is_output  &&  st->time_base.den  &&  st->time_base.num  &&  ic->tbnxxx.num==0 && ic->tbnxxx.den==0) { ic->tbnxxx.num = st->time_base.num; ic->tbnxxx.den = st->time_base.den; }
++
+         if(st->codec->time_base.den && st->codec->time_base.num)

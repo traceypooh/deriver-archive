@@ -139,7 +139,7 @@ function ffmpeg_src()
     cd $DIR;
 
     if [ ! -e ffmpeg ]; then
-        git clone git://git.videolan.org/ffmpeg.git;
+        git clone git://source.ffmpeg.org/ffmpeg.git;
     fi
 
     cd ffmpeg;

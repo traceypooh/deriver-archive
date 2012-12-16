@@ -596,10 +596,12 @@ class Video
                                        (60 * $mat[2]) +
                                        $mat[3]) : null),
 
-      'ffmpeg-version' =>(preg_match('/^FFmpeg version SVN-r(\d+)/', $out, $mat) ?
-                          $mat[1] :
-                          (preg_match('/^(FF|ff)mpeg version (git-[^,]+)/',$out,$mat) ?
-                           $mat[2] : '')),
+      'ffmpeg-version' => (preg_match('/ built on ([^ ]+ \d+ \d\d\d\d \d\d:\d\d:\d\d )/', $out, $mat) ?
+                           date("Ymd",strtotime($mat[1])) :
+                           (preg_match('/^FFmpeg version SVN-r(\d+)/', $out, $mat) ?
+                            $mat[1] :
+                            (preg_match('/^(FF|ff)mpeg version (git-[^,]+)/',$out,$mat) ?
+                             $mat[2] : ''))),
       );
 
 
@@ -1163,7 +1165,7 @@ class Video
   private static $lastmap    = array();
   private static $lastmapSrc = null;
   private static $lastmapALT = false;
-  public static function framenum2sec($src, $framenum, $identify)
+  public static function framenum2sec($src, $framenum, $identify, $printmap=false)
   {
     if (!is_numeric($framenum))
     {
@@ -1184,7 +1186,7 @@ class Video
       if (Video::$lastmapSrc != $src)
       {
         $lastTS = -666;
-        $cmd = "egrep '^# Timestamp |^V ' 2>/dev/null ".Util::esc("$src.idx")."|egrep -A1 '^V ' 2>/dev/null";
+        $cmd = "egrep '^# Timestamp |^V ' 2>/dev/null ".Util::esc("$src.idx")."|egrep -A1 '^V '|cut -f1 -d, 2>/dev/null";
         $fh = popen($cmd, "r");
         try
         {
@@ -1210,11 +1212,9 @@ class Video
             }
             else if ($tok[0]=='#'  &&  $tok[1]=='Timestamp')
             {
-              $time = $tok[2];
-              if (!preg_match('/^(\d+):(\d+):(\d+),(\d+)$/', $time, $mat))
-                fatal("bad time in: $line");
-              
-              $ts = floor((3600*$mat[1])+(60*$mat[2])+($mat[3])+($mat[4]/30));
+              $ts = self::hms2sec($tok[2]);
+              if ($ts===false)
+                fatal("bad time in $line");
               if ($firstTS == -1)
                 $firstTS = $ts;
               $ts = $ts - $firstTS;
@@ -1229,14 +1229,13 @@ class Video
                 break;
               }
               
-              $lastTS = $ts;
-
               Video::$lastmap[$framen] = $ts;
+
+              $lastTS = $ts;
             }
             else
               fatal("unexpected format line from avidemux idx: $line");
           }
-          //printr(Video::$lastmap);
           
           // check for avidemux may be all 00:00:00,000!
           // eg: /details/GreekTelevisionTest
@@ -1275,6 +1274,11 @@ class Video
           $bestfound = true;
         else
           $best = $ts;
+      }
+
+      if ($printmap){
+        printr(Video::$lastmap);
+        echo "You were looking for frame# $framenum, which we think is [{$best}sec == ".Video::hms($best)."] in the map...\n";
       }
 
       if (!$bestfound)
@@ -1475,7 +1479,7 @@ class Video
     {
       $expected = ($length / $frameEvery);
       if (($tvarchive  &&  $expected > 5)  ||
-          ($expected > 1  &&  abs(count($thumbnails) - $expected) <= 2))
+          ($expected > 1  &&  abs(count($thumbnails) - $expected) <= 3))
       {
         $timestamps = true;
         echo "\n    Will use timestamps for created thumb filenames\n";
@@ -1522,7 +1526,11 @@ class Video
           }
           else
           {
-            $sec = Video::framenum2sec($file, $thumbnail, $identify);
+            if ($identify['ffmpeg-version']  &&  is_numeric($identify['ffmpeg-version'])  &&  $identify['ffmpeg-version'] > 20121200)
+              $sec = intval(basename($thumbnail));//newer version, named based on seconds
+            else
+              $sec = Video::framenum2sec($file, $thumbnail, $identify); //older version, named based on framenum
+
             if ($sec < 0)
               $sec = round($i*$frameEvery);
           }
