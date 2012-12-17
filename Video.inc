@@ -648,7 +648,6 @@ class Video
         // Audio: mp1 ([6][0][0][0] / 0x0006), 48000 Hz, stereo, s16, 416 kb/s
         $aline = preg_replace('= \(\[\d+\]\[\d+\]\[\d+\]\[\d+\] / 0x\d+\)=','',
                               $aline);
-        
         if (count($alines[0])==3  &&
             // throw out suspected-decoded-wrong audio streams like:
             // Audio: mp1, 48000 Hz, stereo, s16, 416 kb/s
@@ -661,7 +660,8 @@ class Video
              strpos($aline, ': Audio: aac, 24000 Hz, 7.1(wide)')>0  || //nov2011 version
              // throw out suspected-decoded-wrong audio streams like:
              // /details/WUSA_20091118_140000_9News_Now_at_9am    -- it should be noted this item is botched/glitchy
-             strpos($aline, ': Audio: aac, 3.0, s16, 258 kb/s')>0  || //sep2012 version
+             strpos($aline, ': Audio: aac, 3.0, fltp, ')>0  || //dec2012 version
+             strpos($aline, ': Audio: aac, 3.0, s16, ')>0  || //sep2012 version
              strpos($aline, ': Audio: aac, 24000 Hz, 8 channels (FL+FR+FC+LFE+BL+BR+FLC+FRC)')>0  || //mar2012 version
              strpos($aline, ': Audio: aac, 7350 Hz, 3 channels')>0 )) //nov2011 version
         {
@@ -1407,9 +1407,12 @@ class Video
 
 
 
+    // "-pix_fmt" arg is to avoid any yuvj444p issues on output that ImageMagick
+    // and gifsicle *both* cannot handle, eg:
+    //   /details/prueba-02 
     $cmd = "$ffmpeg -i ".Util::esc($file).
       ($altxxx ? " -an $frameLimit -r $rate -sameq $outDir/%08d.jpg" :
-       " -an $vf $frameLimit -r $rate $outDir/%08d.jpg");
+       " -an $vf $frameLimit -pix_fmt yuvj422p -r $rate $outDir/%08d.jpg");
       
 
     // normally we'd like to kill/timeout after 1 hour.
@@ -2197,7 +2200,7 @@ class Video
     'bikeDiablo/bikeDiablo.avi' => 12,
     'bikeDiabloVideo/bikeDiabloVideo.avi' => 30,
     'camels/camels.avi' => 20,
-    'canon-hf-10-test-2008_09_23a/canon-hf-10-test-2008_09_23a.mts' => 59.94,
+    'canon-hf-10-test-2008_09_23a/canon-hf-10-test-2008_09_23a.mts' => 29.97,
     'coffeehouse-Freedom-Dance/Freedom-Dance.mov' => 14.99,
     'commute/commute.avi' => 10,
     'demoreel/rj.mpg' => 29.97,
@@ -2361,13 +2364,18 @@ php -r 'require_once(\"/petabox/setup.inc\"); echo json_encode(Video::identify(\
         unset($ffi['bytes']);
         if ($ary != $ffi)
         {
-          error_log("NOT EQUAL!");
-          error_log("--SHOULD BE:");          
-          printr($ary);
-          error_log("--CURRENTLY IS:");          
-          printr($ffi);
-          error_log(json_encode($ffi));
-          assert(false);
+          // try rounding duration to nearest *tenth* (not *hundredth*) of a second and retry...
+          $ffi['length'] = round($ffi['length'],1);
+          $ary['length'] = round($ary['length'],1);
+          if ($ary != $ffi){
+            error_log("NOT EQUAL!");
+            error_log("--SHOULD BE:");          
+            printr($ary);
+            error_log("--CURRENTLY IS:");          
+            printr($ffi);
+            error_log(json_encode($ffi));
+            assert(false);
+          }
         }
       }
     }
