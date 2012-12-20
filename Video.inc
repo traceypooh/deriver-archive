@@ -3,8 +3,23 @@
 class Video
 {
   public static $PLAYABLES=null;
-  const AV_ANTI_DRIFT = ' -muxdelay 5 -copyts -async 88200 -adrift_threshold 5 -dts_delta_threshold 5 ';
-  
+
+
+  // **hopefully** the near ultimate fix for MPEG-TS A/V sync drifting!  
+  // Make sure we use "-vsync" param.  
+  // This came about from last weeks "new" MSNBCW_2012121* TV programs that were in HD with 5.1 audio,
+  // but recently started arriving with local affiliate  SD commercials in stero audio.
+  // Those items became totally borked or sometimes just failed rest of .mp4 after that commercial set
+  // until came up with this new A/V PTS/DTS sync strategy!
+  //
+  // A particularly helpful piece in this was:
+  //   https://ffmpeg.org/trac/ffmpeg/ticket/187#comment:6
+  //
+  // Which basically advocates, pseudocode:
+  //   $vsync = ( wmv ? 1 : 0 )
+  //   if you get a "non monotonic timestamp" error, change $vsync to 1 (if it wasn't 1 already) and add "-r" arg
+  const AV_ANTI_DRIFT = ' -vsync 0 ';
+  const AV_ANTI_DRIFT2= ' -vsync 1 ';
 
 
 
@@ -1886,17 +1901,14 @@ class Video
     //$rate = "";//xxxx
 
 
-    $args =
-      " $rest $rate -threads 2 ".
-    
-      // http://webcache.googleusercontent.com/search?q=cache:m16Nv-PyqZsJ:ffmpeg-users.933282.n4.nabble.com/DVB-transports-streams-a-v-line-up-sort-of-like-projectx-does-td1009651.html+ffmpeg+%22dts_delta_threshold%22&cd=4&hl=en
-      ($identify['audio']!=='false'  && 
-       ($is_tv  ||  
-        in_array($sourceFormat, array('MPEG2','MPEG1','h.264/MPEG2-TS')))
-       ? Video::AV_ANTI_DRIFT : "").
-            
-      (isset($identify["DAR"]) ? " -aspect {$identify['DAR']}" : "").
-      " -map_metadata -1,g:0,g";
+    $drifting = ($identify['audio']!=='false'  && 
+                 ($is_tv  ||  
+                  in_array($sourceFormat, array('MPEG2','MPEG1','h.264/MPEG2-TS')))
+                 ? Video::AV_ANTI_DRIFT : "");
+
+    $args = (" $rest " . ($drifting ? $drifting : $rate) . " -threads 2 ".
+             (isset($identify["DAR"]) ? " -aspect {$identify['DAR']}" : "").
+             " -map_metadata -1,g:0,g");
 
     
     // normally, we'd be ready to run!  however, quick test first second...
@@ -1949,11 +1961,12 @@ class Video
     $tries = array();
     $tries[] = "$cmd $vf1 $args";
     $tries[] = "$cmd $vf2 $args";
-    $tries[] = str_replace(Video::AV_ANTI_DRIFT, '',    $tries[count($tries)-1]);
+    if ($drifting)
+      $tries[] = str_replace(Video::AV_ANTI_DRIFT, Video::AV_ANTI_DRIFT2, $tries[count($tries)-1]) . $rate;
     $tries[] = Video::yadif_nix(                        $tries[count($tries)-1]);
     $tries[] = str_replace(' -i ', ' -err_detect 0 -i ',$tries[count($tries)-1]);
     $tries = array_values(array_unique($tries)); // nix dupes; retains order!
-    //printr($tries);
+    printr($tries);
     
     return array($tries, $acoder);
   }

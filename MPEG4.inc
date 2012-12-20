@@ -7,7 +7,7 @@ class MPEG4 extends Module
   
   
   public function version()
-  { return '$Revision: 47279 $ $Date: 2012-10-12 01:52:58 +0000 (Fri, 12 Oct 2012) $'; }
+  { return '$Revision: 48549 $ $Date: 2012-12-20 01:23:41 +0000 (Thu, 20 Dec 2012) $'; }
 
   
   public function derive()
@@ -117,7 +117,7 @@ class MPEG4 extends Module
     
     if (($err=Util::cmdQT("$qtfaststart $tmp ".Util::esc($dest),$times3, 'CONTINUE'))){
       // eg: /details/CNBC_20120717_040000_The_Costco_Craze_Inside_the
-      Util::cmdQT("/home/tracey/petabox/sw/lib/python/qtfaststart/bin/qtfaststart $tmp ".Util::esc($dest),$times3);
+      Util::cmdQT("/petabox/sw/lib/python/qtfaststart/bin/qtfaststart $tmp ".Util::esc($dest),$times3);
     }
 
     $this->copyOrigMeta(); // backfills in any current metadata information
