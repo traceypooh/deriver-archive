@@ -152,10 +152,46 @@ function ffmpeg_src()
 
 
 ###############################################################################
+# ffmpeg -- tracey patches
+###############################################################################
+#    -AAC audio (nondecreasing timestamps is fine; monotonic is too restrictive!)
+#    -Better saved thumbnail names
+#    -Better quality theora (like "ffmpeg2theora" tool; use both bitrate *and* qscale)
+#    -Better copy for MPEG-TS streams (eg: linux recording)
+#       NOTE: disabled for now since incompatible w/ mar2012 ffmpeg and 
+#             not using MPEG-TS copy at the moment... (and certainly basic MPEG-TS
+#             stream copying is working for video w/ detected width/height now...)
+function ffmpeg_patch()
+{
+    cd $DIR/ffmpeg;
+    PATDIR=
+    for p in ffmpeg-aac.patch  ffmpeg-thumbnails.patch  ffmpeg-theora.patch  ffmpeg-showinfo.patch; do # ffmpeg-copy.patch
+        if [ "$PATDIR" == "" ]; then
+            # find the patches dir!
+            if [ -e "$MYDIR/$p" ]; then
+                PATDIR=file://$MYDIR; 
+            elif [ -e "$MYDIR/../lib/ffmpeg/$p" ]; then
+                PATDIR=file://$MYDIR/../lib/ffmpeg;
+            else
+                PATDIR=http://archive.org/~tracey/downloads/patches;
+            fi
+        fi
+
+        curl "$PATDIR/$p" >| ../$p;
+        echo APPLYING PATCH $p;
+        patch -p1 < ../$p;
+    done
+}
+
+
+
+###############################################################################
 # ffmpeg -- do 1st pass default config and compile *and* install so
 #           we can get modern libavutil, etc. installed in place for x264 build
 ###############################################################################
 ffmpeg_src;
+ffmpeg_patch; # test applying patches *first* in case any need updating
+ffmpeg_src;   # revert any of the patches for this first clean/stock build
 cd $DIR/ffmpeg;
 ./configure;
 make -j4;
@@ -179,36 +215,9 @@ env DESTDIR=$DIR  make install;
 
 
     
-###############################################################################
-# ffmpeg -- patch
-###############################################################################
+
 ffmpeg_src;
-
-# tracey patches:
-#    -AAC audio (nondecreasing timestamps is fine; monotonic is too restrictive!)
-#    -Better saved thumbnail names
-#    -Better quality theora (like "ffmpeg2theora" tool; use both bitrate *and* qscale)
-#    -Better copy for MPEG-TS streams (eg: linux recording)
-#       NOTE: disabled for now since incompatible w/ mar2012 ffmpeg and 
-#             not using MPEG-TS copy at the moment... (and certainly basic MPEG-TS
-#             stream copying is working for video w/ detected width/height now...)
-cd $DIR/ffmpeg;
-PATDIR=
-for p in ffmpeg-aac.patch  ffmpeg-thumbnails.patch  ffmpeg-theora.patch  ffmpeg-showinfo.patch; do # ffmpeg-copy.patch
-  if [ "$PATDIR" == "" ]; then
-    # find the patches dir!
-    if [ -e "$MYDIR/$p" ]; then
-      PATDIR=file://$MYDIR; 
-    elif [ -e "$MYDIR/../lib/ffmpeg/$p" ]; then
-      PATDIR=file://$MYDIR/../lib/ffmpeg;
-    else
-      PATDIR=http://archive.org/~tracey/downloads/patches;
-    fi
-  fi
-
-  curl "$PATDIR/$p" >| ../$p;
-  patch -p1 < ../$p;
-done
+ffmpeg_patch;
 
 
 
