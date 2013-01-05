@@ -1,8 +1,10 @@
 diff --git a/ffmpeg.c b/ffmpeg.c
-index 956f5b6..416ca75 100644
+index 977218f..0571f54 100644
 --- a/ffmpeg.c
 +++ b/ffmpeg.c
-@@ -802,2 +802,8 @@ static void do_video_out(AVFormatContext *s,
+@@ -799,6 +799,12 @@ static void do_video_out(AVFormatContext *s,
+ 
+     /* by default, we output a single frame */
      nb_frames = 1;
 +    {
 +      s->ist_frame_number = ist->st->codec->frame_number;   
@@ -11,16 +13,17 @@ index 956f5b6..416ca75 100644
 +      s->tbnxxx.den       = tbnxxx.den;
 +    }
  
-@@ -3163,6 +3169,7 @@ static void parse_cpuflags(int argc, char **argv, const OptionDef *options)
+     format_video_sync = video_sync_method;
+     if (format_video_sync == VSYNC_AUTO)
+@@ -3151,7 +3157,7 @@ static void log_callback_null(void *ptr, int level, const char *fmt, va_list vl)
+ }
+ 
  int main(int argc, char **argv)
 -{
 +{tbnxxx.num=0; tbnxxx.den=0;
-+
-+
-     OptionsContext o = { 0 };
+     int ret;
      int64_t ti;
--
-     atexit(exit_program);
+ 
 diff --git a/ffmpeg.h b/ffmpeg.h
 index afef6fb..cbaf51b 100644
 --- a/ffmpeg.h
