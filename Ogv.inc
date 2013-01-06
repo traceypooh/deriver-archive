@@ -7,7 +7,7 @@ class Ogv extends Module
 
 
   public function version()
-  { return '$Revision: 47279 $ $Date: 2012-10-12 01:52:58 +0000 (Fri, 12 Oct 2012) $'; }
+  { return '$Revision: 48484 $ $Date: 2012-12-13 22:00:08 +0000 (Thu, 13 Dec 2012) $'; }
   
   public function derive()
   {

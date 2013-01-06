@@ -4,7 +4,7 @@ require_once('Module.inc');
 class WebM extends Module
 {
   public function version() 
-  { return '$Revision: 48706 $ $Date: 2013-01-06 20:10:13 +0000 (Sun, 06 Jan 2013) $'; }
+  { return '$Revision: 48707 $ $Date: 2013-01-06 20:14:18 +0000 (Sun, 06 Jan 2013) $'; }
   
   public function derive()
   {
@@ -42,14 +42,14 @@ class WebM extends Module
                                 ), true);
 
     
+    $params = str_replace(' /petabox/', " {$_SERVER['PETABOX_HOME']}/", $this->parameter);
 
-    $cmd = ("$ffmpeg -y -i ".Util::esc($src).
-            " -vcodec webm ");
+    $cmd = ("$ffmpeg -y -i ".Util::esc($src)." -vcodec webm ");
 
     list($tries, $acoder) =
       Video::ffmpeg_params($cmd, $identify, $this->sourceFormat,
                            "-acodec libvorbis -ab 128k -ac 2 -ar 44100",
-                           $this->parameter, $this->is_tvarchive(), false);
+                           $params, $this->is_tvarchive(), false);
     $cmd = $tries[0];
     
        
