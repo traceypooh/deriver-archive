@@ -4,7 +4,7 @@ require_once('Module.inc');
 class WebM extends Module
 {
   public function version() 
-  { return '$Revision: 48707 $ $Date: 2013-01-06 20:14:18 +0000 (Sun, 06 Jan 2013) $'; }
+  { return '$Revision: 48708 $ $Date: 2013-01-06 20:21:48 +0000 (Sun, 06 Jan 2013) $'; }
   
   public function derive()
   {
@@ -48,7 +48,7 @@ class WebM extends Module
 
     list($tries, $acoder) =
       Video::ffmpeg_params($cmd, $identify, $this->sourceFormat,
-                           "-acodec libvorbis -ab 128k -ac 2 -ar 44100",
+                           "-acodec libvorbis -b:a 128k -ac 2 -ar 44100",
                            $params, $this->is_tvarchive(), false);
     $cmd = $tries[0];
     
