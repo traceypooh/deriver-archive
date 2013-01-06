@@ -611,7 +611,7 @@ class Video
                                        (60 * $mat[2]) +
                                        $mat[3]) : null),
 
-      'ffmpeg-version' => (preg_match('/ built on ([^ ]+ \d+ \d\d\d\d \d\d:\d\d:\d\d )/', $out, $mat) ?
+      'ffmpeg-version' => (preg_match('/ built on ([^ ]+ +\d+ +\d\d\d\d \d\d:\d\d:\d\d )/', $out, $mat) ?
                            date("Ymd",strtotime($mat[1])) :
                            (preg_match('/^FFmpeg version SVN-r(\d+)/', $out, $mat) ?
                             $mat[1] :
