@@ -4,7 +4,7 @@ require_once('Module.inc');
 class WebM extends Module
 {
   public function version() 
-  { return '$Revision: 48484 $ $Date: 2012-12-13 22:00:08 +0000 (Thu, 13 Dec 2012) $'; }
+  { return '$Revision: 48706 $ $Date: 2013-01-06 20:10:13 +0000 (Sun, 06 Jan 2013) $'; }
   
   public function derive()
   {
@@ -44,7 +44,7 @@ class WebM extends Module
     
 
     $cmd = ("$ffmpeg -y -i ".Util::esc($src).
-            " -vcodec webm -fpre /petabox/sw/lib/ffmpeg/libvpx-360p.ffpreset ");
+            " -vcodec webm ");
 
     list($tries, $acoder) =
       Video::ffmpeg_params($cmd, $identify, $this->sourceFormat,

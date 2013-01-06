@@ -792,8 +792,8 @@
     <class>WebM</class>
     <category>lossy</category>
     <variations>
-      <variation rank="11" name="WebM" parameter="640x480" conditionally="{'!collection':['tvarchive']}">
-<!--COMING SOON: WEBM
+      <variation rank="11" name="WebM" parameter="640x480 -fpre /petabox/sw/lib/ffmpeg/libvpx-360p.ffpreset" conditionally="{'!collection':['tvarchive']}">
+<!--NEVER WENT LIVE: WEBM
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
