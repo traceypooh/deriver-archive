@@ -16,10 +16,11 @@ error_log("\$src => $src");
 error_log("\$id => $id");
 
 
-
+// comment/uncomment toggle these out as you like!
 new Thumbnails($src, $id, "jpg");
 new MPEG4     ($src, $id, "mp4");
 new Ogv       ($src, $id, "ogv");
+//new WebM      ($src, $id, "webm");
 
 
 class Util
