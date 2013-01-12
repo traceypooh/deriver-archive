@@ -203,7 +203,7 @@ env DESTDIR=$DIR  make install;
 #                 (installed above with first ffmpeg config+compile base pass)
 ###############################################################################
 cd $DIR/x264;
-./configure --enable-static --enable-pic \
+./configure --enable-static --enable-pic --disable-asm \
 --extra-cflags=-I${DIRIN?}/local/include \
 --extra-ldflags=-L${DIRIN?}/local/lib
 # xxxx mac     ./configure --prefix=$DIRIN/local --enable-static --enable-shared;
