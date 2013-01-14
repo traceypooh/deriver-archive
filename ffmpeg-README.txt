@@ -294,6 +294,10 @@ $FFXTRA
 
 if [ "$SHORTNAME" == "mac" ]; then
     # now build mplayer from source (uses libx264 above and ffmpeg)
+
+    echo "NOTE: on Mountain Lion OS you may not be able to ffplay playback since X11 is no longer installed by default"
+    echo "NOTE: if so, see http://support.apple.com/kb/HT5293"
+
     cd $DIR;
     svn checkout svn://svn.mplayerhq.hu/mplayer/trunk mplayer;
     cd mplayer;
@@ -321,6 +325,8 @@ if [ "$SHORTNAME" == "mac" ]; then
 
     mv ffmpeg ..;
 
+    echo "NOTE: on Mountain Lion OS you may not be able to ffplay playback since X11 is no longer installed by default"
+    echo "NOTE: if so, see http://support.apple.com/kb/HT5293"
 
   ################################################################################
   #    unrelated ports packages that tracey likes/uses:
