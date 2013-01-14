@@ -12,14 +12,23 @@ class Video
   // Those items became totally borked or sometimes just failed rest of .mp4 after that commercial set
   // until came up with this new A/V PTS/DTS sync strategy!
   //
-  // A particularly helpful piece in this was:
+  // A particularly helpful part in this was:
   //   https://ffmpeg.org/trac/ffmpeg/ticket/187#comment:6
   //
   // Which basically advocates, pseudocode:
   //   $vsync = ( wmv ? 1 : 0 )
   //   if you get a "non monotonic timestamp" error, change $vsync to 1 (if it wasn't 1 already) and add "-r" arg
-  const AV_ANTI_DRIFT = ' -vsync 0 ';
-  const AV_ANTI_DRIFT2= ' -vsync 1 ';
+  // however that made massive A/V slip in many shows in jwplayer **flash plugin** (only), so
+  // went instead with (just) "-vsync 1", and add "-r" arg secondarily if the 1st try fails
+
+  const AV_ANTI_DRIFT = ' -vsync 1 '; //flash plugin works -- at some expense of duping/nixing video frames to meet framerate!
+  // dead bodies:
+  //const AV_ANTI_DRIFT='-vsync 0';             //flash plugin has A/V drift
+  //const AV_ANTI_DRIFT='-vsync 0 -copyts';     //flash plugin has A/V drift
+  //const AV_ANTI_DRIFT='-vsync 0 -r xxx';      //flash plugin has A/V drift
+  //const AV_ANTI_DRIFT='-vsync 0 -fflags +genpts+igndts';  // [ditto above]
+  //const AV_ANTI_DRIFT='-async 1';             //only currects the *start* per dox!
+  //const AV_ANTI_DRIFT='-af aresample=8000';   //flail, works for small test cases; not enough testing; bad science
 
 
 
@@ -1901,12 +1910,13 @@ class Video
     //$rate = "";//xxxx
 
 
-    $drifting = ($identify['audio']!=='false'  && 
-                 ($is_tv  ||  
-                  in_array($sourceFormat, array('MPEG2','MPEG1','h.264/MPEG2-TS')))
-                 ? Video::AV_ANTI_DRIFT : "");
+    // Traction control doesn't allow you to drift your RWD car, get it?  8-)
+    $traction_control = ($identify['audio']!=='false'  && 
+                         ($is_tv  ||  
+                          in_array($sourceFormat, array('MPEG2','MPEG1','h.264/MPEG2-TS','MPEG2-TS')))
+                         ? Video::AV_ANTI_DRIFT : false);
 
-    $args = (" $rest " . ($drifting ? $drifting : $rate) . " -threads 2 ".
+    $args = (" $rest " . ($traction_control ? $traction_control : $rate) . " -threads 2 ".
              (isset($identify["DAR"]) ? " -aspect {$identify['DAR']}" : "").
              " -map_metadata -1,g:0,g");
 
@@ -1934,11 +1944,16 @@ class Video
     if ($identify['audio']  &&  $identify['audio'] != 'false')
     {
       // for archive items (esp. TV), always use 1st audio track IFF 2+
-      $map = (isset($identify['astreams'])  && 
-              isset($identify['vstreams']) ?
-              ' -map '.str_replace('.',':',strtok($identify['vstreams'],',')).
-              ' -map '.str_replace('.',':',strtok($identify['astreams'],',')) : '');
-      $acoder = "$map $acoder";
+      if (isset($identify['astreams'])  &&  isset($identify['vstreams'])){
+        $vid = str_replace('.',':',strtok($identify['vstreams'],','));
+        $aid = str_replace('.',':',strtok($identify['astreams'],','));
+
+        // The 2nd specifier (after comma) is for "sync_file_id"
+        // and *both* should indeed be using the *vid*
+        $map = (' -map '.$vid.($traction_control ? ",$vid" : "").
+                ' -map '.$aid.($traction_control ? ",$vid" : ""));
+        $acoder = "$map $acoder";
+      }
     }
     else
     {
@@ -1961,8 +1976,8 @@ class Video
     $tries = array();
     $tries[] = "$cmd $vf1 $args";
     $tries[] = "$cmd $vf2 $args";
-    if ($drifting)
-      $tries[] = str_replace(Video::AV_ANTI_DRIFT, Video::AV_ANTI_DRIFT2, $tries[count($tries)-1]) . $rate;
+    if ($traction_control)
+      $tries[] = $tries[count($tries)-1] . $rate;
     $tries[] = Video::yadif_nix(                        $tries[count($tries)-1]);
     $tries[] = str_replace(' -i ', ' -err_detect 0 -i ',$tries[count($tries)-1]);
     $tries = array_values(array_unique($tries)); // nix dupes; retains order!
