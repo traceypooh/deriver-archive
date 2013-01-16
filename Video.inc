@@ -29,7 +29,7 @@ class Video
   //const AV_ANTI_DRIFT='-vsync 0 -fflags +genpts+igndts';  // [ditto above]
   //const AV_ANTI_DRIFT='-async 1';             //only currects the *start* per dox!
   //const AV_ANTI_DRIFT='-af aresample=8000';   //flail, works for small test cases; not enough testing; bad science
-
+  //const AV_ANTI_DRIFT='-muxdelay 5 -copyts -async 88200 -adrift_threshold 5 -dts_delta_threshold 5'; // prior 2012 way
 
 
   // returns the number of seconds, may be fractional
@@ -649,6 +649,11 @@ class Video
     }
     //error_log("$kbs kb/s");
     
+
+    if (strpos($out, 'multiple edit list entries, a/v desync might occur, patch welcome')>0)
+      $arr['vsync'] = 1;
+
+
     
 
     // For TV archive items, we want to always use the first audio track found
@@ -820,6 +825,7 @@ class Video
         }
       }
     }
+
     
     return $arr;
   }
@@ -1669,11 +1675,11 @@ class Video
   
 
   private static function ffmpeg_vf(&$identify,
-                                    $wh="640x480", $is_tv=false, $h264=false, $noCrop=false)
+                                    $wh="640x480", $tvarchive=false, $h264=false, $noCrop=false)
   {
     // for "rectangular pixel" video -- "stretch" width to square pixels
     list($vf,$outW) = Video::vf("-s $wh", $identify,
-                                $is_tv,
+                                $tvarchive,
                                 /*padBlack==*/false,
                                 $h264, 
                                 $noCrop);
@@ -1685,7 +1691,7 @@ class Video
       // So scale it back down to 360P at least for now...
       
       list($vf) = Video::vf('-s 480x360', $identify,
-                            $is_tv,
+                            $tvarchive,
                             /*padBlack==*/false,
                             $h264,
                             $noCrop);
@@ -1696,11 +1702,11 @@ class Video
   
 
   public static function ffmpeg_params($cmd, &$identify, $sourceFormat, $acoder,
-                                       $params="640x480", $is_tv=false, $h264=false)
+                                       $params="640x480", $tvarchive=false, $h264=false)
   {
     if (!$identify['width']  ||  !$identify['height'])
     {
-      if ($is_tv)
+      if ($tvarchive)
         fatal(TV::$ERRS[2]);
       else
         fatal("Video width/height not calculable -- likely no video track!");
@@ -1713,8 +1719,8 @@ class Video
         
 
 
-    $vf1 = Video::ffmpeg_vf($identify, $wh, $is_tv, $h264);
-    $vf2 = Video::ffmpeg_vf($identify, $wh, $is_tv, $h264, /*noCrop==*/true);
+    $vf1 = Video::ffmpeg_vf($identify, $wh, $tvarchive, $h264);
+    $vf2 = Video::ffmpeg_vf($identify, $wh, $tvarchive, $h264, /*noCrop==*/true);
     
     
     $rate = ($identify['fps'] ? " -r {$identify['fps']} " : "");
@@ -1723,7 +1729,7 @@ class Video
 
     // Traction control doesn't allow you to drift your RWD car, get it?  8-)
     $traction_control = ($identify['audio']!=='false'  && 
-                         ($is_tv  ||  
+                         ($tvarchive  ||  (isset($identify['vsync'])  &&  $identify['vsync']==1)  ||
                           in_array($sourceFormat, array('MPEG2','MPEG1','h.264/MPEG2-TS','MPEG2-TS')))
                          ? Video::AV_ANTI_DRIFT : false);
 
@@ -1770,7 +1776,7 @@ class Video
     {
       // no audio!
       $acoder = "-an";
-      if ($is_tv)
+      if ($tvarchive)
       {
         // rare, but /details/KICU_20110322_110000_Paid_Programming ...
         echo "\nWARNING! NO CHANNELS FOUND IN AUDIO STREAM(S)!\n\n";
