@@ -17,10 +17,6 @@ SHORTNAME=mac;
 
 unset LD_LIBRARY_PATH; #avoid any contamination when set!
 MYDIR=$(d=`dirname $0`; echo $d | grep '^/' || echo `pwd`/$d);
-PRESETS=$MYDIR; # where presets will live
-if [ -e "$MYDIR/../lib/ffmpeg" ]; then
-  PRESETS="$MYDIR/../lib/ffmpeg";
-fi
 
 
 
@@ -273,7 +269,6 @@ $FFXTRA
     make -j4 V=1;
     make alltools;
     env DESTDIR=$DIR make install;
-    cp presets/*.ffpreset   $PRESETS/;
     if [ "$SHORTNAME" == "mac" ]; then
       sudo cp ffmpeg ffprobe tools/qt-faststart  /opt/local/bin/;
       if [ -x ffplay ]; then # fixxxme no ffplay still for Lion
@@ -284,7 +279,7 @@ $FFXTRA
       cp ffprobe              $MYDIR/ffprobe.$SHORTNAME;
       cp ffplay               $MYDIR/ffplay.$SHORTNAME;
       set -x;
-      echo;echo;echo "NOTE: any changes to $MYDIR and $PRESETS need to be committed..."
+      echo;echo;echo "NOTE: any changes to $MYDIR need to be committed..."
     fi
       
 
