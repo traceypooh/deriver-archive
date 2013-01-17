@@ -29,7 +29,13 @@ class Video
   //const AV_ANTI_DRIFT='-vsync 0 -fflags +genpts+igndts';  // [ditto above]
   //const AV_ANTI_DRIFT='-async 1';             //only currects the *start* per dox!
   //const AV_ANTI_DRIFT='-af aresample=8000';   //flail, works for small test cases; not enough testing; bad science
-  //const AV_ANTI_DRIFT='-muxdelay 5 -copyts -async 88200 -adrift_threshold 5 -dts_delta_threshold 5'; // prior 2012 way
+
+  // Our prior 2012 way...
+  // in addition to the 5.1/stereo commercials that "killed this" set of prior args (above), this item (with Mar2012 ffmpeg)
+  //   /details/MSNBCW_20110817_130000_The_Daily_Rundown
+  // had mp4 that locked up and died midway through (fixed now with Dec2012 ffmpeg + "-vsync 1")
+  //const AV_ANTI_DRIFT='-muxdelay 5 -copyts -async 88200 -adrift_threshold 5 -dts_delta_threshold 5'; 
+
 
 
   // returns the number of seconds, may be fractional
