@@ -161,7 +161,7 @@ function ffmpeg_patch()
 {
     cd $DIR/ffmpeg;
     PATDIR=
-    for p in ffmpeg-aac.patch  ffmpeg-thumbnails.patch  ffmpeg-theora.patch  ffmpeg-showinfo.patch; do # ffmpeg-copy.patch
+    for p in ffmpeg-aac.patch  ffmpeg-thumbnails.patch  ffmpeg-theora.patch; do # ffmpeg-copy.patch
         if [ "$PATDIR" == "" ]; then
             # find the patches dir!
             if [ -e "$MYDIR/$p" ]; then
