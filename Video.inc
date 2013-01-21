@@ -37,6 +37,24 @@ class Video
   //const AV_ANTI_DRIFT='-muxdelay 5 -copyts -async 88200 -adrift_threshold 5 -dts_delta_threshold 5'; 
 
 
+  // Also worth exploring in future if we have other A/V sync issues...  from Stefano Sabatini Jan2013
+  // What I used when I need the same functionality:
+  // min_comp=0.001:min_hard_comp=0.1
+  //    Exegesis:
+  // delta = input PTS - expected PTS
+  // min_comp=d
+  // basically enables soft/hard compensation in case delta >= d.
+  // Compensation consists in applying one of these:
+  //   stretching/squeezing (soft compensation)
+  //   filling or trimming (hard compensation)
+  // Since you want to enable *filling*/padding in this case,
+  // min_hard_comp=0.1 will add samples if delta >= 0.1 (this happens in
+  // case of big delay at the beginning of the file), soft compensation in
+  // case of "small" (<0.1 seconds) gaps. Since min_hard_comp=0.1 is the
+  // default, you can simply set equivalently:
+  // aresample=min_comp=0.001
+  // See ffmpeg-resampler(1)
+
 
   // returns the number of seconds, may be fractional
   public static function runtime(Item &$item, $nGroupsAV, $videofile)
@@ -936,8 +954,15 @@ class Video
     if (preg_match('/, 29.97 fps,/', $vline))
       return 29.97;
 
+    $fps=-666;
+    if (preg_match('/, ([\d\.]+) fps,/', $vline, $mat))
+      $fps = $mat[1]; // fallback -- we can usually be more accurate than this!!
+    
+
     
     $ffprobe = configGetPetaboxPath('bin-ffprobe');
+    //error_log($ffprobe);
+    
 
     $streams = Util::cmd("$ffprobe -show_streams ".Util::esc($src)." 2>/dev/null  | tr '\n' ';' | perl -pe 's=\[/STREAM\]=\n=g; s=\[STREAM\]=\n\[STREAM\]=g'|fgrep '[STREAM]'|cat", 'ARRAY');
 
@@ -966,8 +991,9 @@ class Video
       if ($ary['codec_type']=='audio')
         $astreams[] = $ary;
     }
-    //printr($vstreams);
+
     //printr($astreams);
+    //printr($vstreams);
 
 
     if (count($vstreams) > 1  &&  count($goods) > 0  &&
@@ -977,10 +1003,13 @@ class Video
       // eg: /details/FOXNEWS_20091125_020000_Hannity
       $vstreams = $goods;
     }
+
+
     
 
     $ptr = (count($vstreams) ? $vstreams : $astreams);
-
+    //printr($ptr);
+    
 
     
     // "r" vs "avg" discrepancy items, eg:
@@ -1044,7 +1073,9 @@ class Video
       return "";
 
     // pick first rate
-    return $rates[0];
+    $ret = $rates[0];
+    $check = Video::tofloat($ret);
+    return ($check > 100  &&  $fps > 0 && $fps < 100 ? $fps : $ret);
   }
 
 
@@ -1673,7 +1704,7 @@ class Video
     
     // NOTE: make sure that we skip any "first keyframe" that (bizarrely) comes up
     // a **negative** byte position.
-    $first_byte_for_first_keyframe = Util::cmd("( $cmdpipe | head -c $seekMaxB | $ffprobe -show_packets - 2>/dev/null | perl -ne 'chop unless m=/PACKET=; print;' | perl -ne 'next unless m/codec_type=video/; next unless m/flags=K/; next unless m/ pos=(\d+)/; print \$1; exit;' ) 2>/dev/null","CONTINUE","PRINT");
+    $first_byte_for_first_keyframe = Util::cmd("( $cmdpipe | head -c $seekMaxB | $ffprobe -print_format compact -show_frames -select_streams v -show_entries frame=pict_type,pkt_pos - 2>/dev/null |fgrep -m1 pict_type=I |egrep -o 'pos=[0-9]+'|cut -f2 -d= ) 2>/dev/null","CONTINUE","PRINT");
 
     return ($first_byte_for_first_keyframe ? 
             " | tail -c +$first_byte_for_first_keyframe " : "");
@@ -1977,7 +2008,7 @@ class Video
     'BayrampasaVaillantServisi444_1_494VaillantServisi_1000/8.flv' => 23.98,
     'Bij_de_Italiaan/Italiaan.3gp' => 15,
     'BraveNewFilmsFoxAttacksObama/foxattacksobama320.mov' => 29.97,
-    'BrokeNProud/Bnp_finalCut_intro_explicit_720.mov' => '23.98',//NOTE: sep2012+ ffmpeg is now *not* ''...
+    'BrokeNProud/Bnp_finalCut_intro_explicit_720.mov' => 23.98, //NOTE: sep2012+ ffmpeg is now *not* ''...
     'BurningDowntheSuburbs/HoldenBurningSuburbs.mov' => 30,
     'CNNW_20110518_000000_In_the_Arena/CNNW_20110518_000000_In_the_Arena.mpg' => 29.97,
     'CNNW_20110601_130000_CNN_Newsroom/CNNW_20110601_130000_CNN_Newsroom.mpg' => 29.97,
@@ -2005,11 +2036,10 @@ class Video
     'HoChak/8tvHoChat.mov' => 15,
     'Holymatrimony/holymatrimony.wmv' => 23,
     'IbisBlancs/ibisblancs.wmv' => 30,
-    'IntroToSimedit/Screencap.mov' => 30,
+    'IntroToSimedit/Screencap.mov' => 10,
     'Jessies_Sunrise/Jessies_Sunrise.mpg' => 29.97,
     'KOFY_20110607_093000_Paid_Programming/KOFY_20110607_093000_Paid_Programming.mpg' => 29.97,
     'KQED_20100820_150000_Curious_George/KQED_20100820_150000_Curious_George.mpg' => 29.97,
-    'KQED_20100922_050000_POV/KQED_20100922_050000_POV.mpg' => 29.97,
     'Letterman/Letterman.mpg' => 29.97,
     'MITOCW1800intros/MIT_OCW_1800_HfHS_intro.mp4' => 29.97,
     'MITOCW1800intros/MIT_OCW_1800_OCW_intro.mp4' => 29.97,
@@ -2146,7 +2176,7 @@ class Video
         
         
         'Podcast7_492/Podcast7.m4a' =>
-        '{"DAR":"1:2","PAR":"72:72","ac":"aac","ar":"32000","astreams":"0:2","audio":"true","audio_nchannels":2,"fps":6,"height":"320","length":3783.07,"pix":"yuvj444p","vc":"mjpeg","vstreams":"0:3","width":"160"}',
+        '{"DAR":"1:2","PAR":"72:72","ac":"aac","ar":"32000","astreams":"0:2","audio":"true","audio_nchannels":2,"fps":6,"height":"320","length":3783.07,"pix":"yuvj444p","vc":"mjpeg","vstreams":"0:3","vsync":"1","width":"160"}',
         
 
         // item deleted, so check in home dir..
@@ -2193,7 +2223,7 @@ class Video
         if (!$fi)
           $fi = "$id.mpg"; // TV
       
-        $r = $lo->locateUDP($id,1,1);//find primary copy
+        $r = $lo->locateUDP($id,1);
         $r = $r[0];
       }
       
