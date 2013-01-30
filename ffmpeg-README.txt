@@ -265,11 +265,11 @@ $FFXTRA
 
 #xxx --enable-libschroedinger # hmm stopped working in natty/oneiric ~oct2011...
 
-
+    make clean;
     make -j4 V=1;
     make alltools;
-    env DESTDIR=$DIR make install;
-    if [ "$SHORTNAME" == "mac" ]; then
+    env DESTDIR=${DIR?} make install;
+    if [ "${SHORTNAME?}" == "mac" ]; then
       sudo cp ffmpeg ffprobe tools/qt-faststart  /opt/local/bin/;
       if [ -x ffplay ]; then # fixxxme no ffplay still for Lion
           sudo cp ffplay /opt/local/bin/;
@@ -287,7 +287,7 @@ $FFXTRA
 
 
 
-if [ "$SHORTNAME" == "mac" ]; then
+if [ "${SHORTNAME?}" == "mac" ]; then
     # now build mplayer from source (uses libx264 above and ffmpeg)
 
     echo "NOTE: on Mountain Lion OS you may not be able to ffplay playback since X11 is no longer installed by default"
