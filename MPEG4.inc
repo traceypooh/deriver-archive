@@ -7,7 +7,7 @@ class MPEG4 extends Module
   
   
   public function version()
-  { return '$Revision: 48549 $ $Date: 2012-12-20 01:23:41 +0000 (Thu, 20 Dec 2012) $'; }
+  { return '$Revision: 48923 $ $Date: 2013-01-17 05:54:51 +0000 (Thu, 17 Jan 2013) $'; }
 
   
   public function derive()
@@ -59,9 +59,6 @@ class MPEG4 extends Module
       $cmd .= " -pix_fmt yuv420p"; // ...so convert it
 
     $params = str_replace(' /petabox/', " {$_SERVER['PETABOX_HOME']}/", $this->parameter);
-
-    if (preg_match('/-fpre ([^ ]+)/', $params, $mat))
-      Util::cmdPP("egrep -v '^#' {$mat[1]}");
 
 
     list($tries, $acoder) =

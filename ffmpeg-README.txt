@@ -17,10 +17,6 @@ SHORTNAME=mac;
 
 unset LD_LIBRARY_PATH; #avoid any contamination when set!
 MYDIR=$(d=`dirname $0`; echo $d | grep '^/' || echo `pwd`/$d);
-PRESETS=$MYDIR; # where presets will live
-if [ -e "$MYDIR/../lib/ffmpeg" ]; then
-  PRESETS="$MYDIR/../lib/ffmpeg";
-fi
 
 
 
@@ -165,7 +161,7 @@ function ffmpeg_patch()
 {
     cd $DIR/ffmpeg;
     PATDIR=
-    for p in ffmpeg-aac.patch  ffmpeg-thumbnails.patch  ffmpeg-theora.patch  ffmpeg-showinfo.patch; do # ffmpeg-copy.patch
+    for p in ffmpeg-aac.patch  ffmpeg-thumbnails.patch  ffmpeg-theora.patch; do # ffmpeg-copy.patch
         if [ "$PATDIR" == "" ]; then
             # find the patches dir!
             if [ -e "$MYDIR/$p" ]; then
@@ -203,7 +199,7 @@ env DESTDIR=$DIR  make install;
 #                 (installed above with first ffmpeg config+compile base pass)
 ###############################################################################
 cd $DIR/x264;
-./configure --enable-static --enable-pic \
+./configure --enable-static --enable-pic --disable-asm \
 --extra-cflags=-I${DIRIN?}/local/include \
 --extra-ldflags=-L${DIRIN?}/local/lib
 # xxxx mac     ./configure --prefix=$DIRIN/local --enable-static --enable-shared;
@@ -273,7 +269,6 @@ $FFXTRA
     make -j4 V=1;
     make alltools;
     env DESTDIR=$DIR make install;
-    cp presets/*.ffpreset   $PRESETS/;
     if [ "$SHORTNAME" == "mac" ]; then
       sudo cp ffmpeg ffprobe tools/qt-faststart  /opt/local/bin/;
       if [ -x ffplay ]; then # fixxxme no ffplay still for Lion
@@ -284,7 +279,7 @@ $FFXTRA
       cp ffprobe              $MYDIR/ffprobe.$SHORTNAME;
       cp ffplay               $MYDIR/ffplay.$SHORTNAME;
       set -x;
-      echo;echo;echo "NOTE: any changes to $MYDIR and $PRESETS need to be committed..."
+      echo;echo;echo "NOTE: any changes to $MYDIR need to be committed..."
     fi
       
 
@@ -294,6 +289,10 @@ $FFXTRA
 
 if [ "$SHORTNAME" == "mac" ]; then
     # now build mplayer from source (uses libx264 above and ffmpeg)
+
+    echo "NOTE: on Mountain Lion OS you may not be able to ffplay playback since X11 is no longer installed by default"
+    echo "NOTE: if so, see http://support.apple.com/kb/HT5293"
+
     cd $DIR;
     svn checkout svn://svn.mplayerhq.hu/mplayer/trunk mplayer;
     cd mplayer;
@@ -321,6 +320,8 @@ if [ "$SHORTNAME" == "mac" ]; then
 
     mv ffmpeg ..;
 
+    echo "NOTE: on Mountain Lion OS you may not be able to ffplay playback since X11 is no longer installed by default"
+    echo "NOTE: if so, see http://support.apple.com/kb/HT5293"
 
   ################################################################################
   #    unrelated ports packages that tracey likes/uses:

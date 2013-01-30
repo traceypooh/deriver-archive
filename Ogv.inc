@@ -3,11 +3,11 @@ require_once('Module.inc');
 
 class Ogv extends Module
 {
-  const ACODER = '-acodec libvorbis -ac 2 -ab 128k -ar 44100';
+  const ACODER = '-acodec libvorbis -ac 2 -b:a 128k -ar 44100';
 
 
   public function version()
-  { return '$Revision: 48484 $ $Date: 2012-12-13 22:00:08 +0000 (Thu, 13 Dec 2012) $'; }
+  { return '$Revision: 48711 $ $Date: 2013-01-07 18:01:12 +0000 (Mon, 07 Jan 2013) $'; }
   
   public function derive()
   {

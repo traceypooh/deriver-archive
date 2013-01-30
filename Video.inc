@@ -12,15 +12,48 @@ class Video
   // Those items became totally borked or sometimes just failed rest of .mp4 after that commercial set
   // until came up with this new A/V PTS/DTS sync strategy!
   //
-  // A particularly helpful piece in this was:
+  // A particularly helpful part in this was:
   //   https://ffmpeg.org/trac/ffmpeg/ticket/187#comment:6
   //
   // Which basically advocates, pseudocode:
   //   $vsync = ( wmv ? 1 : 0 )
   //   if you get a "non monotonic timestamp" error, change $vsync to 1 (if it wasn't 1 already) and add "-r" arg
-  const AV_ANTI_DRIFT = ' -vsync 0 ';
-  const AV_ANTI_DRIFT2= ' -vsync 1 ';
+  // however that made massive A/V slip in many shows in jwplayer **flash plugin** (only), so
+  // went instead with (just) "-vsync 1", and add "-r" arg secondarily if the 1st try fails
 
+  const AV_ANTI_DRIFT = ' -vsync 1 '; //flash plugin works -- at some expense of duping/nixing video frames to meet framerate!
+  // dead bodies:
+  //const AV_ANTI_DRIFT='-vsync 0';             //flash plugin has A/V drift
+  //const AV_ANTI_DRIFT='-vsync 0 -copyts';     //flash plugin has A/V drift
+  //const AV_ANTI_DRIFT='-vsync 0 -r xxx';      //flash plugin has A/V drift
+  //const AV_ANTI_DRIFT='-vsync 0 -fflags +genpts+igndts';  // [ditto above]
+  //const AV_ANTI_DRIFT='-async 1';             //only currects the *start* per dox!
+  //const AV_ANTI_DRIFT='-af aresample=8000';   //flail, works for small test cases; not enough testing; bad science
+
+  // Our prior 2012 way...
+  // in addition to the 5.1/stereo commercials that "killed this" set of prior args (above), this item (with Mar2012 ffmpeg)
+  //   /details/MSNBCW_20110817_130000_The_Daily_Rundown
+  // had mp4 that locked up and died midway through (fixed now with Dec2012 ffmpeg + "-vsync 1")
+  //const AV_ANTI_DRIFT='-muxdelay 5 -copyts -async 88200 -adrift_threshold 5 -dts_delta_threshold 5'; 
+
+
+  // Also worth exploring in future if we have other A/V sync issues...  from Stefano Sabatini Jan2013
+  // What I used when I need the same functionality:
+  // min_comp=0.001:min_hard_comp=0.1
+  //    Exegesis:
+  // delta = input PTS - expected PTS
+  // min_comp=d
+  // basically enables soft/hard compensation in case delta >= d.
+  // Compensation consists in applying one of these:
+  //   stretching/squeezing (soft compensation)
+  //   filling or trimming (hard compensation)
+  // Since you want to enable *filling*/padding in this case,
+  // min_hard_comp=0.1 will add samples if delta >= 0.1 (this happens in
+  // case of big delay at the beginning of the file), soft compensation in
+  // case of "small" (<0.1 seconds) gaps. Since min_hard_comp=0.1 is the
+  // default, you can simply set equivalently:
+  // aresample=min_comp=0.001
+  // See ffmpeg-resampler(1)
 
 
   // returns the number of seconds, may be fractional
@@ -640,6 +673,11 @@ class Video
     }
     //error_log("$kbs kb/s");
     
+
+    if (strpos($out, 'multiple edit list entries, a/v desync might occur, patch welcome')>0)
+      $arr['vsync'] = 1;
+
+
     
 
     // For TV archive items, we want to always use the first audio track found
@@ -811,6 +849,7 @@ class Video
         }
       }
     }
+
     
     return $arr;
   }
@@ -915,8 +954,15 @@ class Video
     if (preg_match('/, 29.97 fps,/', $vline))
       return 29.97;
 
+    $fps=-666;
+    if (preg_match('/, ([\d\.]+) fps,/', $vline, $mat))
+      $fps = $mat[1]; // fallback -- we can usually be more accurate than this!!
+    
+
     
     $ffprobe = configGetPetaboxPath('bin-ffprobe');
+    //error_log($ffprobe);
+    
 
     $streams = Util::cmd("$ffprobe -show_streams ".Util::esc($src)." 2>/dev/null  | tr '\n' ';' | perl -pe 's=\[/STREAM\]=\n=g; s=\[STREAM\]=\n\[STREAM\]=g'|fgrep '[STREAM]'|cat", 'ARRAY');
 
@@ -945,8 +991,9 @@ class Video
       if ($ary['codec_type']=='audio')
         $astreams[] = $ary;
     }
-    //printr($vstreams);
+
     //printr($astreams);
+    //printr($vstreams);
 
 
     if (count($vstreams) > 1  &&  count($goods) > 0  &&
@@ -956,10 +1003,13 @@ class Video
       // eg: /details/FOXNEWS_20091125_020000_Hannity
       $vstreams = $goods;
     }
+
+
     
 
     $ptr = (count($vstreams) ? $vstreams : $astreams);
-
+    //printr($ptr);
+    
 
     
     // "r" vs "avg" discrepancy items, eg:
@@ -1023,7 +1073,9 @@ class Video
       return "";
 
     // pick first rate
-    return $rates[0];
+    $ret = $rates[0];
+    $check = Video::tofloat($ret);
+    return ($check > 100  &&  $fps > 0 && $fps < 100 ? $fps : $ret);
   }
 
 
@@ -1122,193 +1174,8 @@ class Video
 
   
 
-  // NOTE: this should prolly entirely replace the normal method since
-  //       tough shows like /details/CNNW_20120311_080000_CNN_Newsroom
-  //       now work again with it...
-  private static $frame2sec        = array();
-  private static $sec2keyframeByte = array();
-  private static $frame2secLastSrc = null;
-  public static function framenum2secALT($src, $framenum)
-  {
-    if (Video::$frame2secLastSrc != $src)
-    {
-      Video::$frame2secLastSrc = $src;
-      
-      $ffmpeg = configGetPetaboxPath('bin-ffmpeg');
-
-      Video::$frame2sec = array();
-      Video::$sec2keyframeByte = array();
-      
-      // Example output:
-      // [showinfo @ 0x2f469a0] n:0 pts:1992578 pts_time:1.99258 pos:264892 fmt:yuv420p sar:10/11 s:704x480 i:T iskey:1 type:I checksum:0541DE56 plane_checksum:[13E0F3DC 9D24758E 5DF874DD 00000000]
-      $fh=popen("$ffmpeg -i ".Util::esc($src)." -vf showinfo=n -f null . 2>&1", "r");
-      try
-      {
-        while (($line = fgets($fh)))
-        {
-          if (preg_match('|\] n:(\d+) pts:(\d+) pts_time:([\d\.]+) pos:(\d+) .*? iskey:(\d)|', $line, $mat))
-          {
-            list(,$n,$pts,$pts_time,$pos,$iskey) = $mat;
-            Video::$frame2sec[$n] = $pts_time;
-            if ($iskey)
-              Video::$sec2keyframeByte[$pts_time] = $pos;
-          }
-        }
-      }
-      catch (Exception $e)
-      {
-        pclose($fh);
-        throw($e);
-      }
-      if ($fh)
-        pclose($fh);
-    }
-    
-    //printr(Video::$frame2sec);
-    //printr(Video::$sec2keyframeByte);
-
-    if (isset(Video::$frame2sec[$framenum]))
-      return floor(Video::$frame2sec[$framenum]);
-    else
-      return -1;  // give up! (caller can fallback)
-  }
 
 
-
-  // NOTE: $framenum can be an integer (frame#) OR a thumbnail filename created
-  // by ffmpeg (with the framenumber encoded in the name)
-  private static $lastmap    = array();
-  private static $lastmapSrc = null;
-  private static $lastmapALT = false;
-  public static function framenum2sec($src, $framenum, $identify, $printmap=false)
-  {
-    if (!is_numeric($framenum))
-    {
-      if (!preg_match('/(\d+).jpg$/', basename($framenum), $mat))
-        fatal("bad ffmpeg thumbnail name!");
-      $framenum = intval($mat[1]);
-    }
-
-    if (($identify['vc']=='mpeg2video'  ||  
-         $identify['vc']=='mpeg1video'  ||
-         $identify['vc']=='h264')  &&  // for format = "h.264/MPEG2-TS"!
-        file_exists("$src.idx"))
-    {
-      // format we are parsing out will be group of pictures (starts with 'V')
-      // followed by a comment that indicates the start time position
-      
-      // construct the map(ping) of [framenum] => [timestamp] from the .idx file
-      if (Video::$lastmapSrc != $src)
-      {
-        $lastTS = -666;
-        $cmd = "egrep '^# Timestamp |^V ' 2>/dev/null ".Util::esc("$src.idx")."|egrep -A1 '^V '|cut -f1 -d, 2>/dev/null";
-        $fh = popen($cmd, "r");
-        try
-        {
-          $firstTS = -1;
-          // basically we gonna cache this map in case we asked for *another*
-          // mapping after this call is done!
-          Video::$lastmap = array();
-          Video::$lastmapSrc = $src;
-          Video::$lastmapALT = false;
-          
-          while (!feof($fh))
-          {
-            $line = trim(fgets($fh));
-            if ($line=="")
-              continue;
-            
-            $tok = preg_split('/[\s]+/', $line);
-            // printr($tok);
-            
-            if ($tok[0]=='V'  &&  is_numeric($tok[2]))
-            {
-              $framen = intval($tok[2]);
-            }
-            else if ($tok[0]=='#'  &&  $tok[1]=='Timestamp')
-            {
-              $ts = self::hms2sec($tok[2]);
-              if ($ts===false)
-                fatal("bad time in $line");
-              if ($firstTS == -1)
-                $firstTS = $ts;
-              $ts = $ts - $firstTS;
-
-              // SANITY CHECK!!
-              //error_log("$ts < $lastTS");
-              if ($ts < $lastTS)
-              {
-                error_log("UHOH .idx file timestamps are not monotonic!  ($ts >= $lastTS) Fallback to alternate method...");
-                Video::$lastmapALT = true;
-                Video::$lastmap = array();//wipe out prior bad map to avoid memory bloat
-                break;
-              }
-              
-              Video::$lastmap[$framen] = $ts;
-
-              $lastTS = $ts;
-            }
-            else
-              fatal("unexpected format line from avidemux idx: $line");
-          }
-          
-          // check for avidemux may be all 00:00:00,000!
-          // eg: /details/GreekTelevisionTest
-          if (count(array_unique(array_values(Video::$lastmap))) == 1)
-          {
-            error_log("UHOH .idx all timestamps are identical!  Fallback to alternate method...");
-            Video::$lastmapALT = true;
-            Video::$lastmap = array();//wipe out prior bad map to avoid memory bloat
-          }
-        }
-        catch (Exception $e)
-        {
-          if ($fh)
-            pclose($fh);
-          throw $e;
-        }
-        if ($fh)
-          pclose($fh);
-      }
-      
-
-      
-        
-      if (Video::$lastmapALT){
-        // huge videos exceed 200+MB limit, eg:
-        //   /details/MSNBC_20120802_130000_XXX_Summer_Olympics
-        Util::memory_limit('1G');
-        return Video::framenum2secALT($src, $framenum);
-      }
-      
-      $best = 0;
-      $bestfound = false;
-      foreach (Video::$lastmap as $framen => $ts)
-      {
-        if ($framen >= $framenum)
-          $bestfound = true;
-        else
-          $best = $ts;
-      }
-
-      if ($printmap){
-        printr(Video::$lastmap);
-        echo "You were looking for frame# $framenum, which we think is [{$best}sec == ".Video::hms($best)."] in the map...\n";
-      }
-
-      if (!$bestfound)
-        return -1;  // give up! (caller can fallback)
-
-      // this is the I-frame that is at or before the passed in frame number!
-      //echo "\n\nNEW TS: $best\n";
-      return $best;
-    }
-    else if ($identify['fps'])
-    {
-      return round($framenum / $identify['fps']);
-    }
-    return -1; // give up! (caller can fallback)
-  }
 
 
   public static function yadif_nix($str)
@@ -1544,11 +1411,7 @@ class Video
           }
           else
           {
-            if ($identify['ffmpeg-version']  &&  is_numeric($identify['ffmpeg-version'])  &&  $identify['ffmpeg-version'] > 20121200)
-              $sec = intval(basename($thumbnail));//newer version, named based on seconds
-            else
-              $sec = Video::framenum2sec($file, $thumbnail, $identify); //older version, named based on framenum
-
+            $sec = intval(basename($thumbnail));//newer version, named based on seconds
             if ($sec < 0)
               $sec = round($i*$frameEvery);
           }
@@ -1841,7 +1704,7 @@ class Video
     
     // NOTE: make sure that we skip any "first keyframe" that (bizarrely) comes up
     // a **negative** byte position.
-    $first_byte_for_first_keyframe = Util::cmd("( $cmdpipe | head -c $seekMaxB | $ffprobe -show_packets - 2>/dev/null | perl -ne 'chop unless m=/PACKET=; print;' | perl -ne 'next unless m/codec_type=video/; next unless m/flags=K/; next unless m/ pos=(\d+)/; print \$1; exit;' ) 2>/dev/null","CONTINUE","PRINT");
+    $first_byte_for_first_keyframe = Util::cmd("( $cmdpipe | head -c $seekMaxB | $ffprobe -print_format compact -show_frames -select_streams v -show_entries frame=pict_type,pkt_pos - 2>/dev/null |fgrep -m1 pict_type=I |egrep -o 'pos=[0-9]+'|cut -f2 -d= ) 2>/dev/null","CONTINUE","PRINT");
 
     return ($first_byte_for_first_keyframe ? 
             " | tail -c +$first_byte_for_first_keyframe " : "");
@@ -1849,11 +1712,11 @@ class Video
   
 
   private static function ffmpeg_vf(&$identify,
-                                    $wh="640x480", $is_tv=false, $h264=false, $noCrop=false)
+                                    $wh="640x480", $tvarchive=false, $h264=false, $noCrop=false)
   {
     // for "rectangular pixel" video -- "stretch" width to square pixels
     list($vf,$outW) = Video::vf("-s $wh", $identify,
-                                $is_tv,
+                                $tvarchive,
                                 /*padBlack==*/false,
                                 $h264, 
                                 $noCrop);
@@ -1865,7 +1728,7 @@ class Video
       // So scale it back down to 360P at least for now...
       
       list($vf) = Video::vf('-s 480x360', $identify,
-                            $is_tv,
+                            $tvarchive,
                             /*padBlack==*/false,
                             $h264,
                             $noCrop);
@@ -1876,11 +1739,11 @@ class Video
   
 
   public static function ffmpeg_params($cmd, &$identify, $sourceFormat, $acoder,
-                                       $params="640x480", $is_tv=false, $h264=false)
+                                       $params="640x480", $tvarchive=false, $h264=false)
   {
     if (!$identify['width']  ||  !$identify['height'])
     {
-      if ($is_tv)
+      if ($tvarchive)
         fatal(TV::$ERRS[2]);
       else
         fatal("Video width/height not calculable -- likely no video track!");
@@ -1893,20 +1756,21 @@ class Video
         
 
 
-    $vf1 = Video::ffmpeg_vf($identify, $wh, $is_tv, $h264);
-    $vf2 = Video::ffmpeg_vf($identify, $wh, $is_tv, $h264, /*noCrop==*/true);
+    $vf1 = Video::ffmpeg_vf($identify, $wh, $tvarchive, $h264);
+    $vf2 = Video::ffmpeg_vf($identify, $wh, $tvarchive, $h264, /*noCrop==*/true);
     
     
     $rate = ($identify['fps'] ? " -r {$identify['fps']} " : "");
     //$rate = "";//xxxx
 
 
-    $drifting = ($identify['audio']!=='false'  && 
-                 ($is_tv  ||  
-                  in_array($sourceFormat, array('MPEG2','MPEG1','h.264/MPEG2-TS')))
-                 ? Video::AV_ANTI_DRIFT : "");
+    // Traction control doesn't allow you to drift your RWD car, get it?  8-)
+    $traction_control = ($identify['audio']!=='false'  && 
+                         ($tvarchive  ||  (isset($identify['vsync'])  &&  $identify['vsync']==1)  ||
+                          in_array($sourceFormat, array('MPEG2','MPEG1','h.264/MPEG2-TS','MPEG2-TS')))
+                         ? Video::AV_ANTI_DRIFT : false);
 
-    $args = (" $rest " . ($drifting ? $drifting : $rate) . " -threads 2 ".
+    $args = (" $rest " . ($traction_control ? $traction_control : $rate) . " -threads 2 ".
              (isset($identify["DAR"]) ? " -aspect {$identify['DAR']}" : "").
              " -map_metadata -1,g:0,g");
 
@@ -1934,17 +1798,22 @@ class Video
     if ($identify['audio']  &&  $identify['audio'] != 'false')
     {
       // for archive items (esp. TV), always use 1st audio track IFF 2+
-      $map = (isset($identify['astreams'])  && 
-              isset($identify['vstreams']) ?
-              ' -map '.str_replace('.',':',strtok($identify['vstreams'],',')).
-              ' -map '.str_replace('.',':',strtok($identify['astreams'],',')) : '');
-      $acoder = "$map $acoder";
+      if (isset($identify['astreams'])  &&  isset($identify['vstreams'])){
+        $vid = str_replace('.',':',strtok($identify['vstreams'],','));
+        $aid = str_replace('.',':',strtok($identify['astreams'],','));
+
+        // The 2nd specifier (after comma) is for "sync_file_id"
+        // and *both* should indeed be using the *vid*
+        $map = (' -map '.$vid.($traction_control ? ",$vid" : "").
+                ' -map '.$aid.($traction_control ? ",$vid" : ""));
+        $acoder = "$map $acoder";
+      }
     }
     else
     {
       // no audio!
       $acoder = "-an";
-      if ($is_tv)
+      if ($tvarchive)
       {
         // rare, but /details/KICU_20110322_110000_Paid_Programming ...
         echo "\nWARNING! NO CHANNELS FOUND IN AUDIO STREAM(S)!\n\n";
@@ -1961,8 +1830,8 @@ class Video
     $tries = array();
     $tries[] = "$cmd $vf1 $args";
     $tries[] = "$cmd $vf2 $args";
-    if ($drifting)
-      $tries[] = str_replace(Video::AV_ANTI_DRIFT, Video::AV_ANTI_DRIFT2, $tries[count($tries)-1]) . $rate;
+    if ($traction_control)
+      $tries[] = $tries[count($tries)-1] . $rate;
     $tries[] = Video::yadif_nix(                        $tries[count($tries)-1]);
     $tries[] = str_replace(' -i ', ' -err_detect 0 -i ',$tries[count($tries)-1]);
     $tries = array_values(array_unique($tries)); // nix dupes; retains order!
@@ -2139,7 +2008,7 @@ class Video
     'BayrampasaVaillantServisi444_1_494VaillantServisi_1000/8.flv' => 23.98,
     'Bij_de_Italiaan/Italiaan.3gp' => 15,
     'BraveNewFilmsFoxAttacksObama/foxattacksobama320.mov' => 29.97,
-    'BrokeNProud/Bnp_finalCut_intro_explicit_720.mov' => '23.98',//NOTE: sep2012+ ffmpeg is now *not* ''...
+    'BrokeNProud/Bnp_finalCut_intro_explicit_720.mov' => 23.98, //NOTE: sep2012+ ffmpeg is now *not* ''...
     'BurningDowntheSuburbs/HoldenBurningSuburbs.mov' => 30,
     'CNNW_20110518_000000_In_the_Arena/CNNW_20110518_000000_In_the_Arena.mpg' => 29.97,
     'CNNW_20110601_130000_CNN_Newsroom/CNNW_20110601_130000_CNN_Newsroom.mpg' => 29.97,
@@ -2167,11 +2036,10 @@ class Video
     'HoChak/8tvHoChat.mov' => 15,
     'Holymatrimony/holymatrimony.wmv' => 23,
     'IbisBlancs/ibisblancs.wmv' => 30,
-    'IntroToSimedit/Screencap.mov' => 30,
+    'IntroToSimedit/Screencap.mov' => 10,
     'Jessies_Sunrise/Jessies_Sunrise.mpg' => 29.97,
     'KOFY_20110607_093000_Paid_Programming/KOFY_20110607_093000_Paid_Programming.mpg' => 29.97,
     'KQED_20100820_150000_Curious_George/KQED_20100820_150000_Curious_George.mpg' => 29.97,
-    'KQED_20100922_050000_POV/KQED_20100922_050000_POV.mpg' => 29.97,
     'Letterman/Letterman.mpg' => 29.97,
     'MITOCW1800intros/MIT_OCW_1800_HfHS_intro.mp4' => 29.97,
     'MITOCW1800intros/MIT_OCW_1800_OCW_intro.mp4' => 29.97,
@@ -2308,7 +2176,7 @@ class Video
         
         
         'Podcast7_492/Podcast7.m4a' =>
-        '{"DAR":"1:2","PAR":"72:72","ac":"aac","ar":"32000","astreams":"0:2","audio":"true","audio_nchannels":2,"fps":6,"height":"320","length":3783.07,"pix":"yuvj444p","vc":"mjpeg","vstreams":"0:3","width":"160"}',
+        '{"DAR":"1:2","PAR":"72:72","ac":"aac","ar":"32000","astreams":"0:2","audio":"true","audio_nchannels":2,"fps":6,"height":"320","length":3783.07,"pix":"yuvj444p","vc":"mjpeg","vstreams":"0:3","vsync":"1","width":"160"}',
         
 
         // item deleted, so check in home dir..
@@ -2355,7 +2223,7 @@ class Video
         if (!$fi)
           $fi = "$id.mpg"; // TV
       
-        $r = $lo->locateUDP($id,1,1);//find primary copy
+        $r = $lo->locateUDP($id,1);
         $r = $r[0];
       }
       
