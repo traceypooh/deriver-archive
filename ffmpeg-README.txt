@@ -307,12 +307,12 @@ if [ "$SHORTNAME" == "mac" ]; then
     
     # worked finally!
     export LD_LIBRARY_PATH=/opt/local/lib:/usr/lib:/usr/local/lib:/lib;
-    if [ "$OSTYPE" == "darwin11" ]; then
+    if [ "$OSTYPE" == "darwin11"  -o  "$OSTYPE" == "darwin12" ]; then
         perl -i -pe 's/\-mdynamic-no-pic //' configure;
     fi;
 
     # NOTE:  "disable-tremor" (seemed to be getting in way of vorbis)
-    ./configure --prefix=/opt/local  $MYCC  --enable-menu  --enable-x264 --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I$DIR/usr/local/include -I/opt/local/include" --extra-ldflags="$DIR/usr/local/lib/libx264.a ";
+    ./configure --prefix=/opt/local  $MYCC  --enable-menu  --enable-x264 --enable-theora --enable-libopenjpeg  --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I$DIR/usr/local/include -I/opt/local/include" --extra-ldflags="$DIR/usr/local/lib/libx264.a ";
 
 
     sudo chown -R $USER .; #should NOT have to do this, something screwy, fixit!
