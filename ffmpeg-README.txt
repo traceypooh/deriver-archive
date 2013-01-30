@@ -311,7 +311,7 @@ if [ "$SHORTNAME" == "mac" ]; then
     fi;
 
     # NOTE:  "disable-tremor" (seemed to be getting in way of vorbis)
-    ./configure --prefix=/opt/local  $MYCC  --enable-menu  --enable-x264 --enable-theora --enable-libopenjpeg  --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I$DIR/usr/local/include -I/opt/local/include" --extra-ldflags="$DIR/usr/local/lib/libx264.a ";
+    ./configure --prefix=/opt/local  $MYCC  --enable-menu  --enable-x264 --enable-theora --enable-libopenjpeg  --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I$DIR/usr/local/include -I/opt/local/include" --extra-ldflags="$DIR/usr/local/lib/libx264.a " --extra-libs="-ltheoraenc";
 
 
     sudo chown -R $USER .; #should NOT have to do this, something screwy, fixit!
