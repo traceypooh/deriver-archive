@@ -50,7 +50,7 @@ if [ $(uname -s) == 'Darwin' ]; then
   #   port search <portname>
   #   sudo port install <portname>
 
-  sudo port install  git-core lame libtheora libvorbis openjpeg faac bzip2 freetype yasm opencore-amr xvid openjpeg libvpx pkgconfig;
+  sudo port install  git-core lame libtheora libvorbis openjpeg faac bzip2 freetype yasm opencore-amr xvid openjpeg libvpx a52dec pkgconfig;
   sudo port install  libsdl  xorg-libXfixes;   # X and SDL stuff for ffplay
 
 else
@@ -293,7 +293,7 @@ if [ "$SHORTNAME" == "mac" ]; then
     echo "NOTE: on Mountain Lion OS you may not be able to ffplay playback since X11 is no longer installed by default"
     echo "NOTE: if so, see http://support.apple.com/kb/HT5293"
 
-    cd $DIR;
+    cd ${DIR?};
     svn checkout svn://svn.mplayerhq.hu/mplayer/trunk mplayer;
     cd mplayer;
     mv ../ffmpeg .; # needed by mplayer -- will reconfig & remake it, sigh...
@@ -311,7 +311,7 @@ if [ "$SHORTNAME" == "mac" ]; then
     fi;
 
     # NOTE:  "disable-tremor" (seemed to be getting in way of vorbis)
-    ./configure --prefix=/opt/local  $MYCC  --enable-menu  --enable-x264 --enable-theora --enable-libopenjpeg  --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I$DIR/usr/local/include -I/opt/local/include" --extra-ldflags="$DIR/usr/local/lib/libx264.a " --extra-libs="-ltheoraenc";
+    ./configure --prefix=/opt/local  ${MYCC?}  --enable-menu  --enable-x264 --enable-theora --enable-libopenjpeg --enable-liba52  --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I${DIR?}/usr/local/include -I/opt/local/include" --extra-ldflags="${DIR?}/usr/local/lib/libx264.a " --extra-libs="-ltheoraenc -la52";
 
 
     sudo chown -R $USER .; #should NOT have to do this, something screwy, fixit!
