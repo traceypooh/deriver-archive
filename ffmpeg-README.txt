@@ -325,7 +325,7 @@ if [ "$SHORTNAME" == "mac" ]; then
 
   ################################################################################
   #    unrelated ports packages that tracey likes/uses:
-  # sudo port install lesspipe pcre wget ddrescue lftp spidermonkey ImageMagick avidemux
+  # sudo port install lesspipe pcre wget ddrescue lftp spidermonkey ImageMagick avidemux exif
   # sudo port install p7zip unrar wine colordiff py-pygments lesspipe jp2a freetype
   # sudo port install gimp
   # sudo port install dvdauthor cdrtools dvdrw-tools
