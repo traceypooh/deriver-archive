@@ -1,0 +1,28 @@
+diff --git a/libavformat/mpegts.c b/libavformat/mpegts.c
+index 9251f7a..11f51af 100644
+--- a/libavformat/mpegts.c
++++ b/libavformat/mpegts.c
+@@ -1466,6 +1466,7 @@ static void pmt_cb(MpegTSFilter *filter, const uint8_t *section, int section_len
+         return;
+     pcr_pid &= 0x1fff;
+     add_pid_to_pmt(ts, h->id, pcr_pid);
++av_log(NULL, AV_LOG_DEBUG, "PAT [programid] [pid] [kind]: %d %d %s\n", h->id, pcr_pid, "PCR");
+     set_pcr_pid(ts->stream, h->id, pcr_pid);
+ 
+     av_dlog(ts->stream, "pcr_pid=0x%x\n", pcr_pid);
+@@ -1557,6 +1558,7 @@ static void pmt_cb(MpegTSFilter *filter, const uint8_t *section, int section_len
+             mpegts_set_stream_info(st, pes, stream_type, prog_reg_desc);
+ 
+         add_pid_to_pmt(ts, h->id, pid);
++av_log(NULL, AV_LOG_DEBUG, "PAT [programid] [pid] [kind]: %d %d %s\n", h->id, pid, (st->codec->codec_type==1 ? "A" : (st->codec->codec_type==0 ? "V" : "?")));
+ 
+         ff_program_add_stream_index(ts->stream, h->id, st->index);
+ 
+@@ -1632,6 +1634,7 @@ static void pat_cb(MpegTSFilter *filter, const uint8_t *section, int section_len
+             add_pat_entry(ts, sid);
+             add_pid_to_pmt(ts, sid, 0); //add pat pid to program
+             add_pid_to_pmt(ts, sid, pmt_pid);
++av_log(NULL, AV_LOG_DEBUG, "PAT [programid] [pid] [kind]: %d %d %s\n", sid, pmt_pid, "PMT");
+         }
+     }
+ }
