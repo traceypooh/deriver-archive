@@ -28,7 +28,6 @@ class MPEG4 extends Module
     chdir($this->tmp)  ||  fatal("unable to change to temp dir");
 
     $ffmpeg             = configGetPetaboxPath('bin-ffmpeg').' -v 0';
-    $qtfaststart        = configGetValue('bin-qt-faststart');
 
     // first, print clip info to log (since we'll throw out all ffmpeg output)
     if (!$identify)
@@ -110,12 +109,8 @@ class MPEG4 extends Module
     if ($err)
       fatal("MPEG4 FAILED ALL ATTEMPTS");
     
-    
-    
-    if (($err=Util::cmdQT("$qtfaststart $tmp ".Util::esc($dest),$times3, 'CONTINUE'))){
-      // eg: /details/CNBC_20120717_040000_The_Costco_Craze_Inside_the
-      Util::cmdQT("/petabox/sw/lib/python/qtfaststart/bin/qtfaststart $tmp ".Util::esc($dest),$times3);
-    }
+
+    Util::cmdQT("mv $tmp ".Util::esc($dest));
 
     $this->copyOrigMeta(); // backfills in any current metadata information
   }

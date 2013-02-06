@@ -95,9 +95,8 @@ function line(){ perl -e 'print "_"x80; print "\n\n";'; }
 
 
 ################################################################################
-# ffmpeg, ffprobe, qt-faststart, x264, mplayer
+# ffmpeg, ffprobe, x264, mplayer
 #       compile directly an ffmpeg that can create x264 and WebM
-#       and by compiling directly, we can make qt-faststart, too!
 ################################################################################
 
 
@@ -267,10 +266,10 @@ $FFXTRA
 
     make clean;
     make -j4 V=1;
-    make alltools;
+    # make alltools; # no longer needed -- uncomment if you like
     env DESTDIR=${DIR?} make install;
     if [ "${SHORTNAME?}" == "mac" ]; then
-      sudo cp ffmpeg ffprobe tools/qt-faststart  /opt/local/bin/;
+      sudo cp ffmpeg ffprobe  /opt/local/bin/;
       if [ -x ffplay ]; then # fixxxme no ffplay still for Lion
           sudo cp ffplay /opt/local/bin/;
       fi

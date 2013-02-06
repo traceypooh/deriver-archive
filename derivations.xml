@@ -628,14 +628,14 @@
          -     http://lists.mplayerhq.hu/pipermail/ffmpeg-user/2006-June/003218.html
          -  Then peg to approx 700kb/sec video bitrate.
         -->
-      <variation rank="8" name="h.264" parameter="640x480  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=30:bitrate=700:vbv_maxrate=768:vbv_bufsize=1400  -ac 2 -b:a 128k -ar 44100">
+      <variation rank="8" name="h.264" parameter="640x480  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=30:bitrate=700:vbv_maxrate=768:vbv_bufsize=1400  -movflags faststart -ac 2 -b:a 128k -ar 44100">
         <!-- 
            for now we decided to make TV !news same HQ deriv.  we can make a 1/4 pixel-size deriv that
            targets about 10% (compared to ~25%) the original by swapping prior line with this:
            <variation rank="8" name="h.264" conditionally="[
-{ 'collection':['tvnews'],   'parameter':'640x480  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=30:bitrate=700:vbv_maxrate=768:vbv_bufsize=1400  -ac 2 -b:a 128k -ar 44100'},
-{'!collection':['tvarchive'],'parameter':'640x480  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=30:bitrate=700:vbv_maxrate=768:vbv_bufsize=1400  -ac 2 -b:a 128k -ar 44100'},
-{ 'collection':['tvarchive'],'parameter':'320x240  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=30:bitrate=375:vbv_maxrate=450:vbv_bufsize=900   -ac 1 -b:a 32k  -ar 44100'}
+{ 'collection':['tvnews'],   'parameter':'640x480  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=30:bitrate=700:vbv_maxrate=768:vbv_bufsize=1400  -movflags faststart -ac 2 -b:a 128k -ar 44100'},
+{'!collection':['tvarchive'],'parameter':'640x480  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=30:bitrate=700:vbv_maxrate=768:vbv_bufsize=1400  -movflags faststart -ac 2 -b:a 128k -ar 44100'},
+{ 'collection':['tvarchive'],'parameter':'320x240  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=30:bitrate=375:vbv_maxrate=450:vbv_bufsize=900   -movflags faststart -ac 1 -b:a 32k  -ar 44100'}
 ]">
         -->
         <dependency format="h.264 HD" variation="h.264 HD" />
@@ -664,7 +664,7 @@
         <dependency format="Matroska" variation="Matroska" />
       </variation>
 
-      <variation rank="8" name="h.264 720P" parameter="1280x720  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=31:bitrate=2048:vbv_maxrate=2250:vbv_bufsize=4096  -ac 2 -b:a 128k -ar 44100" preextension="_720p" conditionally="{'collection':['35mmstockfootage']}">
+      <variation rank="8" name="h.264 720P" parameter="1280x720  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=31:bitrate=2048:vbv_maxrate=2250:vbv_bufsize=4096  -movflags faststart -ac 2 -b:a 128k -ar 44100" preextension="_720p" conditionally="{'collection':['35mmstockfootage']}">
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2-TS" variation="MPEG2-TS" />
