@@ -13,7 +13,7 @@ or macOSX.
 You'll need certain binary programs and packages like:
 * "php"  (command line variant, likely including some extra modules)
     * (you should be able to type "php -i" on a bash/shell when installed)
-* "ffmpeg" (and its "qt-faststart" binary tool)
+* "ffmpeg"
     * (see "ffmpeg-README.txt" for how we configure and build our ffmpeg on linux/macosx)
     * (for some videos, may need "ffprobe" from ffmpeg package as well)
 * "exiftool" (for video rotation detection.  can be skipped)
