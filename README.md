@@ -27,7 +27,7 @@ and then run (on bash/shell):
 
 
 
-NOTE: if you are interested extracting recorded TV captions embedded in MPEG-TS files
+NOTE: if you are interested in extracting recorded TV captions embedded in MPEG-TS files
 (eg: "line 21" (AKA "EIA-608")) then I've included "ccextractor-README.txt".
 
 
