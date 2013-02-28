@@ -244,8 +244,6 @@ cd ffmpeg;
 --enable-libvorbis
 --enable-libxvid
 --enable-nonfree
---enable-postproc
---enable-pthreads
 --enable-static
 
 --enable-ffplay

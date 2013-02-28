@@ -5,11 +5,51 @@ require_once('Module.inc');
 // was asked for by our PEG partner, Denver Open Media.
 //
 // It is only done on a per-collection "opt in" basis.
+//
+//
+// It is also used for a special tv recording collection..
+// It takes an item that has uploaded contents of VIDEO_TS folder, and creates an extracted single .vob
+// file from the first track.
 
 class MPEG2 extends Module
 {
   public function version() 
-  { return '$Revision: 44611 $ $Date: 2012-06-14 19:27:19 +0000 (Thu, 14 Jun 2012) $'; }
+  { return '$Revision: 49440 $ $Date: 2013-02-08 02:32:14 +0000 (Fri, 08 Feb 2013) $'; }
+
+
+  public function dvd()
+  {
+    $mplayer = configGetValue('bin-mplayer');
+    $tmp = $this->tmp.'tmp.vob';
+
+    $dest = "{$this->itemDir}{$this->identifier}.vob";
+    if (file_exists($dest)  &&  filemtime($dest) >= filemtime($this->sourceFile))
+      return; // nothing to do!
+     
+
+    chdir($this->tmp)  ||  fatal("unable to change to temp dir");
+
+    Util::cmdQT("$mplayer -identify -dvd-device {$this->itemDir} dvd://1 -dumpstream -dumpfile $tmp -quiet", 10);
+
+
+    // xxx now mv orig VOB files!  for now, just change their formats to something non-derivable!
+    // xxx change this deriv name to be original! (so rederive will never accidentally delete it!)
+    chdir($this->itemDir)  ||  fatal("unable to change to item dir");
+    foreach ($this->filesXML->getFilenames() as $file){
+      $props = $this->filesXML->getFileProperties($file);
+      if ($props['source']=='original'  &&  ($props['format'][0]=='MPEG2' || preg_match('/\.VOB$/',$file))){
+        Util::cmdPP("mkdir -p VIDEO_TS");
+        echo "Changing format to Video Object for $file\n";
+        Util::cmdPP("mv ".Util::esc($file)." VIDEO_TS/");
+        $this->extraTarget("VIDEO_TS/$file", 'Video Object', true);
+      }
+    }
+    
+    $dest2 = basename($dest);
+    Util::cmdPP("mv $tmp $dest2");
+    $this->extraTarget($dest2, 'MPEG2', true);
+  }
+  
   
   public function derive()
   {
@@ -17,6 +57,10 @@ class MPEG2 extends Module
     $dest= $this->targetFile;
     $tmp = $this->tmp.'tmp.mpg';
     $copy= false;
+
+    if ($this->sourceFormat=='DVD Info')
+      return $this->dvd();
+    
 
     $params = $this->parameter;
     $ffmpeg =  configGetPetaboxPath('bin-ffmpeg').' -v 0';

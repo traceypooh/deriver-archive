@@ -489,6 +489,7 @@
   </format>
     
 
+
   <format name="MPEG2">
     <extension>mpeg</extension>
     <extension>mp2</extension>
@@ -496,6 +497,13 @@
     <extension>m2v</extension>
     <class>MPEG2</class>
     <variations>
+
+      <!-- NOTE: this needs to run **first** since it can replace source files!-->
+      <!-- NOTE: subtle - name needs to differ from MPEG2 since have another conditionally later.. -->
+      <variation rank="0" name="VOB" conditionally="{'collection':['television']}">
+        <dependency format="DVD Info" variation="DVD Info"/>
+      </variation>
+
       <!-- NOTE: this needs to run **first** since it can replace source files!-->
       <!-- pegssc == PEG Server-Standards-Compliant -->
       <variation rank="0" name="MPEG2" preextension=".pegssc" conditionally="[{'collection':['denveropenmedia','SeattleCommunityMedia','phillycam'],'parameter':'-acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 7000000 -maxrate 8000000 -minrate 5000000 -bufsize 835008 -packetsize 2048 -muxrate 10080000'},
@@ -1136,7 +1144,7 @@
     <extension>pdf</extension>
     <class>PDF</class> <!-- may make ImagePDF instead -->
     <variations>
-      <variation name="Text PDF">
+      <variation name="Text PDF" derivativesource="allowed">
         <dependency format="DjvuXML" variation="Djvu XML"/>
       </variation>
     </variations>
@@ -1157,7 +1165,7 @@
     <extension>pdf</extension>
     <class>HackPDF</class>
     <variations>
-      <variation name="Additional Text PDF" preextension="_text">
+      <variation name="Additional Text PDF" preextension="_text" derivativesource="allowed">
         <dependency format="DjvuXML" variation="Djvu XML"/>
       </variation>
     </variations>
@@ -1201,7 +1209,7 @@
     <extension>txt</extension>
     <class>DJVUTXT</class>
     <variations>
-      <variation name="DjVuTXT" preextension="_djvu">
+      <variation name="DjVuTXT" preextension="_djvu" derivativesource="allowed">
         <dependency format="DjVu" variation="Original DjVu" />
         <dependency format="DjVu" variation="DjVu" />
       </variation>
@@ -1212,7 +1220,7 @@
     <extension>xml</extension>
     <class>DjvuXML</class>
     <variations>
-      <variation name="Djvu XML" preextension="_djvu">
+      <variation name="Djvu XML" preextension="_djvu" derivativesource="allowed">
         <!-- Original DjVu gets higher priority so it gets used as the source -->
         <!-- when we can make one with hiddentext while preprocessing a raw   -->
         <!-- book, and the language is one we can't OCR with Abbyy (true for  -->
@@ -1257,7 +1265,7 @@
     <class>ScandataXML</class> <!-- class "Scandata" already taken -->
     <variations>
       <variation name="Scandata" preextension="scandata"/> <!-- no '_' to match Old Skul "scandata.xml" -->
-      <variation name="Scandata" preextension="_scandata">
+      <variation name="Scandata" preextension="_scandata" derivativesource="allowed">
         <dependency format="DjvuXML" variation="Djvu XML"/>
       </variation>
       <variation name="Preliminary Scandata" preextension="_prelimscandata"/>
@@ -1316,7 +1324,7 @@
     <extension>gz</extension>
     <class>AbbyyXML</class>
     <variations>
-      <variation name="Abbyy GZ" preextension="_abbyy">
+      <variation name="Abbyy GZ" preextension="_abbyy" derivativesource="allowed">
         <dependency format="ZIP" variation="Single Page Processed JP2 ZIP"/>
         <dependency format="ZIP" variation="Single Page Processed JP2 Tar"/>
         <dependency format="ZIP" variation="Single Page Processed JPEG ZIP"/>
@@ -1331,7 +1339,7 @@
     <extension>djvu</extension>
     <class>DjVu</class>
     <variations>
-      <variation name="DjVu">
+      <variation name="DjVu" derivativesource="allowed">
         <dependency format="djvuXML" variation="Djvu XML"/>
       </variation>
       <variation name="Original DjVu" preextension="_orig"/>
@@ -1418,7 +1426,7 @@
     <extension>xml</extension>
     <class>TOC</class>
     <variations>
-      <variation name="Contents" preextension="_toc">
+      <variation name="Contents" preextension="_toc" derivativesource="allowed">
         <dependency format="djvuXML" variation="Djvu XML"/>
       </variation>
     </variations>

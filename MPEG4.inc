@@ -7,7 +7,7 @@ class MPEG4 extends Module
   
   
   public function version()
-  { return '$Revision: 48923 $ $Date: 2013-01-17 05:54:51 +0000 (Thu, 17 Jan 2013) $'; }
+  { return '$Revision: 49371 $ $Date: 2013-02-06 01:58:48 +0000 (Wed, 06 Feb 2013) $'; }
 
   
   public function derive()

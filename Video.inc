@@ -654,16 +654,18 @@ class Video
 
 
     // sanity check the overall bytes/sec!  (see if the "length" is waaaaay off)
+    // blu-ray is unlikely to ever max > 64 Mbit/s video, for example...
+    // ( 64 Mbit/s == 66536 Kbit/s == 67108864 bit/s )
     if ($arr['bytes']>0  &&  $arr['length']!=0  &&  
         ($kbs = ($arr['bytes'] / $arr['length'] / 1024 * 8)) &&
-        ($kbs < 10  ||  $kbs > 1000000))
+        ($kbs < 10  ||  $kbs > 100000))
     {
       $kbs = round($kbs,1);
       echo "Duration of {$arr['length']} seconds (=> ~$kbs kb/s) seems wrong...\n";
       $mylen = TV::alt_duration($file);
       if ($mylen > 10  &&
           ($kbs = ($arr['bytes'] / $mylen / 1024 * 8))  &&
-          ($kbs >= 10  ||  $kbs <= 1000000))
+          ($kbs >= 10  ||  $kbs <= 100000))
       {
         // Seems like we have a more accurate length.
         $kbs = round($kbs,1);
@@ -1835,7 +1837,7 @@ class Video
     $tries[] = Video::yadif_nix(                        $tries[count($tries)-1]);
     $tries[] = str_replace(' -i ', ' -err_detect 0 -i ',$tries[count($tries)-1]);
     $tries = array_values(array_unique($tries)); // nix dupes; retains order!
-    printr($tries);
+    //printr($tries);
     
     return array($tries, $acoder);
   }
