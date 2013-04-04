@@ -4,31 +4,19 @@ require_once('Module.inc');
 class WebM extends Module
 {
   public function version() 
-  { return '$Revision: 48708 $ $Date: 2013-01-06 20:21:48 +0000 (Sun, 06 Jan 2013) $'; }
-  
-  public function derive()
-  {
-    if ($this->sourceFormat == 'ISO Image')
-      $this->deriveFilesISO();
-    else
-      $this->deriveFile();
-  }
+  { return '$Revision: 50517 $ $Date: 2013-03-28 23:30:10 +0000 (Thu, 28 Mar 2013) $'; }
 
   
-  public function deriveFile($src=null, $dest=null, $identify=null)
+  public function derive($src=null, $dest=null, $identify=null, $first=true, $title=1)
   {
-    if (!$src)    $src = $this->sourceFile;
-    if (!$dest)   $dest= $this->targetFile;
+    if ($src==null)
+      return $this->deriveVideo(); // calls self w/ args set, ISO Image preprocessing if needed
+
 
     chdir($this->tmp)  ||  fatal("unable to change to temp dir");
 
     $ffmpeg = configGetPetaboxPath('bin-ffmpeg').' -v 0';
     
-
-    // first, print clip info to log (since we'll throw out all ffmpeg output)
-    if (!$identify)
-      $identify = Module::identify($src);
-
 
     $times20 = Util::timeoutTime($identify, '20x', '30h');
 

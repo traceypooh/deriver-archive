@@ -8,22 +8,15 @@ class Thumbnails extends Module
   
   
   public function version()
-  { return '$Revision: 45797 $ $Date: 2012-08-14 22:25:21 +0000 (Tue, 14 Aug 2012) $'; }
+  { return '$Revision: 50517 $ $Date: 2013-03-28 23:30:10 +0000 (Thu, 28 Mar 2013) $'; }
   
-  public function derive()
-  {
-    if ($this->sourceFormat == 'ISO Image')
-      $this->deriveFilesISO();
-    else
-      $this->deriveFile();
-  }
 
-  
-  public function deriveFile($src=null, $dest=null, $identify=null)
+  public function derive($src=null, $dest=null, $identify=null, $first=true, $title=1)
   {
-    if (!$src)    $src = $this->sourceFile;
-    if (!$dest)   $dest= $this->targetFile;
+    if ($src==null)
+      return $this->deriveVideo(); // calls self w/ args set, ISO Image preprocessing if needed
 
+    
     chdir($this->tmp);
 
     $outDir   = rtrim($this->tmp, '/'); // kill trail "/" char
@@ -55,7 +48,7 @@ class Thumbnails extends Module
 
     // make the thumbnails
     $thumbnails = Video::frames($src, $outDir, $this->is_tvarchive(),
-                                $maxThumbs, null, basename($baseName));
+                                $maxThumbs, $identify, basename($baseName));
     if (!$thumbnails)
       return; // couldn't make thumbs for this movie.  move on to next module!
     

@@ -7,31 +7,18 @@ class MPEG4 extends Module
   
   
   public function version()
-  { return '$Revision: 49371 $ $Date: 2013-02-06 01:58:48 +0000 (Wed, 06 Feb 2013) $'; }
+  { return '$Revision: 50517 $ $Date: 2013-03-28 23:30:10 +0000 (Thu, 28 Mar 2013) $'; }
 
   
-  public function derive()
+  public function derive($src=null, $dest=null, $identify=null, $first=true, $title=1)
   {
-    if ($this->sourceFormat == 'ISO Image')
-      $this->deriveFilesISO();
-    else
-      $this->deriveFile();
-  }
+    if ($src==null)
+      return $this->deriveVideo(); // calls self w/ args set, ISO Image preprocessing if needed
 
-
-
-  public function deriveFile($src=null, $dest=null, $identify=null)
-  {
-    if (!$src)    $src = $this->sourceFile;
-    if (!$dest)   $dest= $this->targetFile;
     
     chdir($this->tmp)  ||  fatal("unable to change to temp dir");
 
     $ffmpeg             = configGetPetaboxPath('bin-ffmpeg').' -v 0';
-
-    // first, print clip info to log (since we'll throw out all ffmpeg output)
-    if (!$identify)
-      $identify = Module::identify($src, $this->is_tvarchive());
 
     if ($this->is_tvarchive()  &&  TV::is_audio_only($this->identifier, $identify))
       return;

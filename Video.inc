@@ -222,6 +222,27 @@ class Video
         // derivative!
         $deriv = true;
         $key = $fi['ORIGINAL'];
+        
+        if (($suffixLC=='.mp4' || $suffixLC=='.ogv')  &&
+            isset($files["/$key"])  &&
+            ('ISO Image' == $files["/$key"]['FORMAT'])  &&
+            preg_match('/^(.*)(\d+)\.[^\.]+$/', $short, $m2)  &&
+            preg_match('/^(.*)\.[^\.]+$/', $key, $mat)  &&
+            $m2[1]==$mat[1]){
+          // Yikes, OK for deriving DVD disc images, we can make
+          //   file.cdr => file.mp4, file1.mp4, file2.mp4
+          // when there are *3* titles/tracks in the DVD.
+          // BUT each show the same "original file".
+          // So, since we think we've detected this case w/ the "if" above,
+          // we'll fudge the "original file"(name) a bit by adding back
+          // in any numerical track info, so that we can make the A/V player
+          // show/play all "tracks/titles"!
+          //msg("{$fi['ORIGINAL']} vs $short ({$mat[1]} vs {$m2[1]})");          
+          $origSuffix = strrchr($fi['ORIGINAL'],'.');
+          $key = "{$m2[1]}{$m2[2]}$origSuffix";
+        }
+        
+        
         if (is_array($key))
           $key = (count($key) ? $key[0] : '');
       }
@@ -609,6 +630,9 @@ class Video
     $out = implode($lines, "\n");
 
 
+    $mpegts = (strpos($out, 'Input #0, mpegts, from ')!==FALSE);
+    
+
 
     $video='';
     if (preg_match('/\n *(Stream .*? Video: .*?, (\d+)x(\d+)(, | \[)(.*))/', $out,
@@ -652,16 +676,20 @@ class Video
                              $mat[2] : ''))),
       );
 
+    $HDTV = ($mpegts  &&  $arr['height'] >= 720);
+    
+    
 
     // sanity check the overall bytes/sec!  (see if the "length" is waaaaay off)
     // blu-ray is unlikely to ever max > 64 Mbit/s video, for example...
     // ( 64 Mbit/s == 66536 Kbit/s == 67108864 bit/s )
-    if ($arr['bytes']>0  &&  $arr['length']!=0  &&  
-        ($kbs = ($arr['bytes'] / $arr['length'] / 1024 * 8)) &&
-        ($kbs < 10  ||  $kbs > 100000))
+    $kbs=0;
+    if ($arr['bytes']>0  &&  ($arr['length']==0  ||  ($arr['length']!=0  &&  
+                                                      ($kbs = ($arr['bytes'] / $arr['length'] / 1024 * 8)) &&
+                                                      ($kbs < 10  ||  $kbs > 100000))))
     {
       $kbs = round($kbs,1);
-      echo "Duration of {$arr['length']} seconds (=> ~$kbs kb/s) seems wrong...\n";
+      error_log("Duration of {$arr['length']} seconds (=> ~$kbs kb/s) seems wrong...");
       $mylen = TV::alt_duration($file);
       if ($mylen > 10  &&
           ($kbs = ($arr['bytes'] / $mylen / 1024 * 8))  &&
@@ -669,7 +697,7 @@ class Video
       {
         // Seems like we have a more accurate length.
         $kbs = round($kbs,1);
-        echo "Using alternate method of $mylen seconds (=> ~$kbs kb/s)!\n";
+        error_log("Using alternate method of $mylen seconds (=> ~$kbs kb/s)!");
         $arr['length'] = $mylen;
       }
     }
@@ -679,8 +707,6 @@ class Video
     if (strpos($out, 'multiple edit list entries, a/v desync might occur, patch welcome')>0)
       $arr['vsync'] = 1;
 
-
-    
 
     // For TV archive items, we want to always use the first audio track found
     // Save 2 streams like: "0.1,0.2"
@@ -723,15 +749,15 @@ class Video
           continue;
         }
         
-        if ($arr['height']>=720  &&  preg_match('$\]\(eng\): Audio: .*?, (5\.1)(\(side\))*, $', $aline, $m))
+        if ((!$mpegts || $HDTV)  &&  preg_match('$\]\(eng\): Audio: .*?, (5\.1)(\(side\))*, $', $aline, $m))
         {
-          // HD recordings -- we should actually prioritize "eng"(lish) 5.1 channels first
+          // we should actually prioritize "eng"(lish) 5.1 channels first -- unless seems like TV but *not* HD
           $eng[] = $streamID;
           $arr['audio_nchannels'] += $m[2];
         }
-        else if ($arr['height']>=720  &&  preg_match('$: Audio: .*?, (5\.1)(\(side\))*, $', $aline, $m))
+        else if ((!$mpegts || $HDTV)  &&  preg_match('$: Audio: .*?, (5\.1)(\(side\))*, $', $aline, $m))
         {
-          // HD recordings -- we should actually prioritize 5.1 channels
+          // we should actually prioritize 5.1 channels -- unless seems like TV but *not* HD
           $hd[] = $streamID;
           $arr['audio_nchannels'] += $m[2];
         }
@@ -822,8 +848,18 @@ class Video
     if (preg_match('/Stream .*? Video: .*?(\[|, )[SP]AR (\d+:\d+) DAR (\d+:\d+)/', $video,$m))
       $arr['DAR'] = $m[3];
 
-    if (preg_match('/Stream \#(\d+.\d+).*?: Video: /', $video, $m))
-      $arr['vstreams'] = $m[1];
+    if (preg_match('/(Stream \#(\d+.\d+).*?: Video: )/', $video, $m)){
+      $vline = $m[1];
+      $arr['vstreams'] = $m[2];
+
+      // ..and save any program ID that video stream has!
+      foreach(explode(' Program ',$out) as $chunk){
+        if (preg_match('@^(\d+)$\s+Stream #@m',$chunk,$m)  &&  strpos($chunk,$vline)){
+          $arr['program']=$m[1];
+          break;
+        }
+      }
+    }
     
 
     // save the Audio and Video Codecs and other info used for video..
@@ -835,14 +871,22 @@ class Video
     // now see if there is a rotation exif tag, like some iphone4+ videos
     if (!$skip_rotation_check)
     {
-      $exiftool = configGetPetaboxPath('bin-exiftool');
-      // suppress any warnings if in !print mode
-      $cmd = Util::timeout(7200)." $exiftool -Rotation ".Util::esc($file).($print?"":" 2>/dev/null")." | cut -f2 -d:";
-      $rot = trim(Util::cmd($cmd, 'CONTINUE', ($print ? 'PRINT' : 'QUIET')));
+      // 180 degree flipped example:  /details/Jazz_Alley_in_Fort_Collins
+      if (preg_match('/^\s+rotate\s+:\s+(90|180|270)\s*/m', $out, $m)){
+        $rot = $m[1];
+      }
+      else{
+        // NOTE: cant handle > 4G files, eg: /details/DonKnuthOnTypographyAtColophonClubMarch122013
+        $exiftool = configGetPetaboxPath('bin-exiftool');
+        // suppress any warnings if in !print mode
+        $cmd = Util::timeout(7200)." $exiftool -Rotation ".Util::esc($file).($print?"":" 2>/dev/null")." | cut -f2 -d:";
+        $rot = trim(Util::cmd($cmd, 'CONTINUE', ($print ? 'PRINT' : 'QUIET')));
+      }
+      
       if (is_numeric($rot)  &&  $rot!=="0")
       {
         $arr['rotation'] = $rot;
-        if ($arr['rotation'] == 90)
+        if ($arr['rotation']==90  ||  $arr['rotation']==270)
         {
           // swap width and height
           $tmp = $arr['width'];
@@ -1193,20 +1237,11 @@ class Video
   // returns null if maker hangs and timesout
   //
   // NOTE: throws exception on errors
-  public static function frames($file, $outDir, $tvarchive=false, $maxThumbs=0,
-                                $identify=null, $timestampBaseName=null,
+  public static function frames($file, $outDir, $tvarchive, $maxThumbs,
+                                $identify, $timestampBaseName=null,
                                 $dimens='-s 160x110', $xtraArgs='-b:v 1K')
   {
     $ffmpeg = configGetPetaboxPath('bin-ffmpeg').' -v 0';
-
-    // find information on the film, like
-    // length of the movie in seconds (note might have decimal accuracy)
-    // frames per second (note might have decimal accuracy)
-    if (!$identify)
-    {
-      $identify = Video::identify($file, true, 2000, $tvarchive);
-      print_r($identify);
-    }
 
 
     if ($tvarchive  &&  TV::is_audio_only(basename($file), $identify))
@@ -1977,15 +2012,15 @@ class Video
     
     foreach ($tests as $test => $shouldB)
     {
-      $meta = json_decode($test);
-      $item = new Item($meta->identifier);
+      $meta = json_decode($test,1);
+      $item = new Item($meta['identifier']);
       $item->meta = $meta;
-      $item->filesInfo = $meta->filesInfo;
-      $meta->mainDir='/';
-      foreach ($meta->filesInfo as $filocation => &$fi)
+      $item->filesInfo = $meta['filesInfo'];
+      $meta['mainDir']='/';
+      foreach ($meta['filesInfo'] as $filocation => &$fi)
         $fi = (array) $fi;
       
-      list($groups, $nGroupsAV, $showing, $captions)=self::filesToGroupsAV($item, $meta->filesInfo);
+      list($groups, $nGroupsAV, $showing, $captions)=self::filesToGroupsAV($item, $meta['filesInfo']);
       printr($groups);
       assert(json_encode($groups) == $shouldB);
     }

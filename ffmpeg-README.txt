@@ -63,7 +63,7 @@ else
 ";
 
   SHORTNAME=$(lsb_release -cs); # eg: "precise"
-  if [ "$SHORTNAME" != "natty"  -a  "$SHORTNAME" != "oneiric"  -a  "$SHORTNAME" != "precise"  -a  "$SHORTNAME" != "quantal" ]; then
+  if [ "$SHORTNAME" != "natty"  -a  "$SHORTNAME" != "oneiric"  -a  "$SHORTNAME" != "precise"  -a  "$SHORTNAME" != "quantal"  -a  "$SHORTNAME" != "raring" ]; then
     echo "unsupported OS"; exit 1;
   fi
 

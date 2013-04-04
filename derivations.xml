@@ -38,6 +38,7 @@
         <dependency format="WebA"       variation="WebA" />
         <dependency format="AIFF"       variation="AIFF" />
         <dependency format="Windows Media Audio"  variation="Windows Media Audio" />
+        <dependency format="Digital Theater Systems Audio" variation="Digital Theater Systems Audio"/>
         <dependency format="MP3"        variation="320Kbps MP3"/>
         <dependency format="MP3"        variation="256Kbps MP3"/>
         <dependency format="MP3"        variation="192Kbps MP3"/>
@@ -61,6 +62,7 @@
         <dependency format="WebA"       variation="WebA" />
         <dependency format="AIFF"       variation="AIFF" />
         <dependency format="Windows Media Audio"  variation="Windows Media Audio" />
+        <dependency format="Digital Theater Systems Audio" variation="Digital Theater Systems Audio"/>
         <dependency format="MP3"        variation="320Kbps MP3"/>
         <dependency format="MP3"        variation="256Kbps MP3"/>
         <dependency format="MP3"        variation="192Kbps MP3"/>
@@ -84,6 +86,7 @@
         <dependency format="WebA"       variation="WebA" />
         <dependency format="AIFF"       variation="AIFF" />
         <dependency format="Windows Media Audio"  variation="Windows Media Audio" />
+        <dependency format="Digital Theater Systems Audio" variation="Digital Theater Systems Audio"/>
         <dependency format="MP3"        variation="320Kbps MP3"/>
         <dependency format="MP3"        variation="256Kbps MP3"/>
         <dependency format="MP3"        variation="192Kbps MP3"/>
@@ -133,6 +136,13 @@
     </variations>
   </format>
 
+  <format name="Digital Theater Systems Audio">
+    <extension>dts</extension>
+    <variations>
+      <variation name="Digital Theater Systems Audio"/>
+    </variations>
+  </format>
+
 
 
   <format name="Ogg Vorbis">
@@ -149,6 +159,7 @@
         <dependency format="WebA"       variation="WebA" />
         <dependency format="AIFF"       variation="AIFF" />
         <dependency format="Windows Media Audio"  variation="Windows Media Audio" />
+        <dependency format="Digital Theater Systems Audio" variation="Digital Theater Systems Audio"/>
         <dependency format="MP3" variation="320Kbps MP3"/>
         <dependency format="MP3" variation="256Kbps MP3"/>
         <dependency format="MP3" variation="192Kbps MP3"/>
@@ -178,6 +189,7 @@
     <variations>
       <variation name="Flac">
         <dependency rank="8" format="WAVE" variation="WAVE" />
+        <dependency format="Digital Theater Systems Audio" variation="Digital Theater Systems Audio"/>
         <!-- dependency format="Shorten" variation="Shorten" / -->
       </variation>
       <variation name="24bit Flac" />
@@ -506,8 +518,8 @@
 
       <!-- NOTE: this needs to run **first** since it can replace source files!-->
       <!-- pegssc == PEG Server-Standards-Compliant -->
-      <variation rank="0" name="MPEG2" preextension=".pegssc" conditionally="[{'collection':['denveropenmedia','SeattleCommunityMedia','phillycam'],'parameter':'-acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 7000000 -maxrate 8000000 -minrate 5000000 -bufsize 835008 -packetsize 2048 -muxrate 10080000'},
-                                                                             {'collection':['tedtalks','poptech'],                                  'parameter':'-acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 5000000 -maxrate 6000000 -minrate 4000000 -bufsize 635008 -packetsize 2048 -muxrate 10080000'}]">
+      <variation rank="0" name="MPEG2" preextension=".pegssc" conditionally="[{'collection':['denveropenmedia','SeattleCommunityMedia','phillycam'],'parameter':'-ac 2 -acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 7000000 -maxrate 8000000 -minrate 5000000 -bufsize 835008 -packetsize 2048 -muxrate 10080000'},
+                                                                             {'collection':['tedtalks','poptech'],                                  'parameter':'-ac 2 -acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 5000000 -maxrate 6000000 -minrate 4000000 -bufsize 635008 -packetsize 2048 -muxrate 10080000'}]">
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
