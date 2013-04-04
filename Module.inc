@@ -30,7 +30,7 @@ abstract class Module
     }
     
     chdir($this->tmp);
-    try { $this->derive(); } catch (Exception $e){}
+    try { $this->derive($src, $this->targetFile, $this->identify($src)); } catch (Exception $e){}
     passthru("rm -rfv $this->tmp");
   }
 
