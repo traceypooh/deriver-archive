@@ -160,7 +160,7 @@ function ffmpeg_patch()
 {
     cd $DIR/ffmpeg;
     PATDIR=
-    for p in ffmpeg-aac.patch  ffmpeg-thumbnails.patch  ffmpeg-theora.patch  ffmpeg-PAT.patch; do # ffmpeg-copy.patch
+    for p in ffmpeg-aac.patch  ffmpeg-thumbnails.patch  ffmpeg-theora.patch  ffmpeg-PAT.patch; do
         if [ "$PATDIR" == "" ]; then
             # find the patches dir!
             if [ -e "$MYDIR/$p" ]; then
@@ -228,6 +228,12 @@ cd ffmpeg;
 # NOTE: --enable-version3  is for prores decoding
 # NOTE: libopenjpeg allows motion-JPEG jp2 variant
 
+
+#for liba in $(ls ${DIR?}/usr/local/lib/*.a |tr '\n' ' '); do
+#  FFXTRA="$FFXTRA --extra-ldflags=$liba";
+#done
+
+
 ./configure $(echo "
 --disable-shared
 --disable-ffserver
@@ -252,13 +258,15 @@ cd ffmpeg;
 --enable-version3
 
 --extra-cflags=-I${DIR?}/usr/local/include
---extra-ldflags=-L${DIR?}/usr/local/lib
 --extra-cflags=-static
+--extra-ldflags=${DIR?}/usr/local/lib/libx264.a
 
 $MYCC
 $MYCC2
 $FFXTRA
 ");
+
+
 
 #xxx --enable-libschroedinger # hmm stopped working in natty/oneiric ~oct2011...
 
