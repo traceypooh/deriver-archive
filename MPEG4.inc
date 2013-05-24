@@ -7,7 +7,7 @@ class MPEG4 extends Module
   
   
   public function version()
-  { return '$Revision: 50517 $ $Date: 2013-03-28 23:30:10 +0000 (Thu, 28 Mar 2013) $'; }
+  { return '$Revision: 51516 $ $Date: 2013-05-20 19:20:37 +0000 (Mon, 20 May 2013) $'; }
 
   
   public function derive($src=null, $dest=null, $identify=null, $first=true, $title=1)
@@ -18,7 +18,7 @@ class MPEG4 extends Module
     
     chdir($this->tmp)  ||  fatal("unable to change to temp dir");
 
-    $ffmpeg             = configGetPetaboxPath('bin-ffmpeg').' -v 0';
+    $ffmpeg             = Video::ffmpegV0();
 
     if ($this->is_tvarchive()  &&  TV::is_audio_only($this->identifier, $identify))
       return;
