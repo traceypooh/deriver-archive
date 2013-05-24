@@ -7,7 +7,7 @@ class Ogv extends Module
 
 
   public function version()
-  { return '$Revision: 50517 $ $Date: 2013-03-28 23:30:10 +0000 (Thu, 28 Mar 2013) $'; }
+  { return '$Revision: 51515 $ $Date: 2013-05-20 19:20:21 +0000 (Mon, 20 May 2013) $'; }
   
 
 
@@ -19,7 +19,7 @@ class Ogv extends Module
 
     chdir($this->tmp)  ||  fatal("unable to change to temp dir");
 
-    $ffmpeg     = configGetPetaboxPath('bin-ffmpeg').' -v 0';
+    $ffmpeg     = Video::ffmpegV0();
 
     $tmp = 'tmp.ogv';
     $params="400x300";

@@ -14,7 +14,7 @@ require_once('Module.inc');
 class MPEG2 extends Module
 {
   public function version() 
-  { return '$Revision: 49440 $ $Date: 2013-02-08 02:32:14 +0000 (Fri, 08 Feb 2013) $'; }
+  { return '$Revision: 51518 $ $Date: 2013-05-20 19:22:11 +0000 (Mon, 20 May 2013) $'; }
 
 
   public function dvd()
@@ -63,7 +63,7 @@ class MPEG2 extends Module
     
 
     $params = $this->parameter;
-    $ffmpeg =  configGetPetaboxPath('bin-ffmpeg').' -v 0';
+    $ffmpeg =  Video::ffmpegV0();
 
     $identify = Module::identify($src);
     if (!$identify['width']  ||  !$identify['height'])
