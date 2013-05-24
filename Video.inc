@@ -56,6 +56,20 @@ class Video
   // See ffmpeg-resampler(1)
 
 
+
+  public static function ffmpegV0()
+  {
+    return Video::ffmpeg().' -v 0 ';
+  }
+
+  public static function ffmpeg()
+  {
+    // for duration, check first 900 seconds (arg is in microseconds), not default 5 seconds
+    // for probing for codec info/characteristics, up from ~5MB to ~200MB to analyze
+    return configGetPetaboxPath('bin-ffmpeg').' -analyzeduration 900000000 -probesize 200M';
+  }
+  
+
   // returns the number of seconds, may be fractional
   public static function runtime(Item &$item, $nGroupsAV, $videofile)
   {
@@ -584,6 +598,95 @@ class Video
 
     return $captions;
   }
+
+
+
+  // sanity check the overall identified length/duration of videos, adjusting as needed
+  private static function adjust_length($file, &$arr, $tvarchive)
+  {
+    // sanity check the overall bytes/sec!  (see if the "length" is waaaaay off)
+    // blu-ray is unlikely to ever max > 64 Mbit/s video, for example...
+    // ( 64 Mbit/s == 66536 Kbit/s == 67108864 bit/s )
+    $kbs=0;
+    if ($arr['bytes']>0  &&  ($arr['length']==0  ||  ($arr['length']!=0  &&  
+                                                      ($kbs = ($arr['bytes'] / $arr['length'] / 1024 * 8)) &&
+                                                      ($kbs < 10  ||  $kbs > 100000))))
+    {
+      $kbs = round($kbs,1);
+      error_log("Duration of {$arr['length']} seconds (=> ~$kbs kb/s) seems wrong...");
+      $mylen = TV::alt_duration($file);
+      if ($mylen > 10  &&
+          ($kbs = ($arr['bytes'] / $mylen / 1024 * 8))  &&
+          ($kbs >= 10  ||  $kbs <= 100000))
+      {
+        // Seems like we have a more accurate length.
+        $kbs = round($kbs,1);
+        error_log("Using alternate method of $mylen seconds (=> ~$kbs kb/s)!");
+        $arr['length'] = $mylen;
+        return;
+      }
+    }
+    //error_log("$kbs kb/s");
+
+    
+    if (!$tvarchive)
+      return;
+    
+        
+
+    if (!$arr['length'])
+    {
+      echo "Duration not detected";
+      $arr['length'] = TV::alt_duration($file);
+      return;
+    }
+
+
+    // TV item -- load its recording .xml to determine the "expected" duration
+    $dir=dirname(realpath($file));
+    $id=basename($dir);
+    if (!($xml = @simplexml_load_file("{$dir}/{$id}.xml")))
+      return;
+    
+
+    
+    if (($sec = $arr['length'])  &&
+        isset($xml->DURATION)  &&
+        ($duration = $xml->DURATION[0])  &&
+        (preg_match('/^(\d+):(\d+):(\d+)$/', $duration, $mat))  &&
+        ($duration = $mat[1]*3600 + $mat[2]*60 + $mat[3])){
+      $toolong  = ($sec-$duration > TV::ALLOWED_LONGER);
+      $tooshort = ($duration-$sec > TV::ALLOWED_SHORTER);
+      
+      if ($toolong  ||  $tooshort){
+        // We have determined that the "ffmpeg peeked" duration is (10+ min)
+        // longer than what the recorder thought it recorded!
+        //
+        // OK this is wacky but bear with me, please!
+        // Some videos can drop A/V packets at various points during recording.
+        // Some videos can "roll the counter" of the pts/dts (program and display
+        // timestamps).  ffmpeg doesn't like the "roll the counter"!
+        // So let's do an alternate and more expensive duration check now.
+        echo "Duration of $sec seconds seems wrong (compared to recorder showing $duration seconds)";
+        $mylen = TV::alt_duration($file);
+        $use_alt = false;
+        
+        if ($toolong  &&  ($mylen <= $duration  ||  ($mylen - $duration) <= TV::ALLOWED_LONGER))
+          $use_alt = true;
+        
+        if ($tooshort  &&  ($duration - $mylen) <= TV::ALLOWED_SHORTER)
+          $use_alt = true;
+        
+        if ($use_alt) {
+          // Seems like we have a more accurate length.
+          // Let's use it for all our _meta.xml purposes, etc.!
+          echo "Using alternate method!\n";
+          $arr['length'] = $mylen;
+        }
+      }
+    }
+  }
+  
   
 
   // returns basic A/V info for given file in array, using "ffmpeg -i".
@@ -601,10 +704,8 @@ class Video
   //  [vc]      => h264
   // )
   public static function       id($file=''){ $r=Video::identify($file?$file:array_pop(glob('*.{mp4,mpeg4,m4v,mov,avi,mpg}',GLOB_BRACE)), true, 500, true); printr($r); return $r; }
-  public static function identify($file, $print=false, $head=2000, $skip_rotation_check=false)
+  public static function identify($file, $print=false, $head=2000, $skip_rotation_check=false, $tvarchive=false)
   {
-    $ffmpeg = configGetPetaboxPath('bin-ffmpeg');
-
     // kill if hangs after 30 sec!
     // we give it this long since some crazy *NON* interleaved AVI files
     // can take nearly 20+ seconds to inspect...
@@ -616,8 +717,7 @@ class Video
     // only keep the first 150 lines (in case it went crazy logging)
     $lines = array();
     $retval = null;
-    $xxx = '';//' -analyzeduration 999999999 -probesize 999999999 ';
-    exec(Util::timeout(600)." $ffmpeg -an -vn $xxx -i ".Util::esc($file)." 2>&1 | ".Util::timeout(600)." head -$head",
+    exec(Util::timeout(600)." ".Video::ffmpeg()." -an -vn -i ".Util::esc($file)." 2>&1 | ".Util::timeout(600)." head -$head",
          $lines, $retval);
     
     if ($print)
@@ -678,30 +778,8 @@ class Video
 
     $HDTV = ($mpegts  &&  $arr['height'] >= 720);
     
-    
 
-    // sanity check the overall bytes/sec!  (see if the "length" is waaaaay off)
-    // blu-ray is unlikely to ever max > 64 Mbit/s video, for example...
-    // ( 64 Mbit/s == 66536 Kbit/s == 67108864 bit/s )
-    $kbs=0;
-    if ($arr['bytes']>0  &&  ($arr['length']==0  ||  ($arr['length']!=0  &&  
-                                                      ($kbs = ($arr['bytes'] / $arr['length'] / 1024 * 8)) &&
-                                                      ($kbs < 10  ||  $kbs > 100000))))
-    {
-      $kbs = round($kbs,1);
-      error_log("Duration of {$arr['length']} seconds (=> ~$kbs kb/s) seems wrong...");
-      $mylen = TV::alt_duration($file);
-      if ($mylen > 10  &&
-          ($kbs = ($arr['bytes'] / $mylen / 1024 * 8))  &&
-          ($kbs >= 10  ||  $kbs <= 100000))
-      {
-        // Seems like we have a more accurate length.
-        $kbs = round($kbs,1);
-        error_log("Using alternate method of $mylen seconds (=> ~$kbs kb/s)!");
-        $arr['length'] = $mylen;
-      }
-    }
-    //error_log("$kbs kb/s");
+    Video::adjust_length($file, $arr, $tvarchive);
     
 
     if (strpos($out, 'multiple edit list entries, a/v desync might occur, patch welcome')>0)
@@ -869,7 +947,7 @@ class Video
 
 
     // now see if there is a rotation exif tag, like some iphone4+ videos
-    if (!$skip_rotation_check)
+    if (!$skip_rotation_check  &&  !$tvarchive)
     {
       // 180 degree flipped example:  /details/Jazz_Alley_in_Fort_Collins
       if (preg_match('/^\s+rotate\s+:\s+(90|180|270)\s*/m', $out, $m)){
@@ -1241,9 +1319,6 @@ class Video
                                 $identify, $timestampBaseName=null,
                                 $dimens='-s 160x110', $xtraArgs='-b:v 1K')
   {
-    $ffmpeg = configGetPetaboxPath('bin-ffmpeg').' -v 0';
-
-
     if ($tvarchive  &&  TV::is_audio_only(basename($file), $identify))
       return null;
     
@@ -1329,7 +1404,7 @@ class Video
     // "-pix_fmt" arg is to avoid any yuvj444p issues on output that ImageMagick
     // and gifsicle *both* cannot handle, eg:
     //   /details/prueba-02 
-    $cmd = "$ffmpeg -i ".Util::esc($file).
+    $cmd = Video::ffmpegV0()." -i ".Util::esc($file).
       ($altxxx ? " -an $frameLimit -r $rate -sameq $outDir/%08d.jpg" :
        " -an $vf $frameLimit -pix_fmt yuvj422p -r $rate $outDir/%08d.jpg");
       
