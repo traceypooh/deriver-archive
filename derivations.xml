@@ -1416,7 +1416,7 @@
   </format>
 
   <!-- next two formats related to OCR corrections UI -->
-  <format name="AbbyyHTML">
+  <format name="AbbyyHTML"> <!-- was made as "extraTarget" while making djvu.txt -->
     <extension>html</extension>
     <class>AbbyyHTML</class>
     <variations>
@@ -1509,11 +1509,12 @@
     <extension>gz</extension>
     <class>CDXIndex</class>
     <variations>
-      <variation name="ARC CDX Index" preextension=".arc.os.cdx">
+      <!-- assign rank so HeritrixJob runs before CDXIndex, in case HeritrixJob removes the W/ARC -->
+      <variation rank="2" name="ARC CDX Index" preextension=".arc.os.cdx">
         <dependency format="ARC_IA" variation="Internet Archive ARC"/>
         <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
       </variation>
-      <variation name="WARC CDX Index" preextension=".warc.os.cdx" conditionally="{'!collection':['webcap']}">
+      <variation rank="2" name="WARC CDX Index" preextension=".warc.os.cdx">
         <dependency format="WARC" variation="Web ARChive"/>
         <dependency format="WARC GZ" variation="Web ARChive GZ"/>
       </variation>
@@ -1525,6 +1526,19 @@
     <extension>idx</extension>
     <variations>
       <variation name="Item CDX Meta-Index" preextension=".cdx" />
+    </variations>
+  </format>
+
+  <format name="Parsed GZ">
+    <extension>gz</extension>
+    <class>Parse</class>
+    <variations>
+      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','nlaweb2013']}">
+        <dependency format="ARC_IA" variation="Internet Archive ARC"/>
+        <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
+        <dependency format="WARC" variation="Web ARChive"/>
+        <dependency format="WARC GZ" variation="Web ARChive GZ"/>
+      </variation>
     </variations>
   </format>
 
@@ -1691,7 +1705,8 @@
     <extension>txt</extension>
     <class>HeritrixJob</class>
     <variations>
-      <variation name="HeritrixCrawlLog" preextension="_cxml">
+      <!-- assign rank so HeritrixJob runs before CDXIndex, in case HeritrixJob removes the W/ARC -->
+      <variation rank="1" name="HeritrixCrawlLog" preextension="_cxml">
         <dependency format="HeritrixJob" variation="HeritrixJob"/>
       </variation>
     </variations>
