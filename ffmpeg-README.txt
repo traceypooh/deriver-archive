@@ -73,7 +73,6 @@ else
   # http://packages.ubuntu.com/search?searchon=contents&arch=any&mode=exactfilename&suite=precise&keywords=libasound.a
   sudo apt-get -y install  \
     libschroedinger-dev  libdirac-dev  dirac \
-    libx264-dev \
     libfaac-dev \
     libgsm1-dev \
     libmp3lame-dev \
@@ -88,6 +87,9 @@ else
     libtheora-dev \
     libvpx-dev \
     libfreetype6-dev
+
+  # we building most recent head of this below
+  sudo apt-get -y purge libx264-dev;
 
 fi;
 
@@ -198,16 +200,20 @@ env DESTDIR=$DIR  make install;
 #                 (installed above with first ffmpeg config+compile base pass)
 ###############################################################################
 cd $DIR/x264;
+# 2nd line of disables is because it started Fing up ~May2013 and including
+#   dlopen() ... dlclose() lines even though we dont want to allow shared...
 ./configure --enable-static --enable-pic --disable-asm \
+--disable-avs --disable-opencl \
 --extra-cflags=-I${DIRIN?}/local/include \
---extra-ldflags=-L${DIRIN?}/local/lib
-# xxxx mac     ./configure --prefix=$DIRIN/local --enable-static --enable-shared;
+--extra-ldflags=-L${DIRIN?}/local/lib 
+
 
 make -j4;
-env DESTDIR=$DIR  make install;
-
-
-
+if [ "${SHORTNAME?}" == "mac" ]; then
+  env DESTDIR=$DIR  make install;
+else
+  sudo make install;
+fi;
 
     
 
@@ -227,12 +233,6 @@ cd ffmpeg;
 # NOTE: options are alphabetized, thankyouverymuch (makes comparison easier)
 # NOTE: --enable-version3  is for prores decoding
 # NOTE: libopenjpeg allows motion-JPEG jp2 variant
-
-
-#for liba in $(ls ${DIR?}/usr/local/lib/*.a |tr '\n' ' '); do
-#  FFXTRA="$FFXTRA --extra-ldflags=$liba";
-#done
-
 
 ./configure $(echo "
 --disable-shared
@@ -259,7 +259,6 @@ cd ffmpeg;
 
 --extra-cflags=-I${DIR?}/usr/local/include
 --extra-cflags=-static
---extra-ldflags=${DIR?}/usr/local/lib/libx264.a
 
 $MYCC
 $MYCC2
