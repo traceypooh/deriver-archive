@@ -1221,7 +1221,7 @@
     <extension>txt</extension>
     <class>DJVUTXT</class>
     <variations>
-      <variation name="DjVuTXT" preextension="_djvu" derivativesource="allowed">
+      <variation name="DjVuTXT" preextension="_djvu" derivativesource="allowed" conditionally="{'!collection':['poor_ocr']}">
         <dependency format="DjVu" variation="Original DjVu" />
         <dependency format="DjVu" variation="DjVu" />
       </variation>
@@ -1407,7 +1407,7 @@
     <extension>epub</extension>
     <class>EPUB</class>
     <variations>
-      <variation name="EPUB">
+      <variation name="EPUB" conditionally="{'!collection':['poor_ocr']}">
         <dependency format="AbbyyGZ" variation="Abbyy GZ"/>
         <dependency format="ZIP" variation="Abbyy ZIP"/>
         <dependency format="abbyyXML" variation="ABBYY XML"/>
@@ -1533,7 +1533,7 @@
     <extension>gz</extension>
     <class>Parse</class>
     <variations>
-      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','nlaweb2013']}">
+      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','nlaweb2013','survey_00000']}">
         <dependency format="ARC_IA" variation="Internet Archive ARC"/>
         <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
         <dependency format="WARC" variation="Web ARChive"/>
@@ -1638,6 +1638,7 @@
     <class>ExtractMeta</class>
     <variations>
       <variation name="Metadata Log" preextension="_meta">
+        <dependency format="Metadata" variation="Extra Metadata JSON"/>
         <dependency format="Metadata" variation="MusicBrainz Metadata"/>
       </variation>
     </variations>
@@ -1650,6 +1651,13 @@
       <variation name="Metadata" />
       <variation name="TV Electronic Program Guide" preextension="epg"/>
       <variation name="MusicBrainz Metadata" preextension="_mb_metadata"/>
+    </variations>
+  </format>
+
+  <format name="Metadata">
+    <extension>json</extension>
+    <variations>
+      <variation name="Extra Metadata JSON" preextension="_extrameta"/>
     </variations>
   </format>
 
