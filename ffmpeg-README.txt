@@ -34,7 +34,6 @@ if [ $(uname -s) == 'Darwin' ]; then
 ";
 
   DIR=/opt/local/x;
-  DIRIN=$DIR/opt;
 
   if [ "$OSTYPE" != "darwin10.0" ]; then
     MYCC="--cc=clang"; # NOTE: esp. for mac lion!
@@ -200,20 +199,25 @@ env DESTDIR=$DIR  make install;
 #                 (installed above with first ffmpeg config+compile base pass)
 ###############################################################################
 cd $DIR/x264;
+
+X2ARGS="";
+if [ "${SHORTNAME?}" == "mac" ]; then
+  X2ARGS="--prefix=/opt/local";
+fi
+
 # 2nd line of disables is because it started Fing up ~May2013 and including
 #   dlopen() ... dlclose() lines even though we dont want to allow shared...
+
 ./configure --enable-static --enable-pic --disable-asm \
 --disable-avs --disable-opencl \
 --extra-cflags=-I${DIRIN?}/local/include \
---extra-ldflags=-L${DIRIN?}/local/lib 
+--extra-ldflags=-L${DIRIN?}/local/lib \
+"${X2ARGS?}"
 
 
 make -j4;
-if [ "${SHORTNAME?}" == "mac" ]; then
-  env DESTDIR=/opt/local  sudo make install;
-else
-  sudo make install;
-fi;
+sudo make install;
+
 
     
 
