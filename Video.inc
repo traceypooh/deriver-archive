@@ -641,20 +641,18 @@ class Video
       return;
     }
 
-
     // TV item -- load its recording .xml to determine the "expected" duration
     $dir=dirname(realpath($file));
     $id=basename($dir);
     if (!($xml = @simplexml_load_file("{$dir}/{$id}.xml")))
       return;
     
-
-    
     if (($sec = $arr['length'])  &&
         isset($xml->DURATION)  &&
-        ($duration = $xml->DURATION[0])  &&
-        (preg_match('/^(\d+):(\d+):(\d+)$/', $duration, $mat))  &&
+        count($xml->DURATION)  &&
+        (preg_match('/^(\d+):(\d+):(\d+)$/', $xml->DURATION[0], $mat))  &&
         ($duration = $mat[1]*3600 + $mat[2]*60 + $mat[3])){
+
       $toolong  = ($sec-$duration > TV::ALLOWED_LONGER);
       $tooshort = ($duration-$sec > TV::ALLOWED_SHORTER);
       
