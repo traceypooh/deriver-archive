@@ -210,7 +210,7 @@ cd $DIR/x264;
 
 make -j4;
 if [ "${SHORTNAME?}" == "mac" ]; then
-  env DESTDIR=$DIR  make install;
+  env DESTDIR=/opt/local  sudo make install;
 else
   sudo make install;
 fi;
