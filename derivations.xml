@@ -272,7 +272,7 @@
     <extension>pdf</extension>
     <class>GrayscalePdf</class>
     <variations>
-      <variation name="Grayscale LuraTech PDF" preextension="_bw" conditionally="{'collection':['biodiversity']}">
+      <variation name="Grayscale LuraTech PDF" preextension="_bw" conditionally="{'collection':['biodiversity','aceportal']}">
         <dependency format="DjvuXML" variation="Djvu XML"/>
       </variation>
     </variations>
@@ -684,7 +684,7 @@
         <dependency format="Matroska" variation="Matroska" />
       </variation>
 
-      <variation rank="8" name="h.264 720P" parameter="1280x720  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=31:bitrate=2048:vbv_maxrate=2250:vbv_bufsize=4096  -movflags faststart -ac 2 -b:a 128k -ar 44100" preextension="_720p" conditionally="{'collection':['35mmstockfootage']}">
+      <variation rank="8" name="h.264 720P" parameter="1280x720  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=31:bitrate=2048:vbv_maxrate=2250:vbv_bufsize=4096  -movflags faststart -ac 2 -b:a 128k -ar 44100" preextension="_720p" conditionally="{'collection':['35mmstockfootage','hdvideo']}">
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2-TS" variation="MPEG2-TS" />
@@ -1084,6 +1084,20 @@
   </format>
 
 
+  <format name="Segments">
+    <extension>xxx</extension>
+    <class>Segments</class>
+    <variations>
+      <variation rank="2" name="Segments" conditionally="{'collection':['tvarchive']}">
+        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2-TS" variation="MPEG2-TS" />
+        <dependency format="MPEG2" variation="MPEG2"/>
+        <dependency format="MPEG1" variation="MPEG1"/>
+      </variation>
+    </variations>
+  </format>
+
+
   <format name="JPEG Thumb">
     <extension>jpg</extension>
     <class>JPEGThumb</class>
@@ -1302,6 +1316,14 @@
   <!-- for <file>_meta.txt, which contains http headers used to load S3 files  -->
   <format name="Metadata">
     <extension>txt</extension>
+    <variations>
+      <variation name="Metadata" preextension="_meta"/>
+    </variations>
+  </format>
+
+  <!-- for <file>_meta.sqlite, which contains various s3 metadata  -->
+  <format name="Metadata">
+    <extension>sqlite</extension>
     <variations>
       <variation name="Metadata" preextension="_meta"/>
     </variations>
@@ -1533,7 +1555,7 @@
     <extension>gz</extension>
     <class>Parse</class>
     <variations>
-      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','nlaweb2013','survey_00000']}">
+      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','nlaweb2013','survey_00000','nls_humanidades','nls_elec2011','nls_2009','nls_2010','nls_2011','nls_2012','nls_2013']}">
         <dependency format="ARC_IA" variation="Internet Archive ARC"/>
         <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
         <dependency format="WARC" variation="Web ARChive"/>
@@ -1633,10 +1655,11 @@
     </variations>
   </format>
 
-  <format name="Metadata Log">
+  <format name="Log">
     <extension>log</extension>
     <class>ExtractMeta</class>
     <variations>
+      <variation name="Log" />
       <variation name="Metadata Log" preextension="_meta">
         <dependency format="Metadata" variation="Extra Metadata JSON"/>
         <dependency format="Metadata" variation="MusicBrainz Metadata"/>

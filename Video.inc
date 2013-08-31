@@ -240,7 +240,7 @@ class Video
         if (($suffixLC=='.mp4' || $suffixLC=='.ogv')  &&
             isset($files["/$key"])  &&
             ('ISO Image' == $files["/$key"]['FORMAT'])  &&
-            preg_match('/^(.*)(\d+)\.[^\.]+$/', $short, $m2)  &&
+            preg_match('/^(.*?)(\d+)\.[^\.]+$/', $short, $m2)  &&
             preg_match('/^(.*)\.[^\.]+$/', $key, $mat)  &&
             $m2[1]==$mat[1]){
           // Yikes, OK for deriving DVD disc images, we can make
@@ -251,7 +251,7 @@ class Video
           // we'll fudge the "original file"(name) a bit by adding back
           // in any numerical track info, so that we can make the A/V player
           // show/play all "tracks/titles"!
-          //msg("{$fi['ORIGINAL']} vs $short ({$mat[1]} vs {$m2[1]})");          
+          //if (DEBUG) msg("{$fi['ORIGINAL']} vs $short ({$mat[1]} vs {$m2[1]})");          
           $origSuffix = strrchr($fi['ORIGINAL'],'.');
           $key = "{$m2[1]}{$m2[2]}$origSuffix";
         }
@@ -929,8 +929,8 @@ class Video
       $arr['vstreams'] = $m[2];
 
       // ..and save any program ID that video stream has!
-      foreach(explode(' Program ',$out) as $chunk){
-        if (preg_match('@^(\d+)$\s+Stream #@m',$chunk,$m)  &&  strpos($chunk,$vline)){
+      foreach(explode("\n  Program ",$out) as $chunk){
+        if (preg_match('@^(\d+)$@m',$chunk,$m)  &&  preg_match('@^\s+Stream #@m',$chunk)  &&  strpos($chunk,$vline)){
           $arr['program']=$m[1];
           break;
         }
@@ -994,7 +994,11 @@ class Video
     // only keep the first 250 lines (in case it went crazy logging)
     $retval = null;
     
-    $cmd = " $mplayer -identify -nosound -novideo -nolirc -frames 0 ".Util::esc($file).($dvddevice ? ' -dvd-device '.Util::esc($dvddevice) : '')." 2>/dev/null ";
+    $cmd = (" $mplayer -identify -nosound -novideo -nolirc -frames 0 ".Util::esc($file).
+            ($dvddevice ? 
+             (strncmp($file,'br://',5)==0 ? ' -bluray-device ' : ' -dvd-device ').
+             Util::esc($dvddevice) : '').
+            " 2>/dev/null ");
     //error_log($cmd);
     $info = exec(Util::timeout(600)."$cmd | ".Util::timeout(600)." head -250",
                  $lines, $retval);
@@ -1021,6 +1025,19 @@ class Video
       return $m[1]*3600 + $m[2]*60 + $m[3];
     else
       return false;
+  }
+
+
+  public static function sec2ms($seconds)
+  {
+    $runtime = '';
+    if ($seconds > 60){
+      $runtime .= ' '.floor($seconds / 60).' minutes';
+      $seconds = fmod($seconds, 60);
+    }
+    if ($seconds)
+      $runtime .= ' '.round($seconds).' seconds';
+    return trim($runtime);
   }
   
 
@@ -1940,6 +1957,11 @@ class Video
     $tries = array();
     $tries[] = "$cmd $vf1 $args";
     $tries[] = "$cmd $vf2 $args";
+    // For MPEG-TS, sometimes the pts "clock" can "rollover" and cause us to fail.
+    // So to workaround, reset pts to start at "0" and ever increase.
+    // Eg: head -20000000 /details/../BBC2_20121219_232000_Stuffed__The_Great_British_Christmas....mpg
+    // nicely shows the "clock rollover" (and this worked around failed .mp4 creation!)
+    $tries[] = str_replace(' -vf ',' -vf setpts=PTS-STARTPTS,',$tries[count($tries)-1]);
     if ($traction_control)
       $tries[] = $tries[count($tries)-1] . $rate;
     $tries[] = Video::yadif_nix(                        $tries[count($tries)-1]);
