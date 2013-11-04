@@ -50,7 +50,7 @@ if [ $(uname -s) == 'Darwin' ]; then
   #   port search <portname>
   #   sudo port install <portname>
 
-  sudo port install  git-core lame libtheora libvorbis openjpeg faac bzip2 freetype yasm opencore-amr xvid openjpeg libvpx a52dec pkgconfig;
+  sudo port install  git-core lame libtheora libvorbis openjpeg faac bzip2 freetype yasm opencore-amr xvid openjpeg openjpeg15 libvpx a52dec pkgconfig;
   sudo port install  libsdl  xorg-libXfixes;   # X and SDL stuff for ffplay
 
 else
@@ -202,18 +202,20 @@ env DESTDIR=$DIR  make install;
 cd $DIR/x264;
 # 2nd line of disables is because it started Fing up ~May2013 and including
 #   dlopen() ... dlclose() lines even though we dont want to allow shared...
+if [ "${SHORTNAME?}" == "mac" ]; then
+  PREFIX=/opt/local;
+else
+  PREFIX=/usr/local;
+fi
+
 ./configure --enable-static --enable-pic --disable-asm \
 --disable-avs --disable-opencl \
 --extra-cflags=-I${DIRIN?}/local/include \
---extra-ldflags=-L${DIRIN?}/local/lib 
-
+--extra-ldflags=-L${DIRIN?}/local/lib \
+--prefix=$PREFIX;
 
 make -j4;
-if [ "${SHORTNAME?}" == "mac" ]; then
-  env DESTDIR=/opt/local  sudo make install;
-else
-  sudo make install;
-fi;
+sudo make install;
 
     
 
