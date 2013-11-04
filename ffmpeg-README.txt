@@ -38,7 +38,7 @@ if [ $(uname -s) == 'Darwin' ]; then
 
   if [ "$OSTYPE" != "darwin10.0" ]; then
     MYCC="--cc=clang"; # NOTE: esp. for mac lion!
-    MYCC2="--disable-vda"; # NOTE: esp. for mac lion!
+    MYCC2="--disable-vda --enable-pic"; # NOTE: vda esp. for mac lion!  for mavericks, compile PIC since issue w/ making *static* build in ffmpeg otherwise!
   fi
  
   echo "step 1: install  macports -- see http://www.macports.org/install.php"
@@ -312,7 +312,7 @@ if [ "${SHORTNAME?}" == "mac" ]; then
     
     # worked finally!
     export LD_LIBRARY_PATH=/opt/local/lib:/usr/lib:/usr/local/lib:/lib;
-    if [ "$OSTYPE" == "darwin11"  -o  "$OSTYPE" == "darwin12" ]; then
+    if [ "$OSTYPE" == "darwin11"  -o  "$OSTYPE" == "darwin12" -o  "$OSTYPE" == "darwin13.0" ]; then
         perl -i -pe 's/\-mdynamic-no-pic //' configure;
     fi;
 
