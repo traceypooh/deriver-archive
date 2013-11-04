@@ -407,6 +407,7 @@
         <dependency format="ZIP" variation="Raw Yale Book Zip"/>
         <dependency format="ZIP" variation="Raw Yale Medical Book Zip"/>
         <dependency format="ZIP" variation="Raw NIH Book Zip"/>
+        <dependency format="ZIP" variation="Raw TBRC Book Zip"/>
         <dependency format="ZIP" variation="Generic Raw Book Zip"/>
         <dependency format="Tar" variation="Generic Raw Book Tar"/>
         <dependency format="Comic Book ZIP" variation="Comic Book ZIP"/>
@@ -466,6 +467,7 @@
       <variation name="Raw Yale Medical Book Zip" preextension="_yalemedbook"/>
       <variation name="Raw Michigan Book Zip" preextension="_umichbook"/>
       <variation name="Raw NIH Book Zip" preextension="_nihbook"/>
+      <variation name="Raw TBRC Book Zip" preextension="_tbrc"/>
       <variation name="Generic Raw Book Zip" preextension="_images"/>
 
       <variation name="ZIP" multifile="true"/> <!--generic default in /editxml-->
@@ -519,7 +521,7 @@
       <!-- NOTE: this needs to run **first** since it can replace source files!-->
       <!-- pegssc == PEG Server-Standards-Compliant -->
       <variation rank="0" name="MPEG2" preextension=".pegssc" conditionally="[{'collection':['denveropenmedia','SeattleCommunityMedia','phillycam'],'parameter':'-ac 2 -acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 7000000 -maxrate 8000000 -minrate 5000000 -bufsize 835008 -packetsize 2048 -muxrate 10080000'},
-                                                                             {'collection':['tedtalks','poptech'],                                  'parameter':'-ac 2 -acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 5000000 -maxrate 6000000 -minrate 4000000 -bufsize 635008 -packetsize 2048 -muxrate 10080000'}]">
+                                                                             {'collection':['tedtalks','poptech','eastoncat'],                      'parameter':'-ac 2 -acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 5000000 -maxrate 6000000 -minrate 4000000 -bufsize 635008 -packetsize 2048 -muxrate 10080000'}]">
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
@@ -954,6 +956,16 @@
     </variations>
   </format>
 
+  <format name="Emulator Screenshot">
+    <extension>jpg</extension>
+    <extension>png</extension>
+    <extension>bmp</extension>
+    <extension>gif</extension>
+    <variations>
+      <variation name="Emulator Screenshot" preextension="_screenshot"/>
+    </variations>
+  </format>
+
   <format name="Collection Header">
     <extension>gif</extension>
     <extension>jpg</extension>
@@ -1085,10 +1097,10 @@
 
 
   <format name="Segments">
-    <extension>xxx</extension>
+    <extension>segments</extension>
     <class>Segments</class>
     <variations>
-      <variation rank="2" name="Segments" conditionally="{'collection':['tvarchive']}">
+      <variation rank="9" name="Segments" conditionally="{'collection':['tvarchive']}">
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2-TS" variation="MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2"/>
@@ -1111,6 +1123,7 @@
       </variation>
       <variation name="JPEG 250px Thumb" preextension="_thumb250" />
       <variation name="JPEG 500px Thumb" preextension="_thumb500" />
+      <variation name="JPEG Thumb Large" preextension="_thumb_large" /> <!--tracey (TV)-->
     </variations>
   </format>
 
@@ -1156,6 +1169,13 @@
       <variation rank="11" name="PNG" conditionally="{'collection':['album_recordings']}" derivativesource="allowed">
         <dependency format="Flac"  variation="Flac"/>
       </variation>
+    </variations>
+  </format>
+
+  <format name="BMP">
+    <extension>bmp</extension>
+    <variations>
+      <variation name="Bitmap Image" />
     </variations>
   </format>
 
@@ -1674,6 +1694,7 @@
       <variation name="Metadata" />
       <variation name="TV Electronic Program Guide" preextension="epg"/>
       <variation name="MusicBrainz Metadata" preextension="_mb_metadata"/>
+      <variation name="TBRC Outline" preextension="_tbrc_outline"/>
     </variations>
   </format>
 
