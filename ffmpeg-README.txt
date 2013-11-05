@@ -311,13 +311,13 @@ if [ "${SHORTNAME?}" == "mac" ]; then
         Makefile;
     
     # worked finally!
-    export LD_LIBRARY_PATH=/opt/local/lib:/usr/lib:/usr/local/lib:/lib;
-    if [ "$OSTYPE" == "darwin11"  -o  "$OSTYPE" == "darwin12" -o  "$OSTYPE" == "darwin13.0" ]; then
+    if [ "$OSTYPE" == "darwin11"  -o  "$OSTYPE" == "darwin12" -o  "$OSTYPE" == "darwin13" ]; then
         perl -i -pe 's/\-mdynamic-no-pic //' configure;
     fi;
+    export LD_LIBRARY_PATH=/opt/local/lib:/usr/lib:/usr/local/lib:/lib;
 
     # NOTE:  "disable-tremor" (seemed to be getting in way of vorbis)
-    ./configure --prefix=/opt/local  ${MYCC?}  --enable-menu  --enable-x264 --enable-theora --enable-libopenjpeg --enable-liba52  --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I${DIR?}/usr/local/include -I/opt/local/include" --extra-ldflags="${DIR?}/usr/local/lib/libx264.a " --extra-libs="-ltheoraenc -la52";
+    ./configure --prefix=/opt/local  ${MYCC?}  --enable-menu  --enable-x264 --enable-theora --enable-libopenjpeg --enable-liba52  --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I${DIR?}/usr/local/include -I/opt/local/include" --extra-ldflags="${DIR?}/x264/libx264.a " --extra-libs="-ltheoraenc -la52 -liconv";
 
 
     sudo chown -R $USER .; #should NOT have to do this, something screwy, fixit!
@@ -331,8 +331,10 @@ if [ "${SHORTNAME?}" == "mac" ]; then
 
   ################################################################################
   #    unrelated ports packages that tracey likes/uses:
-  # sudo port install lesspipe pcre wget ddrescue lftp spidermonkey ImageMagick avidemux exif coreutils
-  # sudo port install p7zip unrar wine colordiff py-pygments lesspipe jp2a freetype
+  # sudo port install lesspipe pcre wget ddrescue lftp spidermonkey avidemux exif coreutils pstree
+  # sudo port install p7zip unrar colordiff py-pygments jp2a freetype
+  # sudo port install wine
+  # sudo port install ImageMagick
   # sudo port install gimp
   # sudo port install dvdauthor cdrtools dvdrw-tools
 fi
