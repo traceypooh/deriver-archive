@@ -1,78 +1,45 @@
 diff --git a/ffmpeg.c b/ffmpeg.c
-index 977218f..0571f54 100644
+index eacd8b4..6479b30 100644
 --- a/ffmpeg.c
 +++ b/ffmpeg.c
-@@ -799,6 +799,12 @@ static void do_video_out(AVFormatContext *s,
+@@ -831,6 +831,12 @@ static void do_video_out(AVFormatContext *s,
  
      /* by default, we output a single frame */
      nb_frames = 1;
 +    {
-+      s->ist_frame_number = ist->st->codec->frame_number;   
-+      s->ptsxxx           = ist->decoded_frame->pts;
-+      s->tbnxxx.num       = tbnxxx.num;
-+      s->tbnxxx.den       = tbnxxx.den;
++      // long pts       = ist->decoded_frame->pts; // <== jan2014 no longer set
++      long pts          = av_rescale_q(ist->pts, AV_TIME_BASE_Q, ist->st->time_base);
++      s->secxxx         = (pts==AV_NOPTS_VALUE || pts<0 ? 0 : (long int)floor( av_q2d(ist->st->time_base) * pts ));
++      snprintf(s->debugxxx, 60, "pts:%ld tbn:%d/%d frame:%d ==> %ld\n", pts, ist->st->time_base.num, ist->st->time_base.den, ist->st->codec->frame_number, s->secxxx);
 +    }
  
      format_video_sync = video_sync_method;
-     if (format_video_sync == VSYNC_AUTO)
-@@ -3151,7 +3157,7 @@ static void log_callback_null(void *ptr, int level, const char *fmt, va_list vl)
- }
- 
- int main(int argc, char **argv)
--{
-+{tbnxxx.num=0; tbnxxx.den=0;
-     int ret;
-     int64_t ti;
- 
-diff --git a/ffmpeg.h b/ffmpeg.h
-index afef6fb..cbaf51b 100644
---- a/ffmpeg.h
-+++ b/ffmpeg.h
-@@ -48,2 +48,4 @@
- #include "libswresample/swresample.h"
-+AVRational tbnxxx;
-+
- 
-diff --git a/ffmpeg_opt.c b/ffmpeg_opt.c
-index c846a10..7f8b55f 100644
---- a/ffmpeg_opt.c
-+++ b/ffmpeg_opt.c
-@@ -821,2 +821,6 @@ static int opt_input_file(void *optctx, const char *opt, const char *filename)
-     av_dump_format(ic, nb_input_files, filename, 0);
-+if (tbnxxx.num==0 && tbnxxx.den==0){
-+tbnxxx.num = ic->tbnxxx.num;
-+tbnxxx.den = ic->tbnxxx.den;
-+}
- 
+     if (format_video_sync == VSYNC_AUTO) {
 diff --git a/libavformat/avformat.h b/libavformat/avformat.h
-index 7500881..79def0a 100644
+index 30fc8db..ad13444 100644
 --- a/libavformat/avformat.h
 +++ b/libavformat/avformat.h
-@@ -1208,3 +1208,3 @@ typedef struct AVFormatContext {
-     int raw_packet_buffer_remaining_size;
+@@ -1348,7 +1348,7 @@ typedef struct AVFormatContext {
+      * Demuxing: Set by user via av_format_set_subtitle_codec (NO direct access).
+      */
+     AVCodec *subtitle_codec;
 -} AVFormatContext;
-+  int ist_frame_number; long ptsxxx; AVRational tbnxxx; } AVFormatContext;
++  char debugxxx[60]; long secxxx; } AVFormatContext;
  
+ int av_format_get_probe_score(const AVFormatContext *s);
+ AVCodec * av_format_get_video_codec(const AVFormatContext *s);
 diff --git a/libavformat/img2enc.c b/libavformat/img2enc.c
-index 9621d3c..6b5e999 100644
+index f61b0ca..127a703 100644
 --- a/libavformat/img2enc.c
 +++ b/libavformat/img2enc.c
-@@ -84,2 +84,9 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
+@@ -97,6 +97,10 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
+                    img->img_number, img->path);
+             return AVERROR(EINVAL);
          }
-+{
-+  long sec = (s->ptsxxx==AV_NOPTS_VALUE || s->ptsxxx<0 ? 0 : (long int)floor( av_q2d(s->tbnxxx) * s->ptsxxx ));
-+  if (av_get_frame_filename(filename, sizeof(filename), img->path, sec) < 0)
-+    return AVERROR(EINVAL);
 +
-+  av_log(NULL, AV_LOG_WARNING, "pts:%ld tbn:%d/%d frame:%d ==> %ld\n", s->ptsxxx, s->tbnxxx.num, s->tbnxxx.den, s->ist_frame_number, sec);
-+}
++if (av_get_frame_filename(filename, sizeof(filename), img->path, s->secxxx) < 0) return AVERROR(EINVAL);
++av_log(NULL, AV_LOG_WARNING, s->debugxxx);
++
          for (i = 0; i < 4; i++) {
-diff --git a/libavformat/utils.c b/libavformat/utils.c
-index 596253b..39aa61d 100644
---- a/libavformat/utils.c
-+++ b/libavformat/utils.c
-@@ -3362,2 +3362,4 @@ static void dump_stream_format(AVFormatContext *ic, int i, int index, int is_out
-             print_fps(1/av_q2d(st->time_base), "tbn");
-+if(!is_output  &&  st->time_base.den  &&  st->time_base.num  &&  ic->tbnxxx.num==0 && ic->tbnxxx.den==0) { ic->tbnxxx.num = st->time_base.num; ic->tbnxxx.den = st->time_base.den; }
-+
-         if(st->codec->time_base.den && st->codec->time_base.num)
+             if (avio_open2(&pb[i], filename, AVIO_FLAG_WRITE,
+                            &s->interrupt_callback, NULL) < 0) {

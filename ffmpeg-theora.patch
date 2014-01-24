@@ -1,10 +1,10 @@
 diff --git a/libavcodec/libtheoraenc.c b/libavcodec/libtheoraenc.c
-index 30a4b28..311ecf3 100644
+index 4c90822..2738f4b 100644
 --- a/libavcodec/libtheoraenc.c
 +++ b/libavcodec/libtheoraenc.c
-@@ -205,7 +205,9 @@ static av_cold int encode_init(AVCodecContext* avc_context)
-                 * an int value
-          */
+@@ -208,7 +208,9 @@ static av_cold int encode_init(AVCodecContext* avc_context)
+            the [0 - 63] range.
+         */
          t_info.quality        = av_clipf(avc_context->global_quality / (float)FF_QP2LAMBDA, 0, 10) * 6.3;
 -        t_info.target_bitrate = 0;
 +        t_info.target_bitrate = avc_context->bit_rate;
@@ -13,3 +13,12 @@ index 30a4b28..311ecf3 100644
      } else {
          t_info.target_bitrate = avc_context->bit_rate;
          t_info.quality        = 0;
+@@ -308,7 +310,7 @@ static int encode_frame(AVCodecContext* avc_context, AVPacket *pkt,
+             message = "unknown reason";
+             break;
+         }
+-        av_log(avc_context, AV_LOG_ERROR, "theora_encode_YUVin failed (%s) [%d]\n", message, result);
++        av_log(avc_context, AV_LOG_ERROR, "theora_encode_YUVin failed (%s) [%d]\n", message, result); return 0;
+         return AVERROR_EXTERNAL;
+     }
+ 
