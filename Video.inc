@@ -429,11 +429,22 @@ class Video
       $kv = array();
       
       ksort($rankToFile);
+      
       if ($rankToFile[0])
         $kv['POSTER'] = $prefix.$rankToFile[0];
       else if ($rankToFile[1])
         $kv['POSTER'] = $prefix.$rankToFile[1];
-
+      else if (UI3  &&  DEVBOX) {
+        // ugh, this is terrible...
+        foreach ($rankToFile as $keykey => $valval){
+          if (is_numeric($keykey)){
+            $tmp = preg_replace('/\.(ogg|mp3)$/i', '.png', $valval);
+            if ($tmp != $valval  &&  $files["/$tmp"]){
+              $kv['POSTER'] = $prefix.$tmp;
+            }
+          }
+        }
+      }
 
       
       foreach ($rankToFile as $rank => $src)
