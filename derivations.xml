@@ -908,44 +908,6 @@
     </variations>
   </format>
 
-  <format name="Closed Caption Text">
-    <extension>txt</extension>
-    <class>Captions</class>
-    <variations>
-      <!-- NOTE: the 6th variant here is "dummy" but fixes an issue -->
-      <!-- with deriver for the dest name of the *5th* CC file... -->
-      <variation rank="4" name="Closed Caption Text" preextension=".cc1" conditionally="{'collection':['tvarchive']}">
-        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
-        <dependency format="MPEG2" variation="MPEG2" />
-        <dependency format="MPEG1" variation="MPEG1" />
-        <dependency format="ISO Image" variation="ISO Image" />
-      </variation>
-      <variation name="Closed Caption Text" preextension=".cc2"/>
-      <variation name="Closed Caption Text" preextension=".cc3"/>
-      <variation name="Closed Caption Text" preextension=".cc4"/>
-      <variation name="Closed Caption Text" preextension=".cc5"/>
-      <variation rank="4" name="Closed Caption Text" preextension=".cc6"/>
-    </variations>
-  </format>
-
-  <format name="TV Text Stream">
-    <extension>txt</extension>
-    <variations>
-      <variation name="TV Text Stream" preextension=".text1"/>
-      <variation name="TV Text Stream" preextension=".text2"/>
-      <variation name="TV Text Stream" preextension=".text3"/>
-      <variation name="TV Text Stream" preextension=".text4"/>
-      <variation name="TV Text Stream" preextension=".text5"/>
-    </variations>
-  </format>
-
-  <format name="Extended Data Services">
-    <extension>txt</extension>
-    <variations>
-      <variation name="Extended Data Services" preextension=".xds"/>
-    </variations>
-  </format>
-
   <format name="Item Image">
     <extension>gif</extension>
     <extension>jpg</extension>
@@ -1166,7 +1128,7 @@
     <extension>png</extension>
     <class>PNG</class>
     <variations>
-      <variation rank="11" name="PNG" conditionally="{'collection':['album_recordings']}" derivativesource="allowed">
+      <variation rank="11" name="PNG" conditionally="{'collection':['album_recordings','poohBot']}" derivativesource="allowed">
         <dependency format="Flac"  variation="Flac"/>
       </variation>
     </variations>
@@ -1575,7 +1537,7 @@
     <extension>gz</extension>
     <class>Parse</class>
     <variations>
-      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','nlaweb2013','survey_00000','nls_humanidades','nls_elec2011','nls_2009','nls_2010','nls_2011','nls_2012','nls_2013']}">
+      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','nlaweb2013','survey_00000','nls_humanidades','nls_elec2011','nls_2009','nls_2010','nls_2011','nls_2012','nls_2013','20thcenturyweb']}">
         <dependency format="ARC_IA" variation="Internet Archive ARC"/>
         <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
         <dependency format="WARC" variation="Web ARChive"/>
@@ -1653,14 +1615,54 @@
     </variations>
   </format>
 
+  <format name="Closed Caption Text">
+    <extension>txt</extension>
+    <class />
+    <variations>
+      <variation name="Closed Caption Text" preextension=".cc1"/>
+      <variation name="Closed Caption Text" preextension=".cc2"/>
+      <variation name="Closed Caption Text" preextension=".cc3"/>
+      <variation name="Closed Caption Text" preextension=".cc4"/>
+      <variation name="Closed Caption Text" preextension=".cc5"/>
+    </variations>
+  </format>
+
+  <format name="TV Text Stream">
+    <extension>txt</extension>
+    <variations>
+      <variation name="TV Text Stream" preextension=".text1"/>
+      <variation name="TV Text Stream" preextension=".text2"/>
+      <variation name="TV Text Stream" preextension=".text3"/>
+      <variation name="TV Text Stream" preextension=".text4"/>
+      <variation name="TV Text Stream" preextension=".text5"/>
+    </variations>
+  </format>
+
+  <format name="Extended Data Services">
+    <extension>txt</extension>
+    <variations>
+      <variation name="Extended Data Services" preextension=".xds"/>
+    </variations>
+  </format>
+
   <format name="SubRip">
     <extension>srt</extension>
-    <class>SubRip</class>
+    <class>Captions</class>
     <variations>
       <!-- NOTE: explicitly allowed to be derived from another derivative -->
-      <!-- Eg: MPEG2  =>  Closed Caption Text  =>  SubRip -->
+      <!-- for TV, also extracts CC, then tries to align it with extracted audio forms... -->
       <variation rank="11" name="SubRip" derivativesource="allowed">
-        <dependency format="Closed Caption Text" variation="Closed Caption Text" />
+        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
+        <dependency format="MPEG2-TS" variation="MPEG2-TS" />
+        <dependency format="MPEG2" variation="MPEG2"/>
+        <dependency format="MPEG1" variation="MPEG1"/>
+        <dependency format="ISO Image" variation="ISO Image" />
+
+        <dependency format="h.264" variation="h.264"/>
+        
+        <dependency format="WAVE" variation="WAVE"/>
+        <dependency format="Flac" variation="Flac"/>
+        <dependency format="Shorten" variation="Shorten"/>
       </variation>
     </variations>
   </format>
@@ -1824,6 +1826,21 @@
     <variations>
       <variation name="Comma-Separated Values" />
       <variation name="Catalog History CSV" preextension="_history" />
+    </variations>
+  </format>
+
+  <!-- these two used by giganews usenet items -->
+  <format name="CSV GZ">
+    <extension>gz</extension>
+    <variations>
+      <variation name="Comma-Separated Values GZ" preextension=".csv" />
+    </variations>
+  </format>
+
+  <format name="MBOX GZ">
+    <extension>gz</extension>
+    <variations>
+      <variation name="MBOX GZ" preextension=".mbox" />
     </variations>
   </format>
 
