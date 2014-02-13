@@ -53,7 +53,7 @@
         <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MIDI"       variation="MIDI" />
       </variation>
-      <variation rank="6" name="MP3 Sample" parameter="--preset medium" preextension="_sample" conditionally="{'collection':['samples_only']}">
+      <variation rank="6" name="MP3 Sample" parameter="--preset medium" preextension="_sample" conditionally="{'collection':['samples_only','acdc']}">
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
         <dependency format="Flac"       variation="24bit Flac" />
@@ -1130,6 +1130,8 @@
     <variations>
       <variation rank="11" name="PNG" conditionally="{'collection':['album_recordings','poohBot']}" derivativesource="allowed">
         <dependency format="Flac"  variation="Flac"/>
+        <dependency format="VBR MP3"  variation="VBR MP3"/>
+        <dependency format="Ogg Vorbis"  variation="Ogg Vorbis"/>
       </variation>
     </variations>
   </format>
@@ -1537,7 +1539,7 @@
     <extension>gz</extension>
     <class>Parse</class>
     <variations>
-      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','nlaweb2013','survey_00000','nls_humanidades','nls_elec2011','nls_2009','nls_2010','nls_2011','nls_2012','nls_2013','20thcenturyweb']}">
+      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','wide00005','nlaweb2013','survey_00000','nls_humanidades','nls_elec2011','nls_2009','nls_2010','nls_2011','nls_2012','nls_2013','20thcenturyweb','nara109thcongressionalcrawl','nara110thcongressionalcrawl','nara111thcongressionalcrawl','nara112thcongressionalcrawl','misc_govcrawls','nl_israel','nlil_2013']}">
         <dependency format="ARC_IA" variation="Internet Archive ARC"/>
         <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
         <dependency format="WARC" variation="Web ARChive"/>
