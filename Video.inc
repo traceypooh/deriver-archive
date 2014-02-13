@@ -64,9 +64,9 @@ class Video
 
   public static function ffmpeg()
   {
-    // for duration, check first 900 seconds (arg is in microseconds), not default 5 seconds
-    // for probing for codec info/characteristics, up from ~5MB to ~200MB to analyze
-    return configGetPetaboxPath('bin-ffmpeg').' -analyzeduration 900000000 -probesize 200M';
+    // for probing for codec info/characteristics, up from ~5MB to ~200MB to analyze.
+    // for duration, check first 900 seconds (arg is in microseconds), not default 5 seconds.
+    return configGetPetaboxPath('bin-ffmpeg').' -analyzeduration 900000000 -probesize 200M '.(defined("LIMITLESS") ? " -threads 12 " : " -threads 2 ");
   }
   
 
@@ -676,7 +676,7 @@ class Video
         // Some videos can "roll the counter" of the pts/dts (program and display
         // timestamps).  ffmpeg doesn't like the "roll the counter"!
         // So let's do an alternate and more expensive duration check now.
-        echo "Duration of $sec seconds seems wrong (compared to recorder showing $duration seconds)";
+        error_log("Duration of $sec seconds seems wrong (compared to recorder showing $duration seconds)");
         $mylen = TV::alt_duration($file);
         $use_alt = false;
         
@@ -689,7 +689,7 @@ class Video
         if ($use_alt) {
           // Seems like we have a more accurate length.
           // Let's use it for all our _meta.xml purposes, etc.!
-          echo "Using alternate method!\n";
+          error_log("Using alternate method!");
           $arr['length'] = $mylen;
         }
       }
@@ -713,7 +713,7 @@ class Video
   //  [vc]      => h264
   // )
   public static function       id($file=''){ $r=Video::identify($file?$file:array_pop(glob('*.{mp4,mpeg4,m4v,mov,avi,mpg}',GLOB_BRACE)), true, 500, true); printr($r); return $r; }
-  public static function identify($file, $print=false, $head=2000, $skip_rotation_check=false, $tvarchive=false)
+  public static function identify($file, $print=false, $tail=2000, $skip_rotation_check=false, $tvarchive=false)
   {
     // kill if hangs after 30 sec!
     // we give it this long since some crazy *NON* interleaved AVI files
@@ -726,7 +726,7 @@ class Video
     // only keep the first 150 lines (in case it went crazy logging)
     $lines = array();
     $retval = null;
-    exec(Util::timeout(600)." ".Video::ffmpeg()." -an -vn -i ".Util::esc($file)." 2>&1 | ".Util::timeout(600)." head -$head",
+    exec(Util::timeout(600)." ".Video::ffmpeg()." -an -vn -i ".Util::esc($file)." 2>&1 | ".Util::timeout(600)." tail -$tail",
          $lines, $retval);
     
     if ($print)
@@ -739,29 +739,55 @@ class Video
     $out = implode($lines, "\n");
 
 
-    $mpegts = (strpos($out, 'Input #0, mpegts, from ')!==FALSE);
     
 
+    $width = null;
+    $height= null;
 
     $video='';
-    if (preg_match('/\n *(Stream .*? Video: .*?, (\d+)x(\d+)(, | \[)(.*))/', $out,
-                   $mat))
-    {
-      $width = $mat[2];
-      $height= $mat[3];
-      // save this for later -- we gonna parse other params from it
-      // wacky items can have 2+ video streams in them!  so we pick the
-      // first one that has parseable width/height
-      // eg: /details/FOXNEWS_20091125_020000_Hannity
-      // has 2 Video streams, and the 1st one is junky, 2nd one we want!
-      $video = $mat[1];
+    if (preg_match_all('/\n *(Stream .*? Video: .*?, (\d+)x(\d+)(, | \[)(.*))/', $out, $vlines)){
+      //printr($vlines);
+      $vline = '';
+      if (count($vlines[1])==1){
+        $vline = $vlines[1][0];
+      }
+      else if (count($vlines[1]) > 1){
+        error_log("\nwarning: $file has 2+ video streams: ".print_r($vlines[1],1));
+        // now use ffmpeg (which has greatly improved in its "picking" since Ye Olden Days)
+        // to pick which of the video streams is the best one (Tracey Feb2014)
+        $cmd = (Util::timeout(600)." ".Video::ffmpeg()." -i ".
+                Util::esc($file)." -an -f null -frames 0 /dev/null 2>&1 | ".
+                Util::timeout(600)."fgrep -A10 'Stream mapping'");
+        error_log($cmd);
+        $tmp = Util::cmd($cmd, "CONTINUE");
+        if (preg_match('@\n\s*Stream #([\d:]+) \-> #0:0 @', $tmp, $mat)){
+          $vstream = "Stream #{$mat[1]}";
+          //error_log("Looking for $vstream");
+          foreach ($vlines[1] as $tmp){
+            if (strncmp(Util::killspace($tmp), $vstream, strlen($vstream))===0){
+              $vline = $tmp;
+              error_log("Picking: $vline");
+              break;
+            }
+          }
+        }
+      }
+
+      if ($vline !== ''){
+        if (preg_match('/^(Stream .*? Video: .*?, (\d+)x(\d+)(, | \[)(.*))/', $vline, $mat)){
+          $width = $mat[2];
+          $height= $mat[3];
+          // save this for later -- we gonna parse other params from it
+          // wacky items can have 2+ video streams in them!  so we pick the
+          // first one that has parseable width/height
+          // eg: /details/FOXNEWS_20091125_020000_Hannity
+          // has 2 Video streams, and the 1st one is junky, 2nd one we want!
+          $video = $mat[1];
+        }
+      }
     }
-    else
-    {
-      $width = null;
-      $height= null;
-    }
-      
+    //error_log("VIDEO VAR: $vline");
+    
     
     // compute length of movie in seconds (may have decimal component)
     // compute frames per second of movie (may have decimal component)
@@ -785,8 +811,6 @@ class Video
                              $mat[2] : ''))),
       );
 
-    $HDTV = ($mpegts  &&  $arr['height'] >= 720);
-    
 
     Video::adjust_length($file, $arr, $tvarchive);
     
@@ -799,6 +823,21 @@ class Video
     // Save 2 streams like: "0.1,0.2"
     if (preg_match_all('/ Stream \#(\d+.\d+).*?(: Audio: .*)/', $out, $alines))
     {
+      // should we prioritize 5.1 channels first?  yes, unless like TV but *not* HD
+      $mpegts = (strpos($out, 'Input #0, mpegts, from ')!==FALSE);
+      $HDTV = ($mpegts  &&  $arr['height'] >= 720);
+      $prefer51 = (!$mpegts || $HDTV);
+
+      if ($tvarchive  &&  !$prefer51){
+        // uho!  KNTV started uploading SD material with *only* good audio in *5.1*!  (feb2014)
+        // eg: /details/KNTV_20140211_123000_Today_in_the_Bay
+        list($begTS, $ch) = Util::nofatal(function()use($file){ return TV::identifierTS2(basename($file)); });
+        if ($ch=='KNTV'  &&  $begTS > 1391212800) // strtotime("20140201000000")
+          $prefer51 = true;
+      }
+      
+
+      
       //printr($alines);
       $arr['astreams'] = '';
       $arr['audio_nchannels'] = 0;
@@ -823,11 +862,13 @@ class Video
             (strpos($aline, ': Audio: mp1,')>0  ||
              // throw out suspected-decoded-wrong audio streams like:
              // /details/WUSA_20091019_160000_9News_Now_at_Noon
+             strpos($aline, ': Audio: aac, 24000 Hz, 7.1,')>0  ||  //jan2014 version
              strpos($aline, ': Audio: aac, 8 channels (FL+FR+FC+LFE+BL+BR+FLC+FRC)')>0  || //sep2012 version
              strpos($aline, ': Audio: aac, 24000 Hz, 8 channels (FL+FR+FC+LFE+BL+BR+FLC+FRC)')>0  || //mar2012 version
              strpos($aline, ': Audio: aac, 24000 Hz, 7.1(wide)')>0  || //nov2011 version
              // throw out suspected-decoded-wrong audio streams like:
              // /details/WUSA_20091118_140000_9News_Now_at_9am    -- it should be noted this item is botched/glitchy
+             strpos($aline, ': Audio: aac, 7.1, fltp, ')>0  || //jan2014 version
              strpos($aline, ': Audio: aac, 3.0, fltp, ')>0  || //dec2012 version
              strpos($aline, ': Audio: aac, 3.0, s16, ')>0  || //sep2012 version
              strpos($aline, ': Audio: aac, 24000 Hz, 8 channels (FL+FR+FC+LFE+BL+BR+FLC+FRC)')>0  || //mar2012 version
@@ -836,49 +877,40 @@ class Video
           continue;
         }
         
-        if ((!$mpegts || $HDTV)  &&  preg_match('$\]\(eng\): Audio: .*?, (5\.1)(\(side\))*, $', $aline, $m))
-        {
-          // we should actually prioritize "eng"(lish) 5.1 channels first -- unless seems like TV but *not* HD
+        if ($prefer51  &&  preg_match('$\]\(eng\): Audio: .*?, (5\.1)(\(side\))*, $', $aline, $m)){
+          // prioritize "eng"(lish) 5.1 channels
           $eng[] = $streamID;
           $arr['audio_nchannels'] += $m[2];
         }
-        else if ((!$mpegts || $HDTV)  &&  preg_match('$: Audio: .*?, (5\.1)(\(side\))*, $', $aline, $m))
-        {
-          // we should actually prioritize 5.1 channels -- unless seems like TV but *not* HD
+        else if ($prefer51  &&  preg_match('$: Audio: .*?, (5\.1)(\(side\))*, $', $aline, $m)){
+          // prioritize 5.1 channels next
           $hd[] = $streamID;
           $arr['audio_nchannels'] += $m[2];
         }
-        else if (preg_match('/, (\d+) channels, /', $aline, $m))
-        {
-          if ($m[1]==0)
-          {
+        else if (preg_match('/, (\d+) channels, /', $aline, $m)){
+          if ($m[1]==0){
             // throw out audio tracks w/ 0-channels
             // eg on natty, /details/WUSA_20091225_000000_9News_Now_Tonight
             continue;
           }
-          else if ($m[1] <= 2)
-          {
+          else if ($m[1] <= 2){
             $best[] = $streamID; // mono/stereo track.  we likey!
           }
-          else
-          {
+          else{
             $rest[] = $streamID; // surround-ish track.  2nd choice..
           }
 
           $arr['audio_nchannels'] += $m[1];
         }
-        else if (preg_match('/, stereo, /', $aline, $m))
-        {
+        else if (preg_match('/, stereo, /', $aline, $m)){
           $arr['audio_nchannels'] += 2;
           $best[] = $streamID;
         }
-        else if (preg_match('/, mono, /',   $aline, $m))
-        {
+        else if (preg_match('/, mono, /',   $aline, $m)){
           $arr['audio_nchannels'] += 1;
           $best[] = $streamID;
         }
-        else
-        {
+        else{
           $rest[] = $streamID;
         }
         
@@ -891,8 +923,7 @@ class Video
         // Some source MP3s make ffmpeg fail to output a WAVE unless we parse and
         // pass on the audio sample rate, eg: /details/BananaRepublicING
         if (!isset($arr['ar'])  &&  preg_match('/: Audio: .*?, ([\d\.]+) Hz/',
-                                               $aline, $mm))
-        {
+                                               $aline, $mm)){
           $arr['ar'] = $mm[1];
         }
       }
@@ -907,17 +938,28 @@ class Video
     
 
     
+    if (preg_match('/(Stream \#(\d+.\d+).*?: Video: )/', $video, $m)){
+      $vline = $m[1];
+      $arr['vstreams'] = $m[2];
+
+      // ..and save any program ID that video stream has!
+      foreach(explode("\n  Program ",$out) as $chunk){
+        if (preg_match('@^(\d+)$@m',$chunk,$m)  &&  preg_match('@^\s+Stream #@m',$chunk)  &&  strpos($chunk,$vline)){
+          $arr['program']=$m[1];
+          break;
+        }
+      }
+    }
+
+
     // Set the framerate
-    if (preg_match('/Stream .*? Video: (.*)/', $video, $m))
-    {
-      $tmp = Video::fps($file, $m[1]);
-      if (is_numeric($tmp))
-      {
+    if (preg_match('/Stream .*? Video: (.*)/', $video, $m)){
+      $tmp = Video::fps($file, $m[1], $arr['vstreams']);
+      if (is_numeric($tmp)){
         if ($tmp > 0)
           $arr['fps'] = $tmp;
       }
-      else if ($tmp !== "")
-      {
+      else if ($tmp !== ""){
         $fps = Video::tofloat($tmp);
         // true story for real! /details/OvercomePt.3-OvercomeTheWorldWithLove_787
         // has frame rate of "0"
@@ -935,24 +977,14 @@ class Video
     if (preg_match('/Stream .*? Video: .*?(\[|, )[SP]AR (\d+:\d+) DAR (\d+:\d+)/', $video,$m))
       $arr['DAR'] = $m[3];
 
-    if (preg_match('/(Stream \#(\d+.\d+).*?: Video: )/', $video, $m)){
-      $vline = $m[1];
-      $arr['vstreams'] = $m[2];
-
-      // ..and save any program ID that video stream has!
-      foreach(explode("\n  Program ",$out) as $chunk){
-        if (preg_match('@^(\d+)$@m',$chunk,$m)  &&  preg_match('@^\s+Stream #@m',$chunk)  &&  strpos($chunk,$vline)){
-          $arr['program']=$m[1];
-          break;
-        }
-      }
-    }
     
 
     // save the Audio and Video Codecs and other info used for video..
     if (preg_match('/: Video: ([^, ]+)/', $video, $m))       $arr['vc' ] = $m[1];
 
-    if (preg_match('/: Video: [^,]+, ([^,]+),/', $video, $m))$arr['pix'] = $m[1];
+    if (preg_match('/: Video: [^,]+, ([^,]+),/', $video, $m))
+      $arr['pix'] = strtok($m[1],'('); // ... and nix any ending like "yuv420p(tv, bt709)" ( /details/pews )
+    
 
 
     // now see if there is a rotation exif tag, like some iphone4+ videos
@@ -990,7 +1022,7 @@ class Video
 
   public static function identify2($file, $dvddevice='')
   {
-    $mplayer = configGetValue('bin-mplayer');
+    $mplayer = configGetValue($dvddevice ? 'bin-mplayer-sudo' : 'bin-mplayer');
 
     $lines = array();
 
@@ -1095,7 +1127,9 @@ class Video
 
   // uses "ffprobe" and returns string like "30000/1001" (for ~29.97)
   // OR sometimes a float, depending!
-  public static function fps($src, $vline='')
+  //
+  // [vstream arg] caller can set this to peg fps parsing to specific stream when src has 2+ video streams in it!
+  public static function fps($src, $vline='', $vstream='')
   {
     // /details/MITOCW1800intros
     // has 2 videos which confused ffprobe mar2012, but this fps line
@@ -1103,6 +1137,8 @@ class Video
     // that in the identify line, we go with that!
     if (preg_match('/, 29.97 fps,/', $vline))
       return 29.97;
+    if (preg_match('/, 30 fps,/', $vline)) //eg: /details/canon-hf-10-test-2008_09_23a
+      return 30;
 
     $fps=-666;
     if (preg_match('/, ([\d\.]+) fps,/', $vline, $mat))
@@ -1142,9 +1178,6 @@ class Video
         $astreams[] = $ary;
     }
 
-    //printr($astreams);
-    //printr($vstreams);
-
 
     if (count($vstreams) > 1  &&  count($goods) > 0  &&
         count($vstreams) > count($goods))
@@ -1154,6 +1187,15 @@ class Video
       $vstreams = $goods;
     }
 
+
+    if ($vstream!==''  &&  count($vstreams) > 1  &&  count($goods)==count($vstreams)){
+      foreach ($goods as $good){
+        if ($good['index']===preg_replace('/^0\:/','',$vstream)){
+          $vstreams = array($good);
+          break;
+        }
+      }
+    }
 
     
 
@@ -1170,45 +1212,39 @@ class Video
     {
       $r   = Video::tofloat($ptr[0]['r_frame_rate']);
       $avg = Video::tofloat($ptr[0]['avg_frame_rate']);
+      //error_log("r_frame_rate: $r vs avg_frame_rate: $avg ....");
 
       if ($r < 1  &&  $avg < 1  &&  ($ret=Video::fpsEXIF($src)))
         return $ret;
       
-      if ($r < 1    &&  $avg > 0  &&  $avg < 100)
+      if ($r <= 1    &&  $avg > 0  &&  $avg < 100)
         return $ptr[0]['avg_frame_rate'];
 
       if ($r > 100  &&  $avg > 0  &&  $avg < 100)
         return $ptr[0]['avg_frame_rate'];
     }
-    
+
 
 
     $rates = array();
-    foreach ($ptr as $stream)
-    {
-      foreach ($stream as $key => $val)
-      {
-        if (preg_match('/frame_rate$/', $key))
-        {
+    foreach ($ptr as $stream){
+      foreach ($stream as $key => $val){
+        if (preg_match('/frame_rate$/', $key)){
           $rate = $val;
-          
-          if (intval($rate)!=0)
-          {
-            // take the 1st one found (almost always "r_frame_rate")
 
+          if (intval($rate)!=0){
+            // take the 1st one found (almost always "r_frame_rate")
 
             // check for wack-ness
             // Eg: quite a few ".m4a" files which seem to be mostly m4a audio
             // but have a video motion-JPEG frame very very infrequently.
             // anyway, they aren't no 600 fps!!
             if ($rate=='600/1'  ||  // /details/Podcast7_492
-                $rate=='600/2094059')// /details/OvercomePt.3-OvercomeTheWorldWithLove_787
-            {
+                $rate=='600/2094059'){ // /details/OvercomePt.3-OvercomeTheWorldWithLove_787
               $rate = '6/1'; 
             }
-            else if ($rate == '60000/1001'  &&
-                     $stream['codec_time_base']=='1/2997')
-            {
+            else if (($rate=='60000/1001'  ||  $rate=='359/6')  &&
+                     $stream['codec_time_base']=='1/2997'){
               $rate = '30000/1001'; // eg: /details/ExcerptFromASacredDuty
             }
 
@@ -1217,8 +1253,9 @@ class Video
         }
       }
     }
+    //error_log("Still trying... ".print_r($rates,1));
 
-
+    
     if (!count($rates))
       return "";
 
@@ -1402,14 +1439,6 @@ class Video
     // NOTE: $frameEvery may be a float not an int!
 
 
-    $altxxx=false;
-    if ($timestampBaseName  &&  basename($file)=='washed.ts')
-    {
-      $frameLimit = 666666;
-      $maxThumbs = $length * 3;
-      $frameEvery = 1;
-      $altxxx = true;
-    }
     
     
     $rate = 1 / $frameEvery;
@@ -1431,8 +1460,8 @@ class Video
     // and gifsicle *both* cannot handle, eg:
     //   /details/prueba-02 
     $cmd = Video::ffmpegV0()." -i ".Util::esc($file).
-      ($altxxx ? " -an $frameLimit -r $rate -sameq $outDir/%08d.jpg" :
-       " -an $vf $frameLimit -pix_fmt yuvj422p -r $rate $outDir/%08d.jpg");
+      (isset($identify['vstreams']) ? ' -map '.strtok($identify['vstreams'],',') : '').
+      " -an $vf $frameLimit -pix_fmt yuvj422p -r $rate $outDir/%08d.jpg";
       
 
     // normally we'd like to kill/timeout after 1 hour.
@@ -1444,8 +1473,8 @@ class Video
     //   2 hr ==> 3   hr timeout
     //   3 hr ==> 4.5 hr timeout
     // (min 1 hours for timeout)
-    $hd = ($tvarchive  &&  $identify['height']>=720);
-    $maxtime = Util::timeoutTime($length, ($hd ? '6x' : '1.5x'), ($hd ? '4h' : '2h'), $identify['bytes']);
+    $HD = ($tvarchive  &&  $identify['height']>=720);
+    $maxtime = Util::timeoutTime($length, ($HD ? '6x' : '1.5x'), ($HD ? '4h' : '2h'), $identify['bytes']);
 
 
     // Some items have so much damage they can fail deep into the
@@ -1560,7 +1589,7 @@ class Video
         echo basename($thumbnail)." ==> $num\n";
         
         $thumbFile = $timestampBaseName.sprintf("%06d", $num).'.jpg';
-        Util::cmd("mv $thumbnail ".Util::esc($thumbFile), ($altxxx ? "CONTINUE" : "THROW"));
+        Util::cmd("mv $thumbnail ".Util::esc($thumbFile), "THROW");
         // NOTE: subtle!  2+ frames *could* end up being later considered
         // the same filename, eg: /details/ShaneBrennanSittingTourBreathe
         // so we'll pick the *last* one when 2+ frames converge on same name
@@ -1908,7 +1937,7 @@ class Video
                           in_array($sourceFormat, array('MPEG2','MPEG1','h.264/MPEG2-TS','MPEG2-TS')))
                          ? Video::AV_ANTI_DRIFT : false);
 
-    $args = (" $rest " . ($traction_control ? $traction_control : $rate) . " -threads 2 ".
+    $args = (" $rest " . ($traction_control ? $traction_control : $rate) .
              (isset($identify["DAR"]) ? " -aspect {$identify['DAR']}" : "").
              " -map_metadata -1,g:0,g");
 
@@ -2139,10 +2168,11 @@ class Video
     error_log("Checking frame rates");
     chdir("/home/tracey/public_html/_/") || fatal("no test vid dir!");
     foreach (array(
+    'Rage2012_201402/Rage2012.wmv' => 29.97,
     '007333/007333.asf' => 14.99,
     '06ConclusionDaAnterir/05ReflexionPonenciaJoseMurilo2.mp4' => 29.97,
     '06ConclusionDaAnterir/06ConclusionesDaAnterior..mp4' => 29.97,
-    '070125_chantier/070125prisesext1fence.mov' => 29.97,
+    '070125_chantier/070125prisesext1fence.mov' => 10.16,//29.97
     '170109perLaPalestina/170109corteopalestina.mov' => 25,
     'AAC-NON-MONOTONE/Xacti1010_trim2_test_2010_02_04.mp4' => 29.97,
     'AlcTestClip/AlcTestClip.mov' => 29.97,
@@ -2179,7 +2209,7 @@ class Video
     'HoChak/8tvHoChat.mov' => 15,
     'Holymatrimony/holymatrimony.wmv' => 23,
     'IbisBlancs/ibisblancs.wmv' => 30,
-    'IntroToSimedit/Screencap.mov' => 10,
+    'IntroToSimedit/Screencap.mov' => 20,//10,
     'Jessies_Sunrise/Jessies_Sunrise.mpg' => 29.97,
     'KOFY_20110607_093000_Paid_Programming/KOFY_20110607_093000_Paid_Programming.mpg' => 29.97,
     'KQED_20100820_150000_Curious_George/KQED_20100820_150000_Curious_George.mpg' => 29.97,
@@ -2193,7 +2223,7 @@ class Video
     'No_Local_Stops/No_Local_Stops.mov' => 8,
     'OvercomePt.3-OvercomeTheWorldWithLove_787/Episode15-Overcome-Pt.3-overcomeTheWorldWithLove.m4a' => 6,
     'PhotosAndAudioForPrintDisabledLaunch/LogOfACowboy-Title.mp3' => '',
-    'Podcast7_492/Podcast7.m4a' => 6,
+    'Podcast7_492/Podcast7.m4a' => 3,//6,
     'Podcast7_492/Podcast7.mp3' => '',
     'PorYPara/GIRIS.mov' => 25,
     'SamKrutzWinterWonderlandFun/WinterWonderlandFun.mov' => 29.97,
@@ -2206,7 +2236,7 @@ class Video
     'TRL-2009/TRL-2009.mp4' => 29.97,
     'TestDvRip/DV_Test.mov' => 29.97,
     'TestVideoFromSanyoCamcorder/SANY0001.MP4' => 29.97,
-    'The_Phantom_Empire_1935/The_Phantom_Empire_1935.mp4' => 24.36,
+    'The_Phantom_Empire_1935/The_Phantom_Empire_1935.mp4' => 59.94,//24.36,
     'TimBrunsdenMothMan/moth_man.m4v' => 15,
     'VideoEditingWithChris-001/VideoEditingWithChris-001.flv' => 30,
     'WUSA_20091225_000000_9News_Now_Tonight/WUSA_20091225_000000_9News_Now_Tonight.mpg' => 29.97,
@@ -2224,7 +2254,7 @@ class Video
     'bikeDiablo/bikeDiablo.avi' => 12,
     'bikeDiabloVideo/bikeDiabloVideo.avi' => 30,
     'camels/camels.avi' => 20,
-    'canon-hf-10-test-2008_09_23a/canon-hf-10-test-2008_09_23a.mts' => 29.97,
+    'canon-hf-10-test-2008_09_23a/canon-hf-10-test-2008_09_23a.mts' => 29.97,//30,
     'coffeehouse-Freedom-Dance/Freedom-Dance.mov' => 14.99,
     'commute/commute.avi' => 10,
     'demoreel/rj.mpg' => 29.97,
@@ -2279,11 +2309,11 @@ class Video
     'witness_6447_E007499/fillup shots2.mov_bitc.mov' => 25,
                ) as $fi => $fps)
     {
-      $i = Video::identify($fi, false, 150, true);
+      $i = Video::identify($fi, false, 2000, true);
       error_log("$fi should be:   $fps   is:   {$i['fps']}");
       assert($i['fps'] == $fps);
     }
-    echo " ALL GOOD!\n";
+    echo " ALL GOOD!\n\n\n";
     
     
 
@@ -2292,6 +2322,9 @@ class Video
     $lo = new Locator();
     foreach (
       array(
+        'Rage2012_201402/Rage2012.wmv' =>
+        '{"ac":"wmav2","ar":"48000","astreams":"0:1","audio":"true","audio_nchannels":2,"fps":29.97,"height":"1080","length":1127.3,"pix":"yuv420p","vc":"wmv3","vstreams":"0:2","width":"1440"}',
+        
         'pews/pews.mov' => // rotated 90-degree iphone 1080P test
         '{"ac":"aac","ar":"44100","astreams":"0:1","audio":"true","audio_nchannels":1,"fps":24,"height":"1920","length":15.05,"pix":"yuv420p","rotation":"90","vc":"h264","vstreams":"0:0","width":"1080"}',
 
@@ -2299,7 +2332,7 @@ class Video
         '{"ac":"mp3","ar":"44100","astreams":"0:0","audio":"true","audio_nchannels":2,"fps":null,"height":null,"length":727.66,"width":null,"vstreams":""}',
         
         'WUSA_20091225_000000_9News_Now_Tonight' =>
-        '{"DAR":"4:3","PAR":"40:33","ac":"ac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"29.97","height":"480","length":336.3,"pix":"yuv420p","vc":"mpeg2video","vstreams":"0:1","width":"528"}',
+        '{"DAR":"4:3","PAR":"40:33","ac":"ac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"29.97","height":"480","length":336.3,"pix":"yuv420p","program":1,"vc":"mpeg2video","vstreams":"0:1","width":"528"}',
 
         'OvercomePt.3-OvercomeTheWorldWithLove_787/Episode15-Overcome-Pt.3-overcomeTheWorldWithLove.m4a' =>
         '{"DAR":"1:1","PAR":"72:72","ac":"aac","ar":"44100","astreams":"0:2","audio":"true","audio_nchannels":2,"fps":6,"height":"300","length":3490.09,"pix":"yuvj444p","vc":"mjpeg","vstreams":"0:3","width":"300"}',
@@ -2308,20 +2341,13 @@ class Video
         '{"ac":"aac","ar":"44100","astreams":"0:1","audio":"true","audio_nchannels":2,"fps":"24.36","height":"480","length":4145.28,"pix":"yuv420p","vc":"h264","vstreams":"0:0","width":"640"}',
 
 
-
-
         'EchoAlert009/Ea009.m4a' =>
         '{"DAR":"1:1","PAR":"1:1","ac":"aac","ar":"44100","astreams":"0:2","audio":"true","audio_nchannels":2,"fps":"0.01","height":"300","length":4909.46,"pix":"yuvj420p","vc":"mjpeg","vstreams":"0:3","width":"300"}',
         
-        
         'ExcerptFromASacredDuty/asd.avi' =>
-        '{"DAR":"4:3","PAR":"1:1","ac":"mp2","ar":"48000","astreams":"0:0","audio":"true","audio_nchannels":2,"fps":29.97,"height":"480","length":696.51,"pix":"yuv420p","vc":"mpeg4","vstreams":"0:1","width":"640"}',
+        '{"DAR":"4:3","PAR":"1:1","ac":"mp2","ar":"48000","astreams":"0:0","audio":"true","audio_nchannels":2,"fps":29.97,"height":"480","length":696.51,"pix":"yuv420p","program":1,"vc":"mpeg4","vstreams":"0:1","width":"640"}',
         
         
-        'Podcast7_492/Podcast7.m4a' =>
-        '{"DAR":"1:2","PAR":"72:72","ac":"aac","ar":"32000","astreams":"0:2","audio":"true","audio_nchannels":2,"fps":6,"height":"320","length":3783.07,"pix":"yuvj444p","vc":"mjpeg","vstreams":"0:3","vsync":"1","width":"160"}',
-        
-
         // item deleted, so check in home dir..
         '/home/tracey/public_html/_/BayrampasaVaillantServisi444_1_494VaillantServisi_1000/8.flv' =>
         '{"audio":"false","fps":23.98,"height":"720","length":29.89,"pix":"yuv420p","vc":"vp6f","vstreams":"0:0","width":"1280","astreams":""}',
@@ -2331,37 +2357,37 @@ class Video
         '{"DAR":"4:3","PAR":"8:9","ac":"aac","ar":"48000","astreams":"0:1","audio":"true","audio_nchannels":2,"fps":"29.97","height":"480","length":502.18,"pix":"yuv420p","vc":"h264","vstreams":"0:0","width":"720"}',
 
         'FOXNEWS_20091125_020000_Hannity' =>
-        '{"DAR":"4:3","PAR":"10:11","ac":"ac3","ar":"48000","astreams":"0:1","audio":"true","audio_nchannels":2,"fps":"29.97","height":"480","length":3600.36,"pix":"yuv420p","vc":"mpeg2video","vstreams":"0:2","width":"704"}',
+        '{"DAR":"4:3","PAR":"10:11","ac":"ac3","ar":"48000","astreams":"0:1","audio":"true","audio_nchannels":2,"fps":"29.97","height":"480","length":3600.36,"pix":"yuv420p","program":1,"vc":"mpeg2video","vstreams":"0:2","width":"704"}',
         
         'commute/commute.avi' =>
         '{"ac":"mp3","ar":"44100","astreams":"0:1","audio":"true","audio_nchannels":2,"fps":"10","height":"480","length":115.59,"pix":"yuvj420p","vc":"mjpeg","vstreams":"0:0","width":"640"}',
         
         'WUSA_20110519_223000_CBS_Evening_News_With_Katie_Couric' =>
-        '{"DAR":"4:3","PAR":"40:33","ac":"ac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"29.97","height":"480","length":1800.33,"pix":"yuv420p","vc":"mpeg2video","vstreams":"0:1","width":"528"}',
+        '{"DAR":"4:3","PAR":"40:33","ac":"ac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"29.97","height":"480","length":1800.33,"pix":"yuv420p","program":1,"vc":"mpeg2video","vstreams":"0:1","width":"528"}',
 
         'WUSA_20091019_160000_9News_Now_at_Noon' =>
-        '{"DAR":"4:3","PAR":"40:33","ac":"ac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"29.97","height":"480","length":1800.73,"pix":"yuv420p","vc":"mpeg2video","vstreams":"0:1","width":"528"}',
+        '{"DAR":"4:3","PAR":"40:33","ac":"ac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"29.97","height":"480","length":1800.73,"pix":"yuv420p","program":1,"vc":"mpeg2video","vstreams":"0:1","width":"528"}',
 
         'WUSA_20091118_140000_9News_Now_at_9am' =>
-        '{"DAR":"4:3","PAR":"40:33","ac":"ac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"59.92","height":"480","length":73289.89,"pix":"yuv420p","vc":"mpeg2video","vstreams":"0:1","width":"528"}',
+        '{"DAR":"4:3","PAR":"40:33","ac":"eac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"59.92","height":"480","length":73289.89,"pix":"yuv420p","program":1,"vc":"mpeg2video","vstreams":"0:1","width":"528"}',
+
+        'Podcast7_492/Podcast7.m4a' =>
+        '{"DAR":"1:2","PAR":"72:72","ac":"aac","ar":"32000","astreams":"0:2","audio":"true","audio_nchannels":2,"fps":3,"height":"320","length":3783.07,"pix":"yuvj444p","vc":"mjpeg","vstreams":"0:3","vsync":"1","width":"160"}',
         
         ) as $idish => $json)
     {
       $ary = json_decode($json,1);
-      foreach ($ary as $k=>&$v)
-      {
+      foreach ($ary as $k=>&$v){
         if ($v==="")
           unset($ary[$k]);
       }
       
-      if (strncmp($idish,'/home/',6)===0)
-      {
+      if (strncmp($idish,'/home/',6)===0){
         $id = '';
         $fi = ltrim($idish,'/');
         $r = array('home','/');        
       }
-      else
-      {
+      else{
         list($id,$fi) = explode('/',$idish,2);
         if (!$fi)
           $fi = "$id.mpg"; // TV
@@ -2370,41 +2396,32 @@ class Video
         $r = $r[0];
       }
       
-      foreach (array("/petabox", "/home/tracey/petabox") as $pethome)
-      {
-        error_log("CHECKING $id/$fi ($pethome)");
-        
-        $scr = "
-export PETABOX_HOME={$pethome};
-php -r 'require_once(\"/petabox/setup.inc\"); echo json_encode(Video::identify(\"{$r[1]}/{$fi}\"));'
-";
-        file_put_contents('/home/tracey/bleah',$scr);
-        
-        $str = Util::cmd("ssh root@{$r[0]} bash /home/tracey/bleah");//"PRINT");
+      foreach (array("/home/tracey/petabox", "/petabox") as $pethome){
+        error_log("\n================ CHECKING $id/$fi ($pethome) ================================================================");
+
+        $str = Util::cmd("ssh root@{$r[0]} \"export PETABOX_HOME=$pethome FI='{$r[1]}/{$fi}'; php -r '@spl_autoload(ia); echo json_encode(Video::identify(@getenv(FI)));' \"  |tail -n1", "PRINT");
         $ffi = json_decode($str,1);
         ksort($ffi);
 
         unset($ffi['ffmpeg-version']);
         unset($ffi['bytes']);
-        if ($ary != $ffi)
-        {
+        if ($ary != $ffi){
           // try rounding duration to nearest *tenth* (not *hundredth*) of a second and retry...
           $ffi['length'] = round($ffi['length'],1);
           $ary['length'] = round($ary['length'],1);
           if ($ary != $ffi){
             error_log("NOT EQUAL!");
-            error_log("--SHOULD BE:");          
-            printr($ary);
-            error_log("--CURRENTLY IS:");          
-            printr($ffi);
             error_log(json_encode($ffi));
+            file_put_contents("/tmp/video-regress-shouldBe", print_r($ary,1));
+            file_put_contents("/tmp/video-regress-actually", print_r($ffi,1));
+            $cmd="colordiff -U30 /tmp/video-regress-shouldBe  /tmp/video-regress-actually";
+            error_log($cmd);
+            passthru($cmd);
             assert(false);
           }
         }
       }
     }
-    unlink('/home/tracey/bleah');
+    error_log("SUCCESS!");  
   }
 }
-
-?>
