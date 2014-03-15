@@ -7,7 +7,7 @@ class Ogv extends Module
 
 
   public function version()
-  { return '$Revision: 51515 $ $Date: 2013-05-20 19:20:21 +0000 (Mon, 20 May 2013) $'; }
+  { return '$Revision: 57628 $ $Date: 2014-02-21 00:47:14 +0000 (Fri, 21 Feb 2014) $'; }
   
 
 
@@ -47,7 +47,7 @@ class Ogv extends Module
                                 'publisher'     => '-metadata ORGANIZATION=',
                                 'director'      => '-metadata ARTIST=',
                                 ), false).
-      " -metadata LOCATION=http://archive.org/details/{$this->identifier} ";
+      " -metadata LOCATION=https://archive.org/details/{$this->identifier} ";
 
 
     Util::cmdQT("$cmd -pass 1 $acoder -f null /dev/null", $times10);

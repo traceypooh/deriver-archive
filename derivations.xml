@@ -1539,7 +1539,7 @@
     <extension>gz</extension>
     <class>Parse</class>
     <variations>
-      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','wide00005','nlaweb2013','survey_00000','nls_humanidades','nls_elec2011','nls_2009','nls_2010','nls_2011','nls_2012','nls_2013','20thcenturyweb','nara109thcongressionalcrawl','nara110thcongressionalcrawl','nara111thcongressionalcrawl','nara112thcongressionalcrawl','misc_govcrawls','nl_israel','nlil_2013']}">
+      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','wide00005','nlaweb2013','survey_00000','nls_humanidades','nls_elec2011','nls_2009','nls_2010','nls_2011','nls_2012','nls_2013','20thcenturyweb','nara109thcongressionalcrawl','nara110thcongressionalcrawl','nara111thcongressionalcrawl','nara112thcongressionalcrawl','misc_govcrawls','nl_israel','nlil_2013','naraweb']}">
         <dependency format="ARC_IA" variation="Internet Archive ARC"/>
         <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
         <dependency format="WARC" variation="Web ARChive"/>

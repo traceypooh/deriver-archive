@@ -434,7 +434,7 @@ class Video
         $kv['POSTER'] = $prefix.$rankToFile[0];
       else if ($rankToFile[1])
         $kv['POSTER'] = $prefix.$rankToFile[1];
-      else if (UI3  &&  DEVBOX) {
+      else if (UI3) {
         // ugh, this is terrible...
         foreach ($rankToFile as $keykey => $valval){
           if (is_numeric($keykey)){
@@ -683,8 +683,11 @@ class Video
         if ($toolong  &&  ($mylen <= $duration  ||  ($mylen - $duration) <= TV::ALLOWED_LONGER))
           $use_alt = true;
         
-        if ($tooshort  &&  ($duration - $mylen) <= TV::ALLOWED_SHORTER)
+        if ($tooshort  &&  ((($duration - $mylen) <= TV::ALLOWED_SHORTER) ||
+                            // or if 95% "intended" duration -- go with it!!
+                            ($duration > $mylen  &&  ($mylen / $duration >= 0.95)))){
           $use_alt = true;
+        }
         
         if ($use_alt) {
           // Seems like we have a more accurate length.
@@ -2019,7 +2022,7 @@ class Video
   private static $videoMetaCache=null;
   public static function videoMeta(&$module, $mapping, $addurl=false)
   {
-    $url = "http://archive.org/details/{$module->identifier}";
+    $url = "https://archive.org/details/{$module->identifier}";
 
     // add any relevant metadata
     if (!self::$videoMetaCache)
