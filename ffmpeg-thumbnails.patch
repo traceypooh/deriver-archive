@@ -1,8 +1,8 @@
 diff --git a/ffmpeg.c b/ffmpeg.c
-index eacd8b4..6479b30 100644
+index 9792281..a31ffd7 100644
 --- a/ffmpeg.c
 +++ b/ffmpeg.c
-@@ -831,6 +831,12 @@ static void do_video_out(AVFormatContext *s,
+@@ -858,6 +858,12 @@ static void do_video_out(AVFormatContext *s,
  
      /* by default, we output a single frame */
      nb_frames = 1;
@@ -16,20 +16,20 @@ index eacd8b4..6479b30 100644
      format_video_sync = video_sync_method;
      if (format_video_sync == VSYNC_AUTO) {
 diff --git a/libavformat/avformat.h b/libavformat/avformat.h
-index 30fc8db..ad13444 100644
+index 7d2db6a..2ee511d 100644
 --- a/libavformat/avformat.h
 +++ b/libavformat/avformat.h
-@@ -1348,7 +1348,7 @@ typedef struct AVFormatContext {
-      * Demuxing: Set by user via av_format_set_subtitle_codec (NO direct access).
+@@ -1604,7 +1604,7 @@ typedef struct AVFormatContext {
+      * Muxing: set by user via AVOptions (NO direct access)
       */
-     AVCodec *subtitle_codec;
+     int64_t output_ts_offset;
 -} AVFormatContext;
-+  char debugxxx[60]; long secxxx; } AVFormatContext;
++char debugxxx[60]; long secxxx; } AVFormatContext;
  
  int av_format_get_probe_score(const AVFormatContext *s);
  AVCodec * av_format_get_video_codec(const AVFormatContext *s);
 diff --git a/libavformat/img2enc.c b/libavformat/img2enc.c
-index f61b0ca..127a703 100644
+index 37dfbec..845fb7c 100644
 --- a/libavformat/img2enc.c
 +++ b/libavformat/img2enc.c
 @@ -97,6 +97,10 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)

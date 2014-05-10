@@ -1082,6 +1082,8 @@
         <dependency format="JPEG" variation="JPEG" />
         <dependency format="PNG" variation="PNG" />
         <dependency format="Animated GIF" variation="Animated GIF" conditionally="{'collection':['coverartarchive']}" />
+        <dependency format="PDF" variation="Text PDF" conditionally="{'collection':['coverartarchive']}" />
+        <dependency format="ImagePDF" variation="Image Container PDF" conditionally="{'collection':['coverartarchive']}" />
       </variation>
       <variation name="JPEG 250px Thumb" preextension="_thumb250" />
       <variation name="JPEG 500px Thumb" preextension="_thumb500" />
@@ -1539,7 +1541,7 @@
     <extension>gz</extension>
     <class>Parse</class>
     <variations>
-      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','wide00005','nlaweb2013','survey_00000','nls_humanidades','nls_elec2011','nls_2009','nls_2010','nls_2011','nls_2012','nls_2013','20thcenturyweb','nara109thcongressionalcrawl','nara110thcongressionalcrawl','nara111thcongressionalcrawl','nara112thcongressionalcrawl','misc_govcrawls','nl_israel','nlil_2013','naraweb']}">
+      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','wide00005','nlaweb2013','survey_00000','nls_humanidades','nls_elec2011','nls_2009','nls_2010','nls_2011','nls_2012','nls_2013','20thcenturyweb','nara109thcongressionalcrawl','nara110thcongressionalcrawl','nara111thcongressionalcrawl','nara112thcongressionalcrawl','misc_govcrawls','nl_israel','nlil_2013','naraweb','ArchiveIt-Collection-1078', 'ArchiveIt-Collection-924','nla_2014']}"> 
         <dependency format="ARC_IA" variation="Internet Archive ARC"/>
         <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
         <dependency format="WARC" variation="Web ARChive"/>
@@ -1607,13 +1609,6 @@
     <extension>gz</extension>
     <variations>
       <variation name="GZIP" />
-    </variations>
-  </format>
-
-  <format name="EXE">
-    <extension>exe</extension>
-    <variations>
-      <variation name="Windows Executable" />
     </variations>
   </format>
 
