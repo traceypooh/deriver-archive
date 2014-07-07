@@ -62,8 +62,14 @@ else
 --extra-ldflags=-static
 ";
 
+
+  # NOTE: (for libfreetype) (UGH SRSLY!?!) (July 2014)
+  sudo perl -i -pe 's/lfreetype$/lfreetype -lpng12/'  /usr/lib/x86_64-linux-gnu/pkgconfig/freetype2.pc;
+
+  
+  
   SHORTNAME=$(lsb_release -cs); # eg: "precise"
-  if [ "$SHORTNAME" != "natty"  -a  "$SHORTNAME" != "oneiric"  -a  "$SHORTNAME" != "precise"  -a  "$SHORTNAME" != "quantal"  -a  "$SHORTNAME" != "raring" ]; then
+  if [ "$SHORTNAME" != "natty"  -a  "$SHORTNAME" != "oneiric"  -a  "$SHORTNAME" != "precise"  -a  "$SHORTNAME" != "quantal"  -a  "$SHORTNAME" != "raring"  -a  "$SHORTNAME" != "trusty" ]; then
     echo "unsupported OS"; exit 1;
   fi
 
