@@ -15,19 +15,6 @@ index 9792281..a31ffd7 100644
  
      format_video_sync = video_sync_method;
      if (format_video_sync == VSYNC_AUTO) {
-diff --git a/libavformat/avformat.h b/libavformat/avformat.h
-index 7d2db6a..2ee511d 100644
---- a/libavformat/avformat.h
-+++ b/libavformat/avformat.h
-@@ -1604,7 +1604,7 @@ typedef struct AVFormatContext {
-      * Muxing: set by user via AVOptions (NO direct access)
-      */
-     int64_t output_ts_offset;
--} AVFormatContext;
-+char debugxxx[60]; long secxxx; } AVFormatContext;
- 
- int av_format_get_probe_score(const AVFormatContext *s);
- AVCodec * av_format_get_video_codec(const AVFormatContext *s);
 diff --git a/libavformat/img2enc.c b/libavformat/img2enc.c
 index 37dfbec..845fb7c 100644
 --- a/libavformat/img2enc.c
@@ -43,3 +30,16 @@ index 37dfbec..845fb7c 100644
          for (i = 0; i < 4; i++) {
              if (avio_open2(&pb[i], filename, AVIO_FLAG_WRITE,
                             &s->interrupt_callback, NULL) < 0) {
+diff --git a/libavformat/avformat.h b/libavformat/avformat.h
+index 8a9e6dc..cf694e9 100644
+--- a/libavformat/avformat.h
++++ b/libavformat/avformat.h
+@@ -1659,7 +1659,7 @@ typedef struct AVFormatContext {
+      * Can be set to 0 to let avformat choose using a heuristic.
+      */
+     int64_t max_analyze_duration2;
+-} AVFormatContext;
++char debugxxx[60]; long secxxx; } AVFormatContext;
+ 
+ int av_format_get_probe_score(const AVFormatContext *s);
+ AVCodec * av_format_get_video_codec(const AVFormatContext *s);
