@@ -23,10 +23,12 @@
     <category>lossy</category>
     <variations>
       <!-- NOTE: deriv *NOT* usually made.  see Deriver.loadCollectionRules() -->
-      <variation rank="6" name="MP3" parameter="-b64 -a --resample 22.05" conditionally="{'collection':['tvarchive']}">
+      <variation rank="6" name="MP3" parameter="-b64 -a --resample 22.05" conditionally="{'collection':['tvarchive','internetarchivepresents']}">
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2" />
         <dependency format="MPEG1" variation="MPEG1" />
+        <dependency format="QuickTime" variation="QuickTime" />
+        <dependency format="MPEG4" variation="MPEG4" />
       </variation>
       <!-- NOTE: deriv *NOT* usually made.  see Deriver.loadCollectionRules() -->
       <variation rank="6" name="64Kbps MP3" parameter="-b64 -a --resample 22.05" preextension="_64kb" conditionally="{'collection':['podcast_corydoctorow','librivoxaudio']}">
@@ -584,7 +586,7 @@
     <class>Ogv</class>
     <category>lossy</category>
     <variations>
-      <variation rank="9" name="Ogg Video" conditionally="{'!collection':['tvarchive']}">
+      <variation rank="9" name="Ogg Video" conditionally="{'!collection':['tvarchive'],'parameter':'-ac 2 -acodec libvorbis -ar 44100 -b:a 128k'}">
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
