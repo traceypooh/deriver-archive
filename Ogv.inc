@@ -3,11 +3,8 @@ require_once('Module.inc');
 
 class Ogv extends Module
 {
-  const ACODER = '-acodec libvorbis -ac 2 -b:a 128k -ar 44100';
-
-
   public function version()
-  { return '$Revision: 57628 $ $Date: 2014-02-21 00:47:14 +0000 (Fri, 21 Feb 2014) $'; }
+  { return '$Revision: 59932 $ $Date: 2014-06-08 00:40:43 +0000 (Sun, 08 Jun 2014) $'; }
   
 
 
@@ -22,7 +19,7 @@ class Ogv extends Module
     $ffmpeg     = Video::ffmpegV0();
 
     $tmp = 'tmp.ogv';
-    $params="400x300";
+    $params="400x300 {$this->parameter}";
 
     
 
@@ -34,9 +31,7 @@ class Ogv extends Module
     $cmd = "$ffmpeg -y -i ".Util::esc($src)." -q:vscale 3 -b:v 512k -vcodec libtheora -pix_fmt yuv420p";
 
     list($tries, $acoder) =
-      Video::ffmpeg_params($cmd, $identify, $this->sourceFormat,
-                           self::ACODER,
-                           $params, $this->is_tvarchive());
+      Video::ffmpeg_params($cmd, $identify, $this->sourceFormat, '', $params, $this->is_tvarchive());
     $cmd=$tries[0];
 
     // metadata inserter

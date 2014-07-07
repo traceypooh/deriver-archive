@@ -1972,10 +1972,29 @@ class Video
         $vid = str_replace('.',':',strtok($identify['vstreams'],','));
         $aid = str_replace('.',':',strtok($identify['astreams'],','));
 
-        // The 2nd specifier (after comma) is for "sync_file_id"
-        // and *both* should indeed be using the *vid*
-        $map = (' -map '.$vid.($traction_control ? ",$vid" : "").
-                ' -map '.$aid.($traction_control ? ",$vid" : ""));
+        $map = ' -map '.$vid.($traction_control ? ",$vid" : "");
+
+        // We've repeatedly had rare DV original files will questionable
+        // audio layout -- where it is 2 or 4 mono channels, appearing in
+        // the A/V containter as the same number of audio streams, where
+        // sometimes the 1st mono stream is "blank", which gets picked, and
+        // thus derivatives have no audio output!
+        // If it appears it is this case, "downmix" all input audio channels
+        // to single mono channel output and be done with this little box of horror!
+        //   eg: /details/XFR_2013-07-26_2A_01
+        $monosDV = (@$identify['vc']=='dvvideo'  &&  
+                    ((@$identify['audio_nchannels']==2  &&  count(@explode(',',@$identify['astreams']))==2)  ||
+                     (@$identify['audio_nchannels']==4  &&  count(@explode(',',@$identify['astreams']))==4)));
+        if ($monosDV){
+          echo "\nWARNING! DV MONO 2/4 CHANNELS DETECTED!  DOWNMIX ALL TO MONO!\n\n";
+          $map .= ' -filter_complex "[0]amerge[aout]" -map "[aout]" -ac 1 ';
+        }
+        else{
+          // The 2nd specifier (after comma) is for "sync_file_id"
+          // and *both* should indeed be using the *vid*
+          $map .= ' -map '.$aid.($traction_control ? ",$vid" : "");
+        }
+      
         $acoder = "$map $acoder";
       }
     }
