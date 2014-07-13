@@ -776,6 +776,7 @@ class Video
         }
       }
 
+        
       if ($vline !== ''){
         if (preg_match('/^(Stream .*? Video: .*?, (\d+)x(\d+)(, | \[)(.*))/', $vline, $mat)){
           $width = $mat[2];
@@ -858,6 +859,14 @@ class Video
         // Audio: mp1 ([6][0][0][0] / 0x0006), 48000 Hz, stereo, s16, 416 kb/s
         $aline = preg_replace('= \(\[\d+\]\[\d+\]\[\d+\]\[\d+\] / 0x\d+\)=','',
                               $aline);
+
+        if (count($alines[0])==3  &&  $tvarchive){
+          // throw out likely misdetected MP3 stereo lines (used to be wackier (below) until trusty...)
+          if (preg_match('=: Audio: mp3, .*?, stereo, =', $aline))
+            continue;
+        }
+        
+        
         if (count($alines[0])==3  &&
             // throw out suspected-decoded-wrong audio streams like:
             // Audio: mp1, 48000 Hz, stereo, s16, 416 kb/s
@@ -1138,49 +1147,41 @@ class Video
     // has 2 videos which confused ffprobe mar2012, but this fps line
     // *is* present in the Video: line.  if any video is basically claiming
     // that in the identify line, we go with that!
-    if (preg_match('/, 29.97 fps,/', $vline))
+    if (preg_match('/, 29.97 (fps|tbr),/', $vline))//eg: /details/Rage2012_201402
       return 29.97;
-    if (preg_match('/, 30 fps,/', $vline)) //eg: /details/canon-hf-10-test-2008_09_23a
+    if (preg_match('/, 30 (fps|tbr),/', $vline)) //eg: /details/canon-hf-10-test-2008_09_23a
       return 30;
 
     $fps=-666;
     if (preg_match('/, ([\d\.]+) fps,/', $vline, $mat))
       $fps = $mat[1]; // fallback -- we can usually be more accurate than this!!
     
-
-    
     $ffprobe = configGetPetaboxPath('bin-ffprobe');
     //error_log($ffprobe);
-    
 
-    $streams = Util::cmd("$ffprobe -show_streams ".Util::esc($src)." 2>/dev/null  | tr '\n' ';' | perl -pe 's=\[/STREAM\]=\n=g; s=\[STREAM\]=\n\[STREAM\]=g'|fgrep '[STREAM]'|cat", 'ARRAY');
+    $cmd = "$ffprobe -print_format json -show_streams ".Util::esc($src)."  2>/dev/null";
+    $str = Util::cmd($cmd);
+    $streams = json_decode($str,1);
+    if (!$streams){
+      // UGH!!
+      $str = mb_convert_encoding($str, 'UTF-8', 'ISO-8891-1,UTF-8');
+      $streams = json_decode($str,1);
+    }
+    //printr($streams);
 
     $astreams = $vstreams = $goods = array();
-    foreach ($streams as $stream)
-    {
-      $kvs = explode(';', $stream);
-      $ary = array();
-      foreach ($kvs as $kv)
-      {
-        if (strpos($kv,'=')===FALSE)
-          continue;
-        list($key,$val) = explode('=', $kv);
-        $ary[$key]=$val;
-      }
-
-      if ($ary['codec_type']=='video')
-      {
+    foreach ($streams['streams'] as $ary){
+      if ($ary['codec_type']=='video'){
         // If not really parseable stream, we'll effectively note that for later..
         if ($ary['width']!=='0')
           $goods[] = $ary; 
 
         $vstreams[] = $ary;
       }
-      
+
       if ($ary['codec_type']=='audio')
         $astreams[] = $ary;
     }
-
 
     if (count($vstreams) > 1  &&  count($goods) > 0  &&
         count($vstreams) > count($goods))
@@ -2184,9 +2185,155 @@ class Video
 
     if (!$all)
       return;
+
+    // do some *very* basic testing of ffprobe (of all the current ways as of July2014 we use it)
+    $mpg = "/home/tracey/public_html/_/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric.mpg";
+    foreach (array("/home/tracey/petabox", "/petabox") as $pethome){
+      $ffprobe = "$pethome/" . configGetValue("bin-ffprobe");
+
+      $head20 =array('-print_format compact -select_streams v -show_packets'=>1);
+      foreach (array('-print_format compact -select_streams v -show_packets' =>
+'packet|codec_type=video|stream_index=0|pts=8286398944|pts_time=92071.099378|dts=8286389935|dts_time=92070.999278|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=45044|pos=2820|flags=K
+packet|codec_type=video|stream_index=0|pts=8286392938|pts_time=92071.032644|dts=8286392938|dts_time=92071.032644|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=1415|pos=52452|flags=_
+packet|codec_type=video|stream_index=0|pts=8286395941|pts_time=92071.066011|dts=8286395941|dts_time=92071.066011|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=725|pos=53956|flags=_
+packet|codec_type=video|stream_index=0|pts=8286407953|pts_time=92071.199478|dts=8286398944|dts_time=92071.099378|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=7303|pos=55084|flags=_
+packet|codec_type=video|stream_index=0|pts=8286401947|pts_time=92071.132744|dts=8286401947|dts_time=92071.132744|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=967|pos=62604|flags=_
+packet|codec_type=video|stream_index=0|pts=8286404950|pts_time=92071.166111|dts=8286404950|dts_time=92071.166111|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=1614|pos=63920|flags=_
+packet|codec_type=video|stream_index=0|pts=8286416962|pts_time=92071.299578|dts=8286407953|dts_time=92071.199478|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=9822|pos=66928|flags=_
+packet|codec_type=video|stream_index=0|pts=8286410956|pts_time=92071.232844|dts=8286410956|dts_time=92071.232844|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=1172|pos=77644|flags=_
+packet|codec_type=video|stream_index=0|pts=8286413959|pts_time=92071.266211|dts=8286413959|dts_time=92071.266211|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=2725|pos=80464|flags=_
+packet|codec_type=video|stream_index=0|pts=8286425971|pts_time=92071.399678|dts=8286416962|dts_time=92071.299578|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=17365|pos=83472|flags=_
+packet|codec_type=video|stream_index=0|pts=8286419965|pts_time=92071.332944|dts=8286419965|dts_time=92071.332944|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=4783|pos=102084|flags=_
+packet|codec_type=video|stream_index=0|pts=8286422968|pts_time=92071.366311|dts=8286422968|dts_time=92071.366311|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=4405|pos=107912|flags=_
+packet|codec_type=video|stream_index=0|pts=8286434980|pts_time=92071.499778|dts=8286425971|dts_time=92071.399678|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=20582|pos=114116|flags=_
+packet|codec_type=video|stream_index=0|pts=8286428974|pts_time=92071.433044|dts=8286428974|dts_time=92071.433044|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=5831|pos=135548|flags=_
+packet|codec_type=video|stream_index=0|pts=8286431977|pts_time=92071.466411|dts=8286431977|dts_time=92071.466411|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=7829|pos=143632|flags=_
+packet|codec_type=video|stream_index=0|pts=8286443989|pts_time=92071.599878|dts=8286434980|dts_time=92071.499778|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=57108|pos=151904|flags=K
+packet|codec_type=video|stream_index=0|pts=8286437983|pts_time=92071.533144|dts=8286437983|dts_time=92071.533144|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=7318|pos=211688|flags=_
+packet|codec_type=video|stream_index=0|pts=8286440986|pts_time=92071.566511|dts=8286440986|dts_time=92071.566511|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=7141|pos=219396|flags=_
+packet|codec_type=video|stream_index=0|pts=8286452998|pts_time=92071.699978|dts=8286443989|dts_time=92071.599878|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=22151|pos=228044|flags=_
+packet|codec_type=video|stream_index=0|pts=8286446992|pts_time=92071.633244|dts=8286446992|dts_time=92071.633244|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=7214|pos=254928|flags=_',
+                     
+                     
+                     '-print_format json -show_streams -select_streams v' =>
+                     array('{"streams": [{"index": 0,"codec_name": "mpeg2video","codec_long_name": "MPEG-2 video","profile": "Main","codec_type": "video","codec_time_base": "1001/60000","codec_tag_string": "[2][0][0][0]","codec_tag": "0x0002","width": 528,"height": 480,"has_b_frames": 1,"sample_aspect_ratio": "40:33","display_aspect_ratio": "4:3","pix_fmt": "yuv420p","level": 8,"timecode": "10:40:00;12","id": "0x880","r_frame_rate": "30000/1001","avg_frame_rate": "30000/1001","time_base": "1/90000","start_pts": 8286398944,"start_time": "92071.099378","duration_ts": 162162,"duration": "1.801800","disposition": {"default": 0,"dub": 0,"original": 0,"comment": 0,"lyrics": 0,"karaoke": 0,"forced": 0,"hearing_impaired": 0,"visual_impaired": 0,"clean_effects": 0,"attached_pic": 0}}]}',
+                           '{ "streams": [ { "index": 0, "codec_name": "mpeg2video", "codec_long_name": "MPEG-2 video", "profile": "Main", "codec_type": "video", "codec_time_base": "1001/60000", "codec_tag_string": "[2][0][0][0]", "codec_tag": "0x0002", "width": 528, "height": 480, "has_b_frames": 1, "sample_aspect_ratio": "40:33", "display_aspect_ratio": "4:3", "pix_fmt": "yuv420p", "level": 8, "color_range": "tv", "timecode": "10:40:00;12", "id": "0x880", "r_frame_rate": "30000/1001", "avg_frame_rate": "30000/1001", "time_base": "1/90000", "start_pts": 8286398944, "start_time": "92071.099378", "duration_ts": 165165, "duration": "1.835167", "max_bit_rate": "15000000", "disposition": { "default": 0, "dub": 0, "original": 0, "comment": 0, "lyrics": 0, "karaoke": 0, "forced": 0, "hearing_impaired": 0, "visual_impaired": 0, "clean_effects": 0, "attached_pic": 0 } } ] }'),
+                     
+
+                     '-print_format compact -show_format -show_entries stream=codec_type,id' =>
+                     array(
+'stream|codec_type=video|id=0x880
+stream|codec_type=audio|id=0x881
+format|filename=/home/tracey/public_html/_/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric.mpg|nb_streams=2|format_name=mpegts|format_long_name=MPEG-TS (MPEG-2 Transport Stream)|start_time=92070.357978|duration=2.543200|size=690148|bit_rate=2170959',//quantal
+'program|stream|codec_type=video|id=0x880
+stream|codec_type=audio|id=0x881
+
+stream|codec_type=video|id=0x880
+stream|codec_type=audio|id=0x881
+format|filename=/home/tracey/public_html/_/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric.mpg|nb_streams=2|nb_programs=1|format_name=mpegts|format_long_name=MPEG-TS (MPEG-2 Transport Stream)|start_time=92070.357978|duration=2.576567|size=690148|bit_rate=2142845|probe_score=100',//trusty
+                       ),
+
+                      
+                     '-print_format compact -show_frames -select_streams v -show_entries frame=pict_type,pkt_pos' =>
+'frame|pkt_pos=2820|pict_type=I
+frame|pkt_pos=62604|pict_type=B
+frame|pkt_pos=63920|pict_type=B
+frame|pkt_pos=55084|pict_type=P
+frame|pkt_pos=77644|pict_type=B
+frame|pkt_pos=80464|pict_type=B
+frame|pkt_pos=66928|pict_type=P
+frame|pkt_pos=102084|pict_type=B
+frame|pkt_pos=107912|pict_type=B
+frame|pkt_pos=83472|pict_type=P
+frame|pkt_pos=135548|pict_type=B
+frame|pkt_pos=143632|pict_type=B
+frame|pkt_pos=114116|pict_type=P
+frame|pkt_pos=211688|pict_type=B
+frame|pkt_pos=219396|pict_type=B
+frame|pkt_pos=151904|pict_type=I
+frame|pkt_pos=254928|pict_type=B
+frame|pkt_pos=262636|pict_type=B
+frame|pkt_pos=228044|pict_type=P
+frame|pkt_pos=288016|pict_type=B
+frame|pkt_pos=293844|pict_type=B
+frame|pkt_pos=269592|pict_type=P
+frame|pkt_pos=319412|pict_type=B
+frame|pkt_pos=323924|pict_type=B
+frame|pkt_pos=299860|pict_type=P
+frame|pkt_pos=343476|pict_type=B
+frame|pkt_pos=347612|pict_type=B
+frame|pkt_pos=328248|pict_type=P
+frame|pkt_pos=414540|pict_type=B
+frame|pkt_pos=417548|pict_type=B
+frame|pkt_pos=350996|pict_type=I
+frame|pkt_pos=432024|pict_type=B
+frame|pkt_pos=434656|pict_type=B
+frame|pkt_pos=420368|pict_type=P
+frame|pkt_pos=449508|pict_type=B
+frame|pkt_pos=451012|pict_type=B
+frame|pkt_pos=436912|pict_type=P
+frame|pkt_pos=465300|pict_type=B
+frame|pkt_pos=468120|pict_type=B
+frame|pkt_pos=452516|pict_type=P
+frame|pkt_pos=481280|pict_type=B
+frame|pkt_pos=484100|pict_type=B
+frame|pkt_pos=470940|pict_type=P
+frame|pkt_pos=537116|pict_type=B
+frame|pkt_pos=552344|pict_type=B
+frame|pkt_pos=485604|pict_type=I
+frame|pkt_pos=585808|pict_type=B
+frame|pkt_pos=597464|pict_type=B
+frame|pkt_pos=562872|pict_type=P
+frame|pkt_pos=640516|pict_type=B
+frame|pkt_pos=648788|pict_type=B
+frame|pkt_pos=612316|pict_type=P
+frame|pkt_pos=658752|pict_type=P',
+
+
+                     '-print_format json -show_streams' =>
+                     array('{"streams": [{"index": 0,"codec_name": "mpeg2video","codec_long_name": "MPEG-2 video","profile": "Main","codec_type": "video","codec_time_base": "1001/60000","codec_tag_string": "[2][0][0][0]","codec_tag": "0x0002","width": 528,"height": 480,"has_b_frames": 1,"sample_aspect_ratio": "40:33","display_aspect_ratio": "4:3","pix_fmt": "yuv420p","level": 8,"timecode": "10:40:00;12","id": "0x880","r_frame_rate": "30000/1001","avg_frame_rate": "30000/1001","time_base": "1/90000","start_pts": 8286398944,"start_time": "92071.099378","duration_ts": 162162,"duration": "1.801800","disposition": {"default": 0,"dub": 0,"original": 0,"comment": 0,"lyrics": 0,"karaoke": 0,"forced": 0,"hearing_impaired": 0,"visual_impaired": 0,"clean_effects": 0,"attached_pic": 0}},{"index": 1,"codec_name": "ac3","codec_long_name": "ATSC A/52A (AC-3)","codec_type": "audio","codec_time_base": "1/48000","codec_tag_string": "[129][0][0][0]","codec_tag": "0x0081","sample_fmt": "fltp","sample_rate": "48000","channels": 2,"bits_per_sample": 0,"dmix_mode": "-1","ltrt_cmixlev": "-1.000000","ltrt_surmixlev": "-1.000000","loro_cmixlev": "-1.000000","loro_surmixlev": "-1.000000","id": "0x881","r_frame_rate": "0/0","avg_frame_rate": "0/0","time_base": "1/90000","start_pts": 8286332218,"start_time": "92070.357978","duration_ts": 158400,"duration": "1.760000","bit_rate": "192000","disposition": {"default": 0,"dub": 0,"original": 0,"comment": 0,"lyrics": 0,"karaoke": 0,"forced": 0,"hearing_impaired": 0,"visual_impaired": 0,"clean_effects": 0,"attached_pic": 0}}]}',//quantal
+                           '{ "streams": [ { "index": 0, "codec_name": "mpeg2video", "codec_long_name": "MPEG-2 video", "profile": "Main", "codec_type": "video", "codec_time_base": "1001/60000", "codec_tag_string": "[2][0][0][0]", "codec_tag": "0x0002", "width": 528, "height": 480, "has_b_frames": 1, "sample_aspect_ratio": "40:33", "display_aspect_ratio": "4:3", "pix_fmt": "yuv420p", "level": 8, "color_range": "tv", "timecode": "10:40:00;12", "id": "0x880", "r_frame_rate": "30000/1001", "avg_frame_rate": "30000/1001", "time_base": "1/90000", "start_pts": 8286398944, "start_time": "92071.099378", "duration_ts": 165165, "duration": "1.835167", "max_bit_rate": "15000000", "disposition": { "default": 0, "dub": 0, "original": 0, "comment": 0, "lyrics": 0, "karaoke": 0, "forced": 0, "hearing_impaired": 0, "visual_impaired": 0, "clean_effects": 0, "attached_pic": 0 } }, { "index": 1, "codec_name": "ac3", "codec_long_name": "ATSC A/52A (AC-3)", "codec_type": "audio", "codec_time_base": "1/48000", "codec_tag_string": "[129][0][0][0]", "codec_tag": "0x0081", "sample_fmt": "fltp", "sample_rate": "48000", "channels": 2, "channel_layout": "stereo", "bits_per_sample": 0, "dmix_mode": "-1", "ltrt_cmixlev": "-1.000000", "ltrt_surmixlev": "-1.000000", "loro_cmixlev": "-1.000000", "loro_surmixlev": "-1.000000", "id": "0x881", "r_frame_rate": "0/0", "avg_frame_rate": "0/0", "time_base": "1/90000", "start_pts": 8286332218, "start_time": "92070.357978", "duration_ts": 161280, "duration": "1.792000", "bit_rate": "192000", "disposition": { "default": 0, "dub": 0, "original": 0, "comment": 0, "lyrics": 0, "karaoke": 0, "forced": 0, "hearing_impaired": 0, "visual_impaired": 0, "clean_effects": 0, "attached_pic": 0 } } ] }',//trusty
+                       )
+                     
+                 ) as $args => $vals){
+        if (!is_array($vals))
+          $vals=array($vals);
+        $pass=false;
+        foreach ($vals as $val){
+          $out=Util::cmd("$ffprobe $args $mpg 2>/dev/null ".($head20[$args]?' |head -20':''), "PRINT");
+          $orig=$out;
+          if ($out==$val){
+            $pass=true;
+            break;
+          }
+          else{
+            if (substr(ltrim($val),0,1)=='{'){
+              $val=json_decode($val,1);
+              $out=json_decode($out,1);
+              if ($out==$val){
+                error_log("JSON match!");
+                $pass=true;
+                break;
+              }
+            }
+          }
+        }
+        if (!$pass){
+          file_put_contents("/tmp/video-regress-shouldBe", print_r($val,1));
+          file_put_contents("/tmp/video-regress-actually", print_r($out,1));
+          $cmd="colordiff -U30 /tmp/video-regress-shouldBe  /tmp/video-regress-actually";
+          error_log("NOT EQUAL!");
+          echo $orig;
+          error_log($cmd);
+          passthru($cmd);
+          assert(false);
+        }
+      }
+    }
     
 
     // now test "fps" frame rates
+    // (NOTE: some of these values are an array of acceptable values where values can bounce a bit between ffmpeg versions over time)
     error_log("Checking frame rates");
     chdir("/home/tracey/public_html/_/") || fatal("no test vid dir!");
     foreach (array(
@@ -2194,7 +2341,7 @@ class Video
     '007333/007333.asf' => 14.99,
     '06ConclusionDaAnterir/05ReflexionPonenciaJoseMurilo2.mp4' => 29.97,
     '06ConclusionDaAnterir/06ConclusionesDaAnterior..mp4' => 29.97,
-    '070125_chantier/070125prisesext1fence.mov' => 10.16,//29.97
+    '070125_chantier/070125prisesext1fence.mov' => array(10.16,29.97),
     '170109perLaPalestina/170109corteopalestina.mov' => 25,
     'AAC-NON-MONOTONE/Xacti1010_trim2_test_2010_02_04.mp4' => 29.97,
     'AlcTestClip/AlcTestClip.mov' => 29.97,
@@ -2231,7 +2378,7 @@ class Video
     'HoChak/8tvHoChat.mov' => 15,
     'Holymatrimony/holymatrimony.wmv' => 23,
     'IbisBlancs/ibisblancs.wmv' => 30,
-    'IntroToSimedit/Screencap.mov' => 20,//10,
+    'IntroToSimedit/Screencap.mov' => array(20,10),
     'Jessies_Sunrise/Jessies_Sunrise.mpg' => 29.97,
     'KOFY_20110607_093000_Paid_Programming/KOFY_20110607_093000_Paid_Programming.mpg' => 29.97,
     'KQED_20100820_150000_Curious_George/KQED_20100820_150000_Curious_George.mpg' => 29.97,
@@ -2245,7 +2392,7 @@ class Video
     'No_Local_Stops/No_Local_Stops.mov' => 8,
     'OvercomePt.3-OvercomeTheWorldWithLove_787/Episode15-Overcome-Pt.3-overcomeTheWorldWithLove.m4a' => 6,
     'PhotosAndAudioForPrintDisabledLaunch/LogOfACowboy-Title.mp3' => '',
-    'Podcast7_492/Podcast7.m4a' => 3,//6,
+    'Podcast7_492/Podcast7.m4a' => array(3/*trusty*/,6/*quantal*/),
     'Podcast7_492/Podcast7.mp3' => '',
     'PorYPara/GIRIS.mov' => 25,
     'SamKrutzWinterWonderlandFun/WinterWonderlandFun.mov' => 29.97,
@@ -2258,7 +2405,7 @@ class Video
     'TRL-2009/TRL-2009.mp4' => 29.97,
     'TestDvRip/DV_Test.mov' => 29.97,
     'TestVideoFromSanyoCamcorder/SANY0001.MP4' => 29.97,
-    'The_Phantom_Empire_1935/The_Phantom_Empire_1935.mp4' => 59.94,//24.36,
+    'The_Phantom_Empire_1935/The_Phantom_Empire_1935.mp4' => array(24.36,59.94),
     'TimBrunsdenMothMan/moth_man.m4v' => 15,
     'VideoEditingWithChris-001/VideoEditingWithChris-001.flv' => 30,
     'WUSA_20091225_000000_9News_Now_Tonight/WUSA_20091225_000000_9News_Now_Tonight.mpg' => 29.97,
@@ -2276,7 +2423,7 @@ class Video
     'bikeDiablo/bikeDiablo.avi' => 12,
     'bikeDiabloVideo/bikeDiabloVideo.avi' => 30,
     'camels/camels.avi' => 20,
-    'canon-hf-10-test-2008_09_23a/canon-hf-10-test-2008_09_23a.mts' => 29.97,//30,
+    'canon-hf-10-test-2008_09_23a/canon-hf-10-test-2008_09_23a.mts' => array(29.97,30),
     'coffeehouse-Freedom-Dance/Freedom-Dance.mov' => 14.99,
     'commute/commute.avi' => 10,
     'demoreel/rj.mpg' => 29.97,
@@ -2332,8 +2479,11 @@ class Video
                ) as $fi => $fps)
     {
       $i = Video::identify($fi, false, 2000, true);
-      error_log("$fi should be:   $fps   is:   {$i['fps']}");
-      assert($i['fps'] == $fps);
+      error_log("$fi should be:   ".print_r($fps,1)."   is:   {$i['fps']}");
+      if (!is_array($fps))
+        $fps = array($fps);
+
+      assert(in_array($i['fps'],$fps));
     }
     echo " ALL GOOD!\n\n\n";
     
@@ -2385,25 +2535,31 @@ class Video
         '{"ac":"mp3","ar":"44100","astreams":"0:1","audio":"true","audio_nchannels":2,"fps":"10","height":"480","length":115.59,"pix":"yuvj420p","vc":"mjpeg","vstreams":"0:0","width":"640"}',
         
         'WUSA_20110519_223000_CBS_Evening_News_With_Katie_Couric' =>
-        '{"DAR":"4:3","PAR":"40:33","ac":"ac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"29.97","height":"480","length":1800.33,"pix":"yuv420p","program":1,"vc":"mpeg2video","vstreams":"0:1","width":"528"}',
+        array('{"DAR":"4:3","PAR":"40:33","ac":"ac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"29.97","height":"480","length":1800.33,"pix":"yuv420p","program":1,"vc":"mpeg2video","vstreams":"0:1","width":"528"}',//quantal
+              '{"DAR":"4:3","PAR":"40:33","ac":"ac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"29.97","height":"480","length":1800.4, "pix":"yuv420p","program":1,"vc":"mpeg2video","vstreams":"0:1","width":"528"}',//trusty
+          ),
 
         'WUSA_20091019_160000_9News_Now_at_Noon' =>
-        '{"DAR":"4:3","PAR":"40:33","ac":"ac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"29.97","height":"480","length":1800.73,"pix":"yuv420p","program":1,"vc":"mpeg2video","vstreams":"0:1","width":"528"}',
+        array('{"DAR":"4:3","PAR":"40:33","ac":"ac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"29.97","height":"480","length":1800.73,"pix":"yuv420p","program":1,"vc":"mpeg2video","vstreams":"0:1","width":"528"}',//quantal
+              '{"DAR":"4:3","PAR":"40:33","ac":"ac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"29.97","height":"480","length":1800.8, "pix":"yuv420p","program":1,"vc":"mpeg2video","vstreams":"0:1","width":"528"}'),//trusty
 
         'WUSA_20091118_140000_9News_Now_at_9am' =>
-        '{"DAR":"4:3","PAR":"40:33","ac":"eac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"59.92","height":"480","length":73289.89,"pix":"yuv420p","program":1,"vc":"mpeg2video","vstreams":"0:1","width":"528"}',
+        array('{"DAR":"4:3","PAR":"40:33","ac":"eac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":3,"fps":"59.92","height":"480","length":1734.1,"pix":"yuv420p","program":1,"vc":"mpeg1video","vstreams":"0:1","width":"528"}',//quantal
+              '{"DAR":"4:3","PAR":"40:33","ac":"eac3","ar":"48000","astreams":"0:2,0:3","audio":"true","audio_nchannels":4,"fps":"59.92","height":"480","length":1800.77,"pix":"yuv420p","program":1,"vc":"mpeg2video","vstreams":"0:1","width":"528"}',//trusty
+          ),
+
 
         'Podcast7_492/Podcast7.m4a' =>
-        '{"DAR":"1:2","PAR":"72:72","ac":"aac","ar":"32000","astreams":"0:2","audio":"true","audio_nchannels":2,"fps":3,"height":"320","length":3783.07,"pix":"yuvj444p","vc":"mjpeg","vstreams":"0:3","vsync":"1","width":"160"}',
+        array('{"DAR":"1:2","PAR":"72:72","ac":"aac","ar":"32000","astreams":"0:2","audio":"true","audio_nchannels":2,"fps":6,"height":"320","length":3783.07,"pix":"yuvj444p","vc":"mjpeg","vstreams":"0:3","vsync":"1","width":"160"}',//quantal
+              '{"DAR":"1:2","PAR":"72:72","ac":"aac","ar":"32000","astreams":"0:2","audio":"true","audio_nchannels":2,"fps":3,"height":"320","length":3783.07,"pix":"yuvj444p","vc":"mjpeg","vstreams":"0:3","vsync":"1","width":"160"}',//trusty
+          ),
         
-        ) as $idish => $json)
+        ) as $idish => $jsons)
     {
-      $ary = json_decode($json,1);
-      foreach ($ary as $k=>&$v){
-        if ($v==="")
-          unset($ary[$k]);
-      }
-      
+      if (!is_array($jsons))
+        $jsons = array($jsons);
+
+        
       if (strncmp($idish,'/home/',6)===0){
         $id = '';
         $fi = ltrim($idish,'/');
@@ -2413,37 +2569,59 @@ class Video
         list($id,$fi) = explode('/',$idish,2);
         if (!$fi)
           $fi = "$id.mpg"; // TV
-      
+        
         $r = $lo->locateUDP($id,1);
         $r = $r[0];
       }
       
+
       foreach (array("/home/tracey/petabox", "/petabox") as $pethome){
         error_log("\n================ CHECKING $id/$fi ($pethome) ================================================================");
-
-        $str = Util::cmd("ssh root@{$r[0]} \"export PETABOX_HOME=$pethome FI='{$r[1]}/{$fi}'; php -r '@spl_autoload(ia); echo json_encode(Video::identify(@getenv(FI)));' \"  |tail -n1", "PRINT");
-        $ffi = json_decode($str,1);
-        ksort($ffi);
-
-        unset($ffi['ffmpeg-version']);
-        unset($ffi['bytes']);
-        if ($ary != $ffi){
+        
+      
+        $matched = false;
+        foreach ($jsons as $json){
+          
+          $ary = json_decode($json,1);
+          foreach ($ary as $k=>&$v){
+            if ($v==="")
+              unset($ary[$k]);
+          }
+          
+          $str = Util::cmd("ssh root@{$r[0]} \"export PETABOX_HOME=$pethome FI='{$r[1]}/{$fi}'; php -r '@spl_autoload(ia); echo json_encode(Video::identify(@getenv(FI),0,2000,0,TV::is_tv(@getenv(FI))));' \"  |tail -n1", "PRINT");
+          $ffi = json_decode($str,1);
+          ksort($ffi);
+          
+          
+          unset($ffi['ffmpeg-version']);
+          unset($ffi['bytes']);
+          if ($ary == $ffi){
+            $matched = true;
+            break;
+          }
+          
           // try rounding duration to nearest *tenth* (not *hundredth*) of a second and retry...
           $ffi['length'] = round($ffi['length'],1);
           $ary['length'] = round($ary['length'],1);
-          if ($ary != $ffi){
-            error_log("NOT EQUAL!");
-            error_log(json_encode($ffi));
-            file_put_contents("/tmp/video-regress-shouldBe", print_r($ary,1));
-            file_put_contents("/tmp/video-regress-actually", print_r($ffi,1));
-            $cmd="colordiff -U30 /tmp/video-regress-shouldBe  /tmp/video-regress-actually";
-            error_log($cmd);
-            passthru($cmd);
-            assert(false);
+          if ($ary == $ffi){
+            $matched = true;
+            break;
           }
-        }
+          
+
+          error_log("NOT EQUAL!");
+          error_log(json_encode($ffi));
+          file_put_contents("/tmp/video-regress-shouldBe", print_r($ary,1));
+          file_put_contents("/tmp/video-regress-actually", print_r($ffi,1));
+          $cmd="colordiff -U30 /tmp/video-regress-shouldBe  /tmp/video-regress-actually";
+          error_log($cmd);
+          passthru($cmd);
+        }//endforeach
+
+        if (!$matched)
+          assert(false);
       }
     }
-    error_log("SUCCESS!");  
+    error_log("\n\n\nSUCCESS!\n\n\n");  
   }
 }
