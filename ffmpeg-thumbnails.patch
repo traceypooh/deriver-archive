@@ -31,13 +31,13 @@ index 37dfbec..845fb7c 100644
              if (avio_open2(&pb[i], filename, AVIO_FLAG_WRITE,
                             &s->interrupt_callback, NULL) < 0) {
 diff --git a/libavformat/avformat.h b/libavformat/avformat.h
-index 8a9e6dc..cf694e9 100644
+index f21a1d6..0fadcc5 100644
 --- a/libavformat/avformat.h
 +++ b/libavformat/avformat.h
-@@ -1659,7 +1659,7 @@ typedef struct AVFormatContext {
-      * Can be set to 0 to let avformat choose using a heuristic.
+@@ -1739,7 +1739,7 @@ typedef struct AVFormatContext {
+      * - demuxing: Set by user.
       */
-     int64_t max_analyze_duration2;
+     uint8_t *dump_separator;
 -} AVFormatContext;
 +char debugxxx[60]; long secxxx; } AVFormatContext;
  
