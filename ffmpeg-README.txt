@@ -26,11 +26,11 @@ MYCC2="";
 FFXTRA="";
 if [ $(uname -s) == 'Darwin' ]; then
   FFXTRA="
---prefix=/opt/local
---extra-cflags=-I/opt/local/include
---extra-cflags=-I/opt/local/include/SDL
+--prefix=/usr/local
+--extra-cflags=-I/usr/local/include
+--extra-cflags=-I/usr/local/include/SDL
 
---extra-ldflags=-L/opt/local/lib
+--extra-ldflags=-L/usr/local/lib
 ";
 
   DIR=/opt/local/x;
@@ -43,15 +43,14 @@ if [ $(uname -s) == 'Darwin' ]; then
  
   echo "step 1: install  macports -- see http://www.macports.org/install.php"
 
-  # Some generally useful port commands (in "terminal" app):
-  #   sudo port -v selfupdate
-  #   sudo port upgrade outdated
-  #   port installed
-  #   port search <portname>
-  #   sudo port install <portname>
+  # Some generally useful brew commands (in "terminal" app):
+  #   brew doctor
+  #   brew list
+  #   brew search <pkg name>
+  #   brew install <pkg name>
 
-  sudo port install  git-core lame libtheora libvorbis openjpeg faac bzip2 freetype yasm opencore-amr xvid openjpeg openjpeg15 libvpx a52dec pkgconfig;
-  sudo port install  libsdl  xorg-libXfixes;   # X and SDL stuff for ffplay
+  brew install  lame theora libvorbis openjpeg faac freetype yasm opencore-amr xvid openjpeg openjpeg libvpx a52dec pkgconfig; # bzip2
+  brew install  sdl; # xorg-libXfixes;   # X and SDL stuff for ffplay
 
 else
   FFXTRA="
@@ -282,9 +281,9 @@ $FFXTRA
     # make alltools; # no longer needed -- uncomment if you like
     env DESTDIR=${DIR?} make install;
     if [ "${SHORTNAME?}" == "mac" ]; then
-      sudo cp ffmpeg ffprobe  /opt/local/bin/;
+      sudo cp ffmpeg ffprobe  /usr/local/bin/;
       if [ -x ffplay ]; then # fixxxme no ffplay still for Lion
-          sudo cp ffplay /opt/local/bin/;
+          sudo cp ffplay /usr/local/bin/;
       fi
     else
       cp ffmpeg               $MYDIR/ffmpeg.$SHORTNAME;
@@ -317,13 +316,13 @@ if [ "${SHORTNAME?}" == "mac" ]; then
         Makefile;
     
     # worked finally!
-    if [ "$OSTYPE" == "darwin11"  -o  "$OSTYPE" == "darwin12" -o  "$OSTYPE" == "darwin13" ]; then
+    if [ $(echo "$OSTYPE"|cut -b1-6) = "darwin" ]; then
         perl -i -pe 's/\-mdynamic-no-pic //' configure;
     fi;
-    export LD_LIBRARY_PATH=/opt/local/lib:/usr/lib:/usr/local/lib:/lib;
+    export LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:/usr/local/lib:/lib;
 
     # NOTE:  "disable-tremor" (seemed to be getting in way of vorbis)
-    ./configure --prefix=/opt/local  ${MYCC?}  --enable-menu  --enable-x264 --enable-theora --enable-libopenjpeg --enable-liba52  --with-freetype-config=/opt/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I${DIR?}/usr/local/include -I/opt/local/include" --extra-ldflags="${DIR?}/x264/libx264.a " --extra-libs="-ltheoraenc -la52 -liconv";
+    ./configure --prefix=/usr/local  ${MYCC?}  --enable-menu  --enable-x264 --enable-theora --enable-libopenjpeg --enable-liba52  --with-freetype-config=/usr/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I${DIR?}/usr/local/include -I/usr/local/include" --extra-ldflags="${DIR?}/x264/libx264.a " --extra-libs="-ltheoraenc -la52 -liconv";
 
 
     sudo chown -R $USER .; #should NOT have to do this, something screwy, fixit!
@@ -336,11 +335,12 @@ if [ "${SHORTNAME?}" == "mac" ]; then
     echo "NOTE: if so, see http://support.apple.com/kb/HT5293"
 
   ################################################################################
-  #    unrelated ports packages that tracey likes/uses:
-  # sudo port install lesspipe pcre wget ddrescue lftp spidermonkey avidemux exif coreutils pstree
-  # sudo port install p7zip unrar colordiff py-pygments jp2a freetype
-  # sudo port install wine
-  # sudo port install ImageMagick
-  # sudo port install gimp
-  # sudo port install dvdauthor cdrtools dvdrw-tools
+  #    unrelated brew packages that tracey likes/uses:
+  # brew install lesspipe pcre wget ddrescue lftp spidermonkey avidemux exif coreutils pstree
+  # brew install p7zip unrar colordiff jp2a freetype # py-pygments 
+  # brew install imagemagick
+  #
+  # brew install wine
+  # brew install gimp
+  # brew install dvdauthor cdrtools dvdrw-tools
 fi
