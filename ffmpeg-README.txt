@@ -29,8 +29,10 @@ if [ $(uname -s) == 'Darwin' ]; then
 --prefix=/usr/local
 --extra-cflags=-I/usr/local/include
 --extra-cflags=-I/usr/local/include/SDL
+--extra-cflags=-I/opt/local/include
 
 --extra-ldflags=-L/usr/local/lib
+--extra-ldflags=-L/opt/local/lib
 ";
 
   DIR=/opt/local/x;
