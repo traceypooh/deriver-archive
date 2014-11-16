@@ -57,17 +57,27 @@ class Video
 
 
 
-  public static function ffmpegV0()
+  public static function ffmpegV0($file=null)
   {
-    return Video::ffmpeg().' -v 0 ';
+    return Video::ffmpeg($file).' -v 0 ';
   }
 
-  public static function ffmpeg()
+  public static function ffmpeg($file=null)
   {
     // for probing for codec info/characteristics, up from ~5MB to ~200MB to analyze.
     // for duration, check first 900 seconds (arg is in microseconds), not default 5 seconds.
-    return configGetPetaboxPath('bin-ffmpeg').' -analyzeduration 900000000 -probesize 200M '.(defined("LIMITLESS") ? " -threads 12 " : " -threads 2 ");
+    return configGetPetaboxPath('bin-ffmpeg').' -analyzeduration 900000000000 -probesize 200M '.(defined("LIMITLESS") ? " -threads 24 " : " -threads 2 ").(Video::file_is_tv($file) ? ' -f mpegts ':'');
   }
+
+
+  // given a short or fully qualified filename (no CGI args!),
+  // tries to determine if it *looks like* it's TV, pattern-wise
+  // and returns true/false
+  public static function file_is_tv($file=null)
+  {
+    return ($file!==null  &&  preg_match('=([^/]+)\.mpg$=i', $file, $mat)  &&  TV::is_tv($mat[1]));
+  }
+  
   
 
   // returns the number of seconds, may be fractional
@@ -193,6 +203,7 @@ class Video
     $heights = array(); // for SD/HD toggling!
     $widths  = array(); // for SD/HD toggling!
     $lengths = array(); // used to "prefer" the <length> in deriv <file>
+    $artists = array(); // someone please shoot me
 
     $t2 = Video::$PLAYABLES['thumbnail2'];
     
@@ -265,6 +276,8 @@ class Video
         // original file!
         $deriv = false;
         $key = $short;
+        if (isset($fi['ARTIST']))
+          $artists[$key]=$fi['ARTIST'];
       }
 
       if ($onlyThisGroup  &&  $key!=$onlyThisGroup)
@@ -398,14 +411,21 @@ class Video
                  ($nVideo >= $nAudio ||
                   $item->getMetaField('mediatype')=='movies')) ? 'movies' :
                 ($nAudio ? 'audio' : false));
-    if (DEBUG)
-    {
+
+    // we only care if 2+ (different!) <artist> values are set
+    //   eg:  /details/wcd_various-artistsbravo-hits-24_2-4-family_flac_lossless_29950093
+    if (count(array_flip($artists)) <= 1)
+      $artists=false;
+
+    if (DEBUG){
       msg("DURATIONS");
       printr($durations);
       msg("HEIGHTS");
       printr($heights);
       msg("WIDTHS");
       printr($widths);
+      msg("ARTISTS");
+      printr($artists);
       msg("PLAYABLES");
       printr(Video::$PLAYABLES);
       msg("GROUPS");
@@ -415,8 +435,8 @@ class Video
     }
     $groupsAV = ($showing == 'movies' ? $groupsV : $groupsA);
 
-    
-    
+
+
 
 
     $grouped = array();
@@ -463,7 +483,7 @@ class Video
 
       if (!isset($kv['SRC']))
         continue; // no derivatives in video (or audio) group of files, likely!
-      
+
 
       
       $name = $rankToFile['TITLE'];
@@ -474,7 +494,11 @@ class Video
                                 preg_replace('/\.[^\.]+$/','',
                                              basename($orig)))); //nix suffix
       }
+      if ($artists  &&  isset($artists[$orig]))
+        $name .= " - {$artists[$orig]}";
       $kv['TITLE'] = $name;
+      
+        
       $kv['ORIG']  = $orig;
       if (isset($rankToFile['LENGTH']))
       {
@@ -729,7 +753,7 @@ class Video
     // only keep the first 150 lines (in case it went crazy logging)
     $lines = array();
     $retval = null;
-    exec(Util::timeout(600)." ".Video::ffmpeg()." -an -vn -i ".Util::esc($file)." 2>&1 | ".Util::timeout(600)." tail -$tail",
+    exec(Util::timeout(600)." ".Video::ffmpeg($file)." -an -vn -i ".Util::esc($file)." 2>&1 | ".Util::timeout(600)." tail -$tail",
          $lines, $retval);
     
     if ($print)
@@ -758,7 +782,7 @@ class Video
         error_log("\nwarning: $file has 2+ video streams: ".print_r($vlines[1],1));
         // now use ffmpeg (which has greatly improved in its "picking" since Ye Olden Days)
         // to pick which of the video streams is the best one (Tracey Feb2014)
-        $cmd = (Util::timeout(600)." ".Video::ffmpeg()." -i ".
+        $cmd = (Util::timeout(600)." ".Video::ffmpeg($file)." -i ".
                 Util::esc($file)." -an -f null -frames 0 /dev/null 2>&1 | ".
                 Util::timeout(600)."fgrep -A10 'Stream mapping'");
         error_log($cmd);
@@ -1156,17 +1180,19 @@ class Video
     if (preg_match('/, ([\d\.]+) fps,/', $vline, $mat))
       $fps = $mat[1]; // fallback -- we can usually be more accurate than this!!
     
-    $ffprobe = configGetPetaboxPath('bin-ffprobe');
+    $ffprobe = configGetPetaboxPath('bin-ffprobe').(Video::file_is_tv($src) ? ' -f mpegts ':'');
     //error_log($ffprobe);
 
     $cmd = "$ffprobe -print_format json -show_streams ".Util::esc($src)."  2>/dev/null";
-    $str = Util::cmd($cmd);
+    $str = Util::cmd($cmd, "WARN");
     $streams = json_decode($str,1);
     if (!$streams){
       // UGH!!
       $str = mb_convert_encoding($str, 'UTF-8', 'ISO-8891-1,UTF-8');
       $streams = json_decode($str,1);
     }
+    if (!$streams)
+      return ""; // eg: /details/fireworks_poster
     //printr($streams);
 
     $astreams = $vstreams = $goods = array();
@@ -1463,7 +1489,7 @@ class Video
     // "-pix_fmt" arg is to avoid any yuvj444p issues on output that ImageMagick
     // and gifsicle *both* cannot handle, eg:
     //   /details/prueba-02 
-    $cmd = Video::ffmpegV0()." -i ".Util::esc($file).
+    $cmd = Video::ffmpegV0($file)." -i ".Util::esc($file).
       (isset($identify['vstreams']) ? ' -map '.strtok($identify['vstreams'],',') : '').
       " -an $vf $frameLimit -pix_fmt yuvj422p -r $rate $outDir/%08d.jpg";
       
@@ -1487,10 +1513,13 @@ class Video
     // so try failures one more time w/o the deinterlacing...
     $tries = array();
     $tries[] = $cmd;
-    $tries[] = str_replace($vf, $vfNoCrop,              $tries[count($tries)-1]);
-    $tries[] = Video::yadif_nix(                        $tries[count($tries)-1]);
-    $tries[] = str_replace('setpts=PTS-STARTPTS,','',   $tries[count($tries)-1]);
-    $tries[] = str_replace(' -i ', ' -err_detect 0 -i ',$tries[count($tries)-1]);
+    $tries[] = str_replace($vf, $vfNoCrop,                      $tries[count($tries)-1]);
+    $tries[] = Video::yadif_nix(                                $tries[count($tries)-1]);
+    $tries[] = str_replace('setpts=PTS-STARTPTS,','',           $tries[count($tries)-1]);
+    $tries[] = str_replace(' -i ',' -err_detect 0 -i ',         $tries[count($tries)-1]);
+    $tries[] = str_replace(' -i ',' -fflags discardcorrupt -i ',$tries[count($tries)-1]);
+    // last try is severe, but some items have *SO* much packet damage, we'd rather get
+    // any images we can at all, eg: /details/WPVI_20140803_090000_Puerto_Rican_Panorama
     $tries = array_values(array_unique($tries)); // nix dupes; retains order!
     //printr($tries);
 
@@ -1498,12 +1527,23 @@ class Video
     {
       // TV archive should red row if last attempt fails...
       $last = ($idx==(count($tries)-1));
-      if (($err = Util::cmdQT($cmd, $maxtime, ($last && $tvarchive ? 'THROW':'CONTINUE'))))
+      if (($err = Util::cmdQT($cmd, $maxtime, ($last && $tvarchive ? 'THROW':'CONTINUE')))){
         echo "   ==> FAILED!\n";
-      else if (!count(glob("$outDir/*.jpg")))
+      }
+      else if (!count(glob("$outDir/*.jpg"))){
         echo "   ==> NO THUMBS MADE!\n";
-      else
+      }
+      else {
+        if ($last  &&  $tvarchive){
+          // track the number of shows per center and channel that have heavy packet loss!
+          $id = pathinfo($file,PATHINFO_FILENAME);
+          $TVC = TV::id2tvc($id);
+          list(,$chan) = TV::identifierTS2($id);
+          StatsD::increment("badTV.$TVC");          
+          StatsD::increment("badTV.$chan");
+        }
         break;
+      }
     }
     if ($err)
       return null; // ffmpeg failed or, more likely, timed out!
