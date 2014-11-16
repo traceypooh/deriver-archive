@@ -7,7 +7,7 @@ class MPEG4 extends Module
   
   
   public function version()
-  { return '$Revision: 51516 $ $Date: 2013-05-20 19:20:37 +0000 (Mon, 20 May 2013) $'; }
+  { return '$Revision: 62875 $ $Date: 2014-10-30 21:22:32 +0000 (Thu, 30 Oct 2014) $'; }
 
   
   public function derive($src=null, $dest=null, $identify=null, $first=true, $title=1)
@@ -18,7 +18,7 @@ class MPEG4 extends Module
     
     chdir($this->tmp)  ||  fatal("unable to change to temp dir");
 
-    $ffmpeg             = Video::ffmpegV0();
+    $ffmpeg             = Video::ffmpegV0($src);
 
     if ($this->is_tvarchive()  &&  TV::is_audio_only($this->identifier, $identify))
       return;
@@ -45,6 +45,20 @@ class MPEG4 extends Module
       $cmd .= " -pix_fmt yuv420p"; // ...so convert it
 
     $params = str_replace(' /petabox/', " {$_SERVER['PETABOX_HOME']}/", $this->parameter);
+
+    // if we are *making* a 720P derivative...
+    $HD = (strpos($params,'x720')!==false);
+    if ($HD){
+      // ... then verify (for now, for certain collections) that the *source* is at least HD...
+      $mxml = json_decode(json_encode(simplexml_load_file($this->itemDir . $this->identifier . "_meta.xml")),1);
+      if (!is_array($mxml['collection']))
+        $mxml['collection']=array($mxml['collection']);
+      
+      if (in_array('internetarchivepresents', $mxml['collection'])  &&  !FormatGetter::isHD($identify['width'], $identify['height'])){
+        echo "source video is only {$identify['height']}P -- skipping this 720P derivative\n";
+        return;
+      }
+    }
 
 
     list($tries, $acoder) =
@@ -102,4 +116,3 @@ class MPEG4 extends Module
     $this->copyOrigMeta(); // backfills in any current metadata information
   }
 }
-?>
