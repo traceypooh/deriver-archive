@@ -46,7 +46,6 @@
         <dependency format="MP3"        variation="192Kbps MP3"/>
         <dependency format="MP3"        variation="VBR MP3"/>
         <dependency format="MP3"        variation="160Kbps MP3"/>
-        <dependency format="MP3"        variation="320Kbps MP3"/>
         <dependency format="MP3"        variation="128Kbps MP3"/>
         <dependency format="Ogg Vorbis" variation="Ogg Vorbis" />
         <dependency format="MP3"        variation="96Kbps MP3"/>
@@ -70,7 +69,6 @@
         <dependency format="MP3"        variation="192Kbps MP3"/>
         <dependency format="MP3"        variation="VBR MP3"/>
         <dependency format="MP3"        variation="160Kbps MP3"/>
-        <dependency format="MP3"        variation="320Kbps MP3"/>
         <dependency format="MP3"        variation="128Kbps MP3"/>
         <dependency format="Ogg Vorbis" variation="Ogg Vorbis" />
         <dependency format="MP3"        variation="96Kbps MP3"/>
@@ -145,8 +143,6 @@
     </variations>
   </format>
 
-
-
   <format name="Ogg Vorbis">
     <extension>ogg</extension>
     <class>Ogg</class>
@@ -189,7 +185,7 @@
     <extension>flac</extension>
     <class>FLAC</class>
     <variations>
-      <variation name="Flac">
+      <variation rank="11" name="Flac">
         <dependency rank="8" format="WAVE" variation="WAVE" />
         <dependency format="Digital Theater Systems Audio" variation="Digital Theater Systems Audio"/>
         <!-- dependency format="Shorten" variation="Shorten" / -->
@@ -208,6 +204,92 @@
       <variation name="VBR M3U" preextension="_vbr"/>
     </variations>
   </format>
+
+  <format name="Columbia Fingerprint">
+    <extension>afpt</extension>
+    <class>AudioFingerprint</class>
+    <variations>
+      <variation name="Columbia Fingerprint">
+<!--DO NOT ENABLE UNTIL MULTIPLE INSTANCE OF DOCKER TESTED
+        <dependency format="WAVE"       variation="WAVE" />
+        <dependency format="Shorten"    variation="Shorten"/>
+        <dependency format="Flac"       variation="24bit Flac" />
+        <dependency format="Flac"       variation="Flac" />
+        <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding"/>
+        <dependency format="WebA"       variation="WebA" />
+        <dependency format="AIFF"       variation="AIFF" />
+        <dependency format="Windows Media Audio"  variation="Windows Media Audio" />
+        <dependency format="Digital Theater Systems Audio" variation="Digital Theater Systems Audio"/>
+        <dependency format="MP3"        variation="320Kbps MP3"/>
+        <dependency format="MP3"        variation="256Kbps MP3"/>
+        <dependency format="MP3"        variation="192Kbps MP3"/>
+        <dependency format="MP3"        variation="VBR MP3"/>
+        <dependency format="MP3"        variation="160Kbps MP3"/>
+        <dependency format="MP3"        variation="128Kbps MP3"/>
+        <dependency format="Ogg Vorbis" variation="Ogg Vorbis"/>
+        <dependency format="Real Audio" variation="Real Audio"/>
+        <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
+        <dependency format="3GP Audio"  variation="3GP Audio" />
+-->
+      </variation>
+    </variations>
+  </format>
+  
+  <format name="Essentia Low GZ">
+    <extension>gz</extension>
+    <class>EssentiaLow</class>
+    <variations>
+      <variation rank="14" name="Essentia Low GZ" preextension="_esslow.json">
+        <dependency format="WAVE"       variation="WAVE" />
+        <dependency format="Shorten"    variation="Shorten"/>
+        <dependency format="Flac"       variation="24bit Flac" />
+        <dependency format="Flac"       variation="Flac" />
+        <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding"/>
+        <dependency format="WebA"       variation="WebA" />
+        <dependency format="AIFF"       variation="AIFF" />
+        <dependency format="Windows Media Audio"  variation="Windows Media Audio" />
+        <dependency format="Digital Theater Systems Audio" variation="Digital Theater Systems Audio"/>
+        <dependency format="MP3"        variation="320Kbps MP3"/>
+        <dependency format="MP3"        variation="256Kbps MP3"/>
+        <dependency format="MP3"        variation="192Kbps MP3"/>
+        <dependency format="MP3"        variation="VBR MP3"/>
+        <dependency format="MP3"        variation="160Kbps MP3"/>
+        <dependency format="MP3"        variation="128Kbps MP3"/>
+        <dependency format="Ogg Vorbis" variation="Ogg Vorbis"/>
+        <dependency format="Real Audio" variation="Real Audio"/>
+        <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
+        <dependency format="3GP Audio"  variation="3GP Audio" />        
+      </variation>
+    </variations>
+  </format>  
+
+  <format name="Spectrogram">
+    <extension>png</extension>
+    <class>Spectrogram</class>
+    <variations>
+      <variation rank="13" name="Spectrogram" preextension="_spectrogram">
+        <dependency format="WAVE"       variation="WAVE" />
+        <dependency format="Shorten"    variation="Shorten"/>
+        <dependency format="Flac"       variation="24bit Flac" />
+        <dependency format="Flac"       variation="Flac" />
+        <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding"/>
+        <dependency format="WebA"       variation="WebA" />
+        <dependency format="AIFF"       variation="AIFF" />
+        <dependency format="Windows Media Audio"  variation="Windows Media Audio" />
+        <dependency format="Digital Theater Systems Audio" variation="Digital Theater Systems Audio"/>
+        <dependency format="MP3"        variation="320Kbps MP3"/>
+        <dependency format="MP3"        variation="256Kbps MP3"/>
+        <dependency format="MP3"        variation="192Kbps MP3"/>
+        <dependency format="MP3"        variation="VBR MP3"/>
+        <dependency format="MP3"        variation="160Kbps MP3"/>
+        <dependency format="MP3"        variation="128Kbps MP3"/>
+        <dependency format="Ogg Vorbis" variation="Ogg Vorbis"/>
+        <dependency format="Real Audio" variation="Real Audio"/>
+        <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
+        <dependency format="3GP Audio"  variation="3GP Audio" />        
+      </variation>
+    </variations>
+  </format>  
 
   <format name="PURETAR">
     <class/>
@@ -458,6 +540,7 @@
       <variation name="Single Page Processed JPEG ZIP" preextension="_jpg" multifile="true" />
        -->
       <variation name="Scribe Scandata ZIP" preextension="scandata" multifile="true" />
+      <variation name="TTScribe Preimage ZIP" preextension="_preimage" multifile="true" />
 
 
       <variation name="Abbyy ZIP" preextension="_abbyy"/>
@@ -523,7 +606,7 @@
       <!-- NOTE: this needs to run **first** since it can replace source files!-->
       <!-- pegssc == PEG Server-Standards-Compliant -->
       <variation rank="0" name="MPEG2" preextension=".pegssc" conditionally="[{'collection':['denveropenmedia','SeattleCommunityMedia','phillycam'],'parameter':'-ac 2 -acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 7000000 -maxrate 8000000 -minrate 5000000 -bufsize 835008 -packetsize 2048 -muxrate 10080000'},
-                                                                             {'collection':['tedtalks','poptech','eastoncat'],                      'parameter':'-ac 2 -acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 5000000 -maxrate 6000000 -minrate 4000000 -bufsize 635008 -packetsize 2048 -muxrate 10080000'}]">
+                                                                              {'collection':['tedtalks','poptech','eastoncat','broadcast_ready'],   'parameter':'-ac 2 -acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 5000000 -maxrate 6000000 -minrate 4000000 -bufsize 635008 -packetsize 2048 -muxrate 10080000'}]">
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
@@ -688,7 +771,7 @@
         <dependency format="Matroska" variation="Matroska" />
       </variation>
 
-      <variation rank="8" name="h.264 720P" parameter="1280x720  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=31:bitrate=2048:vbv_maxrate=2250:vbv_bufsize=4096  -movflags faststart -ac 2 -b:a 128k -ar 44100" preextension="_720p" conditionally="{'collection':['35mmstockfootage','hdvideo']}">
+      <variation rank="8" name="h.264 720P" parameter="1280x720  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=31:bitrate=2048:vbv_maxrate=2250:vbv_bufsize=4096  -movflags faststart -ac 2 -b:a 128k -ar 44100" preextension="_720p" conditionally="{'collection':['35mmstockfootage','hdvideo','internetarchivepresents']}">
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2-TS" variation="MPEG2-TS" />
@@ -936,6 +1019,7 @@
     <class />
     <variations>
       <variation name="Collection Header" />
+      <variation name="Collection Header" preextension="_header"/>
     </variations>
   </format>
 
@@ -1132,10 +1216,20 @@
     <extension>png</extension>
     <class>PNG</class>
     <variations>
-      <variation rank="11" name="PNG" conditionally="{'collection':['album_recordings','poohBot']}" derivativesource="allowed">
-        <dependency format="Flac"  variation="Flac"/>
-        <dependency format="VBR MP3"  variation="VBR MP3"/>
-        <dependency format="Ogg Vorbis"  variation="Ogg Vorbis"/>
+      <variation rank="12" name="PNG" derivativesource="allowed" conditionally="{'!collection':['tvarchive']}">
+        <dependency format="Shorten"    variation="Shorten"/>
+        <dependency format="Flac"       variation="Flac"/>
+        <dependency format="VBR MP3"    variation="VBR MP3"/>
+        <dependency format="MP3"        variation="MP3"/>
+        <dependency format="MP3"        variation="320Kbps MP3"/>
+        <dependency format="MP3"        variation="256Kbps MP3"/>
+        <dependency format="MP3"        variation="192Kbps MP3"/>
+        <dependency format="MP3"        variation="160Kbps MP3"/>
+        <dependency format="MP3"        variation="128Kbps MP3"/>
+        <dependency format="MP3"        variation="96Kbps MP3"/>
+        <dependency format="MP3"        variation="64Kbps MP3"/>
+        <dependency format="MP3"        variation="32Kbps MP3"/>
+        <dependency format="Ogg Vorbis" variation="Ogg Vorbis"/>
       </variation>
     </variations>
   </format>
@@ -1489,11 +1583,11 @@
     </variations>
   </format>
 
-
   <format name="JSON GZ">
     <extension>gz</extension>
     <variations>
       <variation name="JSON GZ" preextension=".json"/>
+      <variation name="Essentia High GZ" preextension="_esshigh.json"/>
     </variations>
   </format>
 
@@ -1650,7 +1744,7 @@
     <variations>
       <!-- NOTE: explicitly allowed to be derived from another derivative -->
       <!-- for TV, also extracts CC, then tries to align it with extracted audio forms... -->
-      <variation rank="11" name="SubRip" derivativesource="allowed">
+      <variation rank="16" name="SubRip" derivativesource="allowed">
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2-TS" variation="MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2"/>
@@ -1670,7 +1764,7 @@
     <extension>json</extension>
     <class>JSON</class>
     <variations>
-      <variation rank="12" name="JSON" derivativesource="allowed" conditionally="{'collection':['tvarchive']}">
+      <variation rank="17" name="JSON" derivativesource="allowed" conditionally="{'collection':['tvarchive']}">
         <dependency format="SubRip" variation="SubRip" />
       </variation>
     </variations>
