@@ -13,6 +13,9 @@ errtesting();
 
 function configGetValue($key)
 {
+  if ($key=='bin-exiftool'  &&  (trim(`exif -v >/dev/null; echo $?`)==="0"))
+    return 'exif';
+  
   return (strncmp('bin-',$key,4)==0 ? substr($key,4) : $key);
 }  
 function configGetPetaboxPath($val)
