@@ -166,6 +166,8 @@
         <dependency format="MP3" variation="128Kbps MP3"/>
         <dependency format="MP3" variation="96Kbps MP3"/>
         <dependency format="MP3" variation="64Kbps MP3"/>
+        <dependency format="MP3" variation="48Kbps MP3"/>
+        <dependency format="MP3" variation="32Kbps MP3"/>
         <dependency format="Real Audio" variation="Real Audio"/>
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
@@ -210,7 +212,8 @@
     <class>AudioFingerprint</class>
     <variations>
       <variation name="Columbia Fingerprint">
-<!--DO NOT ENABLE UNTIL MULTIPLE INSTANCE OF DOCKER TESTED
+<!-- DO NOT ENABLE UNTIL MULTIPLE INSTANCE OF DOCKER TESTED -->
+<!--
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
         <dependency format="Flac"       variation="24bit Flac" />
@@ -231,6 +234,7 @@
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
 -->
+<!-- END COMMENTED SECTION -->
       </variation>
     </variations>
   </format>
@@ -240,6 +244,8 @@
     <class>EssentiaLow</class>
     <variations>
       <variation rank="14" name="Essentia Low GZ" preextension="_esslow.json">
+<!-- TEMPORARILY DISABLED PENDING DEBUG BY ESSENTIA DEVS - LOTS OF ERROR LOGGING AND RETRY -->
+<!--
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
         <dependency format="Flac"       variation="24bit Flac" />
@@ -258,7 +264,9 @@
         <dependency format="Ogg Vorbis" variation="Ogg Vorbis"/>
         <dependency format="Real Audio" variation="Real Audio"/>
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
-        <dependency format="3GP Audio"  variation="3GP Audio" />        
+        <dependency format="3GP Audio"  variation="3GP Audio" />
+-->     
+<!-- END COMMENTED SECTION-->             
       </variation>
     </variations>
   </format>  
@@ -287,6 +295,8 @@
         <dependency format="Real Audio" variation="Real Audio"/>
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />        
+        <dependency format="MP3"        variation="48Kbps MP3"/>
+        <dependency format="MP3"        variation="32Kbps MP3"/>
       </variation>
     </variations>
   </format>  
@@ -681,6 +691,8 @@
         <dependency format="Motion JPEG" variation="Motion JPEG" />
         <dependency format="QuickTime" variation="256Kb QuickTime" />
         <dependency format="MPEG4" variation="MPEG4" />
+        <dependency format="QuickTime" variation="QuickTime 1.5Mbps" />
+        <dependency format="QuickTime" variation="QuickTime 1Mbps" />
         <dependency format="QuickTime" variation="64Kb QuickTime" />
         <dependency format="QuickTime" variation="56Kb QuickTime" />
         <dependency format="QuickTime" variation="QuickTime" />
@@ -692,6 +704,9 @@
         <dependency format="Real Media" variation="Real Media" />
         <dependency format="ISO Image" variation="ISO Image" />
         <dependency format="Flash Video" variation="Flash Video" />
+        <dependency format="Flash Video" variation="LinkTV FLV (512k)" />
+        <dependency format="Flash Video" variation="FLV 400k" />
+        <dependency format="MPEG4" variation="MPEG4 1.5Mbps" />
         <dependency format="MPEG4" variation="256Kb MPEG4" />
         <dependency format="MPEG4" variation="64Kb MPEG4" />
         <dependency format="3GP" variation="3GP" />
@@ -756,6 +771,8 @@
         <dependency format="Motion JPEG" variation="Motion JPEG" />
         <dependency format="QuickTime" variation="256Kb QuickTime" />
         <dependency format="MPEG4" variation="MPEG4" />
+        <dependency format="QuickTime" variation="QuickTime 1.5Mbps" />
+        <dependency format="QuickTime" variation="QuickTime 1Mbps" />
         <dependency format="QuickTime" variation="64Kb QuickTime" />
         <dependency format="QuickTime" variation="56Kb QuickTime" />
         <dependency format="QuickTime" variation="QuickTime" />
@@ -764,9 +781,13 @@
         <dependency format="Intel Video" variation="IV50" />
         <dependency format="Cinepack" variation="Cinepack" />
         <dependency format="Ogg Theora" variation="Ogg Theora" />
+        <dependency format="Ogg Video" variation="Ogg Video" />
         <dependency format="Real Media" variation="Real Media" />
         <dependency format="ISO Image" variation="ISO Image" />
         <dependency format="Flash Video" variation="Flash Video" />
+        <dependency format="Flash Video" variation="LinkTV FLV (512k)" />
+        <dependency format="Flash Video" variation="FLV 400k" />
+        <dependency format="MPEG4" variation="MPEG4 1.5Mbps" />
         <dependency format="3GP" variation="3GP" />
         <dependency format="Matroska" variation="Matroska" />
       </variation>
@@ -922,6 +943,8 @@
         <dependency format="Motion JPEG" variation="Motion JPEG" />
         <dependency format="QuickTime" variation="256Kb QuickTime" />
         <dependency format="MPEG4" variation="MPEG4" />
+        <dependency format="QuickTime" variation="QuickTime 1.5Mbps" />
+        <dependency format="QuickTime" variation="QuickTime 1Mbps" />
         <dependency format="QuickTime" variation="64Kb QuickTime" />
         <dependency format="QuickTime" variation="56Kb QuickTime" />
         <dependency format="QuickTime" variation="QuickTime" />
@@ -933,6 +956,9 @@
         <dependency format="Real Media" variation="Real Media" />
         <dependency format="ISO Image" variation="ISO Image" />
         <dependency format="Flash Video" variation="Flash Video" />
+        <dependency format="Flash Video" variation="LinkTV FLV (512k)" />
+        <dependency format="Flash Video" variation="FLV 400k" />
+        <dependency format="MPEG4" variation="MPEG4 1.5Mbps" />
         <dependency format="MPEG4" variation="256Kb MPEG4" />
         <dependency format="MPEG4" variation="64Kb MPEG4" />
         <dependency format="3GP" variation="3GP" />
@@ -1058,6 +1084,8 @@
         <dependency format="Motion JPEG" variation="Motion JPEG" />
         <dependency format="QuickTime" variation="256Kb QuickTime" />
         <dependency format="MPEG4" variation="MPEG4" />
+        <dependency format="QuickTime" variation="QuickTime 1.5Mbps" />
+        <dependency format="QuickTime" variation="QuickTime 1Mbps" />
         <dependency format="QuickTime" variation="64Kb QuickTime" />
         <dependency format="QuickTime" variation="56Kb QuickTime" />
         <dependency format="QuickTime" variation="QuickTime" />
@@ -1066,9 +1094,13 @@
         <dependency format="Intel Video" variation="IV50" />
         <dependency format="Cinepack" variation="Cinepack" />
         <dependency format="Ogg Theora" variation="Ogg Theora" />
+        <dependency format="Ogg Video" variation="Ogg Video" />
         <dependency format="Real Media" variation="Real Media" />
         <dependency format="ISO Image" variation="ISO Image" />
         <dependency format="Flash Video" variation="Flash Video" />
+        <dependency format="Flash Video" variation="LinkTV FLV (512k)" />
+        <dependency format="Flash Video" variation="FLV 400k" />
+        <dependency format="MPEG4" variation="MPEG4 1.5Mbps" />
         <dependency format="MPEG4" variation="256Kb MPEG4" />
         <dependency format="MPEG4" variation="64Kb MPEG4" />
         <dependency format="3GP" variation="3GP" />
@@ -1110,6 +1142,8 @@
         <dependency format="Motion JPEG" variation="Motion JPEG" />
         <dependency format="QuickTime" variation="256Kb QuickTime" />
         <dependency format="MPEG4" variation="MPEG4" />
+        <dependency format="QuickTime" variation="QuickTime 1.5Mbps" />
+        <dependency format="QuickTime" variation="QuickTime 1Mbps" />
         <dependency format="QuickTime" variation="64Kb QuickTime" />
         <dependency format="QuickTime" variation="56Kb QuickTime" />
         <dependency format="QuickTime" variation="QuickTime" />
@@ -1118,9 +1152,13 @@
         <dependency format="Intel Video" variation="IV50" />
         <dependency format="Cinepack" variation="Cinepack" />
         <dependency format="Ogg Theora" variation="Ogg Theora" />
+        <dependency format="Ogg Video" variation="Ogg Video" />
         <dependency format="Real Media" variation="Real Media" />
         <dependency format="ISO Image" variation="ISO Image" />
         <dependency format="Flash Video" variation="Flash Video" />
+        <dependency format="Flash Video" variation="LinkTV FLV (512k)" />
+        <dependency format="Flash Video" variation="FLV 400k" />
+        <dependency format="MPEG4" variation="MPEG4 1.5Mbps" />
         <dependency format="MPEG4" variation="256Kb MPEG4" />
         <dependency format="MPEG4" variation="64Kb MPEG4" />
         <dependency format="3GP" variation="3GP" />
@@ -1228,8 +1266,36 @@
         <dependency format="MP3"        variation="128Kbps MP3"/>
         <dependency format="MP3"        variation="96Kbps MP3"/>
         <dependency format="MP3"        variation="64Kbps MP3"/>
+        <dependency format="MP3"        variation="48Kbps MP3"/>
         <dependency format="MP3"        variation="32Kbps MP3"/>
         <dependency format="Ogg Vorbis" variation="Ogg Vorbis"/>
+
+        <!-- much less common formats (but reflects reality of cluster as of 11/2014) - tracey -->
+        <dependency format="MP3"        variation="104Kbps MP3"/>
+        <dependency format="MP3"        variation="112Kbps MP3"/>
+        <dependency format="MP3"        variation="120Kbps MP3"/>
+        <dependency format="MP3"        variation="136Kbps MP3"/>
+        <dependency format="MP3"        variation="144Kbps MP3"/>
+        <dependency format="MP3"        variation="152Kbps MP3"/>
+        <dependency format="MP3"        variation="168Kbps MP3"/>
+        <dependency format="MP3"        variation="16Kbps MP3"/>
+        <dependency format="MP3"        variation="176Kbps MP3"/>
+        <dependency format="MP3"        variation="184Kbps MP3"/>
+        <dependency format="MP3"        variation="200Kbps MP3"/>
+        <dependency format="MP3"        variation="208Kbps MP3"/>
+        <dependency format="MP3"        variation="216Kbps MP3"/>
+        <dependency format="MP3"        variation="224Kbps MP3"/>
+        <dependency format="MP3"        variation="232Kbps MP3"/>
+        <dependency format="MP3"        variation="240Kbps MP3"/>
+        <dependency format="MP3"        variation="24Kbps MP3"/>
+        <dependency format="MP3"        variation="288Kbps MP3"/>
+        <dependency format="MP3"        variation="40Kbps MP3"/>
+        <dependency format="MP3"        variation="56Kbps MP3"/>
+        <dependency format="MP3"        variation="72Kbps MP3"/>
+        <dependency format="MP3"        variation="80Kbps MP3"/>
+        <dependency format="MP3"        variation="8Kbps MP3"/>
+        <dependency format="MP3"        variation="Kbps MP3"/>
+        <dependency format="MP3"        variation="MP3 (other)"/>
       </variation>
     </variations>
   </format>
@@ -1767,6 +1833,7 @@
       <variation rank="17" name="JSON" derivativesource="allowed" conditionally="{'collection':['tvarchive']}">
         <dependency format="SubRip" variation="SubRip" />
       </variation>
+      <variation name="What.CD JSON" preextension="_what_cd"/>
     </variations>
   </format>
 
