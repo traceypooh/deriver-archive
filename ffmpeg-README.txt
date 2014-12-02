@@ -324,7 +324,7 @@ if [ "${SHORTNAME?}" == "mac" ]; then
     export LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:/usr/local/lib:/lib;
 
     # NOTE:  "disable-tremor" (seemed to be getting in way of vorbis)
-    ./configure --prefix=/usr/local  ${MYCC?}  --enable-menu  --enable-x264 --enable-theora --enable-libopenjpeg --enable-liba52  --with-freetype-config=/usr/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I${DIR?}/usr/local/include -I/usr/local/include" --extra-ldflags="${DIR?}/x264/libx264.a " --extra-libs="-ltheoraenc -la52 -liconv -llzma";
+    ./configure --prefix=/usr/local  ${MYCC?}  --enable-menu  --enable-x264 --enable-theora --enable-libopenjpeg --enable-liba52  --with-freetype-config=/usr/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I${DIR?}/x264 -I${DIR?}/usr/local/include -I/usr/local/include" --extra-ldflags="${DIR?}/x264/libx264.a " --extra-libs="-ltheoraenc -la52 -liconv -llzma";
 
 
     sudo chown -R $USER .; #should NOT have to do this, something screwy, fixit!
