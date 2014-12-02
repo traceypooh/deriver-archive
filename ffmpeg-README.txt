@@ -51,7 +51,7 @@ if [ $(uname -s) == 'Darwin' ]; then
   #   brew search <pkg name>
   #   brew install <pkg name>
 
-  brew install  lame theora libvorbis openjpeg faac freetype yasm opencore-amr xvid openjpeg openjpeg libvpx a52dec pkgconfig; # bzip2
+  brew install  lame theora libvorbis openjpeg faac freetype yasm opencore-amr xvid libvpx a52dec pkgconfig; # bzip2
   brew install  sdl; # xorg-libXfixes;   # X and SDL stuff for ffplay
 
 else
@@ -283,9 +283,9 @@ $FFXTRA
     # make alltools; # no longer needed -- uncomment if you like
     env DESTDIR=${DIR?} make install;
     if [ "${SHORTNAME?}" == "mac" ]; then
-      sudo cp ffmpeg ffprobe  /usr/local/bin/;
+      cp ffmpeg ffprobe  /usr/local/bin/;
       if [ -x ffplay ]; then # fixxxme no ffplay still for Lion
-          sudo cp ffplay /usr/local/bin/;
+          cp ffplay /usr/local/bin/;
       fi
     else
       cp ffmpeg               $MYDIR/ffmpeg.$SHORTNAME;
@@ -303,13 +303,11 @@ $FFXTRA
 if [ "${SHORTNAME?}" == "mac" ]; then
     # now build mplayer from source (uses libx264 above and ffmpeg)
 
-    echo "NOTE: on Mountain Lion OS you may not be able to ffplay playback since X11 is no longer installed by default"
-    echo "NOTE: if so, see http://support.apple.com/kb/HT5293"
-
     cd ${DIR?};
     svn checkout svn://svn.mplayerhq.hu/mplayer/trunk mplayer;
     cd mplayer;
     mv ../ffmpeg .; # needed by mplayer -- will reconfig & remake it, sigh...
+    
 
     # make it **not** recompile our ffmpeg (and later install bad libs) on us!!
     perl -i -p \
@@ -321,28 +319,24 @@ if [ "${SHORTNAME?}" == "mac" ]; then
     if [ $(echo "$OSTYPE"|cut -b1-6) = "darwin" ]; then
         perl -i -pe 's/\-mdynamic-no-pic //' configure;
     fi;
-    export LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:/usr/local/lib:/lib;
 
     # NOTE:  "disable-tremor" (seemed to be getting in way of vorbis)
-    ./configure --prefix=/usr/local  ${MYCC?}  --enable-menu  --enable-x264 --enable-theora --enable-libopenjpeg --enable-liba52  --with-freetype-config=/usr/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I${DIR?}/x264 -I${DIR?}/usr/local/include -I/usr/local/include" --extra-ldflags="${DIR?}/x264/libx264.a " --extra-libs="-ltheoraenc -la52 -liconv -llzma";
+    # NOTE:  needed order below ".. -lSDLMain -lopenjpeg .." to avoid libopenjpeg main from intercepting mplayer main (!!)
+    ./configure --prefix=/usr/local  ${MYCC?}  --enable-menu  --enable-x264 --enable-theora --enable-liba52  --with-freetype-config=/usr/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I${DIR?}/x264 -I${DIR?}/usr/local/include -I/usr/local/include" --extra-ldflags="-L${DIR?}/x264" --extra-libs="-ltheoraenc -la52 -lx264 -llzma -lSDLMain -lopenjpeg";
 
-
-    sudo chown -R $USER .; #should NOT have to do this, something screwy, fixit!
     make -j3;
-    sudo make install;
+    make install;
 
     mv ffmpeg ..;
 
-    echo "NOTE: on Mountain Lion OS you may not be able to ffplay playback since X11 is no longer installed by default"
-    echo "NOTE: if so, see http://support.apple.com/kb/HT5293"
 
-  ################################################################################
-  #    unrelated brew packages that tracey likes/uses:
-  # brew install lesspipe pcre wget ddrescue lftp spidermonkey avidemux exif coreutils pstree
-  # brew install p7zip unrar colordiff jp2a freetype # py-pygments 
-  # brew install imagemagick
-  #
-  # brew install wine
-  # brew install gimp
-  # brew install dvdauthor cdrtools dvdrw-tools
+    ################################################################################
+    #    unrelated brew packages that tracey likes/uses:
+    # brew install lesspipe pcre wget ddrescue lftp spidermonkey avidemux exif coreutils pstree
+    # brew install p7zip unrar colordiff jp2a freetype # py-pygments 
+    # brew install imagemagick
+    #
+    # brew install wine
+    # brew install gimp
+    # brew install dvdauthor cdrtools dvdrw-tools
 fi
