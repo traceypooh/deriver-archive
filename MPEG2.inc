@@ -14,7 +14,7 @@ require_once('Module.inc');
 class MPEG2 extends Module
 {
   public function version() 
-  { return '$Revision: 51518 $ $Date: 2013-05-20 19:22:11 +0000 (Mon, 20 May 2013) $'; }
+  { return '$Revision: 64055 $ $Date: 2015-01-14 19:06:24 +0000 (Wed, 14 Jan 2015) $'; }
 
 
   public function dvd()
@@ -58,8 +58,7 @@ class MPEG2 extends Module
     $tmp = $this->tmp.'tmp.mpg';
     $copy= false;
 
-    if ($this->sourceFormat=='DVD Info')
-      return $this->dvd();
+    if ($this->sourceFormat=='DVD Info')  return $this->dvd(); // nixxxxxxxxxxxxxxxxxxx all this?  only 2 vids https://archive.org/search.php?query=format%3A%22DVD%20Info%22%20AND%20collection:television   (actually this is prolly fine -- uses **itemDir** as source and regular mplayer, etc....
     
 
     $params = $this->parameter;
