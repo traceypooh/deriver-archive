@@ -4,6 +4,7 @@ class Video
 {
   public static $PLAYABLES=null;
 
+  const IDENTIFY_URLS = false;//xxxx this has possible security issues!
 
   // **hopefully** the near ultimate fix for MPEG-TS A/V sync drifting!  
   // Make sure we use "-vsync" param.  
@@ -66,7 +67,13 @@ class Video
   {
     // for probing for codec info/characteristics, up from ~5MB to ~200MB to analyze.
     // for duration, check first 900 seconds (arg is in microseconds), not default 5 seconds.
-    return configGetPetaboxPath('bin-ffmpeg').' -analyzeduration 900000000000 -probesize 200M '.(defined("LIMITLESS") ? " -threads 24 " : " -threads 2 ").(Video::file_is_tv($file) ? ' -f mpegts ':'');
+    $ffmpeg = configGetPetaboxPath('bin-ffmpeg');
+    $args = (defined("LIMITLESS") ? " -threads 24 " : " -threads 2 ").(Video::file_is_tv($file) ? ' -f mpegts ':'');
+
+    if (Video::IDENTIFY_URLS  &&  strncmp($file,'http://',7)==0   &&  TV::is_tv(basename($file)))
+      return "/home/tracey/x/ffmpeg.oneiric -probesize 200M $args";
+    
+    return $ffmpeg.' -analyzeduration 900000000000 -probesize 200M '.$args;
   }
 
 
@@ -817,6 +824,7 @@ class Video
     //error_log("VIDEO VAR: $vline");
     
     
+    
     // compute length of movie in seconds (may have decimal component)
     // compute frames per second of movie (may have decimal component)
     $arr = array(
@@ -824,8 +832,7 @@ class Video
       'height'  => $height,
       'fps'     => null,
       'audio'   => 'false',
-      'bytes'   => filesize($file),
-      
+      'bytes'   => (strncmp($file,'http://',7)==0 ? 0 : @filesize($file)),
       'length' => (preg_match('/\n *Duration: (\d+):(\d+):([\d\.]+)/', $out,
                               $mat) ? ((60 * 60 * $mat[1]) +
                                        (60 * $mat[2]) +
@@ -839,6 +846,21 @@ class Video
                              $mat[2] : ''))),
       );
 
+
+    if (Video::IDENTIFY_URLS){
+      $bitrate=0;
+      $sec2=0;
+      $bytes2=0;
+      if (preg_match('@Duration: ([^,]+), (.*?), bitrate: (.*?) kb/s@', $out, $mat)){
+        $sec2 = Video::hms2sec($mat[1]);
+        $bitrate = $mat[3];
+        $bytes2 = ceil(1024/8 * $bitrate * $sec2);
+      }
+      $arr['bitrate'] = $bitrate;
+      $arr['sec2'   ] = $sec2;
+      $arr['bytes2' ] = $bytes2;
+    }
+    
 
     Video::adjust_length($file, $arr, $tvarchive);
     
@@ -1058,7 +1080,7 @@ class Video
 
   public static function identify2($file, $dvddevice='')
   {
-    $mplayer = configGetValue($dvddevice ? 'bin-mplayer-sudo' : 'bin-mplayer');
+    $mplayer = configGetValue('bin-mplayer');
 
     $lines = array();
 
@@ -1525,9 +1547,18 @@ class Video
 
     foreach ($tries as $idx=>$cmd)
     {
-      // TV archive should red row if last attempt fails...
+      // TV archive has special behaviour if last attempt fails...
       $last = ($idx==(count($tries)-1));
-      if (($err = Util::cmdQT($cmd, $maxtime, ($last && $tvarchive ? 'THROW':'CONTINUE')))){
+      if (($err = Util::cmdQT($cmd, $maxtime, 'CONTINUE'))){
+        if ($last  &&  $tvarchive){
+          $made = glob("$outDir/*.jpg");
+          if (count($made) < 2)
+            throw new Exception('failed to make thumbnails');
+          printr($made);            
+          echo "  FAILED but made ".count($made)." thumbs, so moving on with them...\n";
+          $err=false;
+          break;
+        }
         echo "   ==> FAILED!\n";
       }
       else if (!count(glob("$outDir/*.jpg"))){
