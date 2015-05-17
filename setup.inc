@@ -2,10 +2,7 @@
 
 // NOTE: config -- may want to tweak these to taste:
 date_default_timezone_set('America/Los_Angeles');
-define('UI3',0);
-define('DEVBOX',0);
 define('DEBUG',0);
-define('OFFLINE',0);
 // NOTE: config -- may want to tweak these to taste:
 
 errtesting();

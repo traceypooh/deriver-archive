@@ -4,7 +4,7 @@ class Video
 {
   public static $PLAYABLES=null;
 
-  const IDENTIFY_URLS = false;//xxxx this has possible security issues!
+  const IDENTIFY_URLS = false;//xxxx this has possible security issues when true!
 
   // **hopefully** the near ultimate fix for MPEG-TS A/V sync drifting!  
   // Make sure we use "-vsync" param.  
@@ -461,7 +461,7 @@ class Video
         $kv['POSTER'] = $prefix.$rankToFile[0];
       else if ($rankToFile[1])
         $kv['POSTER'] = $prefix.$rankToFile[1];
-      else if (UI3) {
+      else {
         // ugh, this is terrible...
         foreach ($rankToFile as $keykey => $valval){
           if (is_numeric($keykey)){
@@ -1078,9 +1078,9 @@ class Video
   }
 
 
-  public static function identify2($file, $dvddevice='')
+  public static function identify2($file, $dvddevice='', $sudo=false)
   {
-    $mplayer = configGetValue('bin-mplayer');
+    $mplayer = ($sudo?'sudo ':'').configGetValue('bin-mplayer');
 
     $lines = array();
 
@@ -1206,7 +1206,7 @@ class Video
     //error_log($ffprobe);
 
     $cmd = "$ffprobe -print_format json -show_streams ".Util::esc($src)."  2>/dev/null";
-    $str = Util::cmd($cmd, "WARN");
+    $str = Util::cmd($cmd, (Video::IDENTIFY_URLS ? "CONTINUE" : "WARN"));
     $streams = json_decode($str,1);
     if (!$streams){
       // UGH!!
@@ -1763,7 +1763,7 @@ class Video
     if ($identify['rotation']==90)
       $filters[] = 'transpose=1';
     else if ($identify['rotation']==180)
-      $filters[] = 'vflip=1,hflip=1';
+      $filters[] = 'vflip,hflip';
     else if ($identify['rotation']==270)
       $filters[] = 'transpose=2';
     

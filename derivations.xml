@@ -129,6 +129,14 @@
     </variations>
   </format>
 
+  <format name="Apple Audiobook">
+    <extension>m4b</extension>
+    <variations>
+      <variation name="Apple Audiobook"/>
+      <variation name="LibriVox Apple Audiobook" preextension="_librivox"/>
+    </variations>
+  </format>
+
   <format name="Sibelius">
     <extension>sib</extension>
     <variations>
@@ -211,9 +219,8 @@
     <extension>afpk</extension>
     <class>AudioFingerprint</class>
     <variations>
-      <variation name="Columbia Peaks" conditionally="{'!collection':['tvarchive']}">
+      <variation name="Columbia Peaks" conditionally="{'!collection':['tvarchive','librivoxaudio']}">
 <!-- ENABLING PER BK REQUEST, SUBJECT TO TRANSIENT DOCKER STARTUP ERRORS -->
-<!-- temporary disabling to allow worker pool to drain out all docker tasks, so packages can swap
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
         <dependency format="Flac"       variation="24bit Flac" />
@@ -233,7 +240,6 @@
         <dependency format="Real Audio" variation="Real Audio"/>
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
--->        
 <!-- END COMMENTED SECTION -->
       </variation>
     </variations>
@@ -275,7 +281,7 @@
     <extension>gz</extension>
     <class>EssentiaLow</class>
     <variations>
-      <variation rank="14" name="Essentia Low GZ" preextension="_esslow.json" conditionally="{'!collection':['tvarchive']}">
+      <variation rank="14" name="Essentia Low GZ" preextension="_esslow.json" conditionally="{'!collection':['tvarchive','librivoxaudio']}">
 <!-- STILL SUBJECT TO ERRORS, ENABLING PER BK REQUEST -->
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
@@ -305,7 +311,7 @@
     <extension>gz</extension>
     <class>EssentiaHigh</class>
     <variations> 
-      <variation name="Essentia High GZ" preextension="_esshigh.json" derivativesource="allowed" conditionally="{'!collection':['tvarchive']}">
+      <variation name="Essentia High GZ" preextension="_esshigh.json" derivativesource="allowed" conditionally="{'!collection':['tvarchive','librivoxaudio']}">
         <dependency format="Essentia Low GZ"  variation="Essentia Low GZ" />
       </variation>
     </variations>
@@ -406,7 +412,7 @@
     <extension>pdf</extension>
     <class>GrayscalePdf</class>
     <variations>
-      <variation name="Grayscale LuraTech PDF" preextension="_bw" conditionally="{'collection':['biodiversity','aceportal']}">
+      <variation name="Grayscale LuraTech PDF" preextension="_bw" conditionally="{'collection':['biodiversity','aceportal','oclsaccessibility']}">
         <dependency format="DjvuXML" variation="Djvu XML"/>
       </variation>
     </variations>
@@ -1591,6 +1597,7 @@
       <variation name="Single Page Processed JPEG Tar" preextension="_jpg" multifile="true"/>
       <variation name="Raw Mekel Tar" preextension="_mekel"/>
       <variation name="RePublisher Proxy Tar" preextension="_proxy_jpg"/>
+      <variation name="RePublisher Full Tar" preextension="_full_jpg"/>
       <variation name="Generic Raw Book Tar" preextension="_images"/>
       <variation name="Raw China Books RAR Tar" preextension="_cnrar"/>
       <variation name="TAR" multifile="true"/> <!--generic default in /editxml-->
@@ -1753,6 +1760,52 @@
     </variations>
   </format>
 
+  <format name="Web Archive Transformation GZ">
+    <extension>gz</extension>
+    <class>WAT</class>
+    <variations>
+      <variation name="ARC Transformation GZ" preextension="_arc.wat" conditionally="{'collection':['ArchiveIt-Collection-1068']}"> 
+        <dependency format="ARC_IA" variation="Internet Archive ARC"/>
+        <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
+      </variation>
+      <variation name="WARC Transformation GZ" preextension="_warc.wat" conditionally="{'collection':['ArchiveIt-Collection-1068']}"> 
+        <dependency format="WARC" variation="Web ARChive"/>
+        <dependency format="WARC GZ" variation="Web ARChive GZ"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="Web Archive Named Entities GZ">
+    <extension>gz</extension>
+    <class>WANE</class>
+    <variations>
+      <variation name="ARC Named Entities GZ" preextension="_arc.wane">
+      </variation>
+      <variation name="WARC Named Entities GZ" preextension="_warc.wane">
+      </variation>
+    </variations>
+  </format>
+  
+  <format name="Longitudinal Graph Analysis TGZ">
+    <extension>tgz</extension>
+    <class>LGA</class>
+    <variations>
+      <variation name="Longitudinal Graph Analysis TGZ" preextension=".lga">
+      </variation>
+    </variations>
+  </format>
+  
+  <format name="Web Archive HostLinks GZ">
+    <extension>gz</extension>
+    <class>HostLinks</class>
+    <variations>
+      <variation name="WARC HostLinks GZ" preextension="_warc.hostlinks" conditionally="{'collection':['webwidecrawl','archiveitdigitalcollection']}"> 
+        <dependency format="WARC" variation="Web ARChive"/>
+        <dependency format="WARC GZ" variation="Web ARChive GZ"/>
+      </variation>
+    </variations>
+  </format>
+
   <format name="Parsed GZ">
     <extension>gz</extension>
     <class>Parse</class>
@@ -1825,6 +1878,14 @@
     <extension>gz</extension>
     <variations>
       <variation name="GZIP" />
+    </variations>
+  </format>
+
+  <!-- generic default for .tgz files that don't match any of the more specific formats -->
+  <format name="TGZ">
+    <extension>tgz</extension>
+    <variations>
+      <variation name="GZipped TAR" />
     </variations>
   </format>
 
