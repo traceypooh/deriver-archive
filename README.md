@@ -1,7 +1,7 @@
 deriver-archive
 ===============
 
-<a href="http://archive.org">Internet Archive's</a> setup for creating h.264, creating ogg theora, and creating thumbnails
+<a href="https://archive.org">Internet Archive's</a> setup for creating h.264, creating ogg theora, and creating thumbnails
 
 This is intended to allow an external user to derive video files in the same way
 (and using most of the same code) that Internet Archive does.
