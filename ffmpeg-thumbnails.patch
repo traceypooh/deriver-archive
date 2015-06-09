@@ -1,25 +1,28 @@
 diff --git a/ffmpeg.c b/ffmpeg.c
-index 9792281..a31ffd7 100644
+index 40d929d..cc98c2f 100644
 --- a/ffmpeg.c
 +++ b/ffmpeg.c
-@@ -858,6 +858,12 @@ static void do_video_out(AVFormatContext *s,
- 
-     /* by default, we output a single frame */
-     nb_frames = 1;
-+    {
-+      // long pts       = ist->decoded_frame->pts; // <== jan2014 no longer set
-+      long pts          = av_rescale_q(ist->pts, AV_TIME_BASE_Q, ist->st->time_base);
-+      s->secxxx         = (pts==AV_NOPTS_VALUE || pts<0 ? 0 : (long int)floor( av_q2d(ist->st->time_base) * pts ));
-+      snprintf(s->debugxxx, 60, "pts:%ld tbn:%d/%d frame:%d ==> %ld\n", pts, ist->st->time_base.num, ist->st->time_base.den, ist->st->codec->frame_number, s->secxxx);
-+    }
- 
-     format_video_sync = video_sync_method;
-     if (format_video_sync == VSYNC_AUTO) {
+@@ -926,7 +926,14 @@ static void do_video_out(AVFormatContext *s,
+         /* by default, we output a single frame */
+         nb0_frames = 0;
+         nb_frames = 1;
+-
++	{
++	  // long pts       = ist->decoded_frame->pts; // <== jan2014 no longer set
++	  long pts          = av_rescale_q(ist->pts, AV_TIME_BASE_Q, ist->st->time_base);
++	  s->secxxx         = (pts==AV_NOPTS_VALUE || pts<0 ? 0 : (long int)floor( av_q2d(ist->st->time_base) * pts ));
++	  snprintf(s->debugxxx, 60, "pts:%ld tbn:%d/%d frame:%d ==> %ld\n", pts, ist->st->time_base.num, ist->st->time_base.den, ist->st->codec->frame_number, s->secxxx);
++	}
++	
++	
+         format_video_sync = video_sync_method;
+         if (format_video_sync == VSYNC_AUTO) {
+             if(!strcmp(s->oformat->name, "avi")) {
 diff --git a/libavformat/img2enc.c b/libavformat/img2enc.c
-index 37dfbec..845fb7c 100644
+index f56c39e..388e1ea 100644
 --- a/libavformat/img2enc.c
 +++ b/libavformat/img2enc.c
-@@ -97,6 +97,10 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
+@@ -98,6 +98,10 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
                     img->img_number, img->path);
              return AVERROR(EINVAL);
          }
@@ -31,13 +34,13 @@ index 37dfbec..845fb7c 100644
              if (avio_open2(&pb[i], filename, AVIO_FLAG_WRITE,
                             &s->interrupt_callback, NULL) < 0) {
 diff --git a/libavformat/avformat.h b/libavformat/avformat.h
-index f21a1d6..0fadcc5 100644
+index 719c23b..0def27e 100644
 --- a/libavformat/avformat.h
 +++ b/libavformat/avformat.h
-@@ -1739,7 +1739,7 @@ typedef struct AVFormatContext {
-      * - demuxing: Set by user.
+@@ -1799,7 +1799,7 @@ typedef struct AVFormatContext {
+      * Demuxing: Set by user.
       */
-     uint8_t *dump_separator;
+     int (*open_cb)(struct AVFormatContext *s, AVIOContext **p, const char *url, int flags, const AVIOInterruptCB *int_cb, AVDictionary **options);
 -} AVFormatContext;
 +char debugxxx[60]; long secxxx; } AVFormatContext;
  
