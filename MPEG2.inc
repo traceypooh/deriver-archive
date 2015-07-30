@@ -14,7 +14,7 @@ require_once('Module.inc');
 class MPEG2 extends Module
 {
   public function version() 
-  { return '$Revision: 64055 $ $Date: 2015-01-14 19:06:24 +0000 (Wed, 14 Jan 2015) $'; }
+  { return '$Id: a4919f813cca52ba4b96e5f249842e38df5370e1 $'; }
 
 
   public function dvd()

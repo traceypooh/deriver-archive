@@ -8,7 +8,7 @@ class Thumbnails extends Module
   
   
   public function version()
-  { return '$Revision: 50517 $ $Date: 2013-03-28 23:30:10 +0000 (Thu, 28 Mar 2013) $'; }
+  { return '$Id: 65f6f73ab4a3f47212a2c839039a04efafe3ea2a $'; }
   
 
   public function derive($src=null, $dest=null, $identify=null, $first=true, $title=1)

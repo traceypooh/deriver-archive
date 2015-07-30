@@ -4,7 +4,7 @@ require_once('Module.inc');
 class Ogv extends Module
 {
   public function version()
-  { return '$Revision: 59932 $ $Date: 2014-06-08 00:40:43 +0000 (Sun, 08 Jun 2014) $'; }
+  { return '$Id: 5af0b932297cde55eb0ac7dd56503713df55d300 $'; }
   
 
 

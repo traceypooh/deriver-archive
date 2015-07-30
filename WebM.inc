@@ -4,7 +4,7 @@ require_once('Module.inc');
 class WebM extends Module
 {
   public function version() 
-  { return '$Revision: 51514 $ $Date: 2013-05-20 19:19:45 +0000 (Mon, 20 May 2013) $'; }
+  { return '$Id: d6a93eefd23ce87777345b172667fad5316ca8ef $'; }
 
   
   public function derive($src=null, $dest=null, $identify=null, $first=true, $title=1)
