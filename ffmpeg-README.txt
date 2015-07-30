@@ -2,7 +2,6 @@
 
 ###############################################################################
 # author: Tracey Jaquith.  Software license GPL version 2.
-# last updated:   $Date: 2012-05-30 23:11:52 +0000 (Wed, 30 May 2012) $
 ###############################################################################
 # We compile our own ffmpeg because we have config options we want differently
 # from the std ubuntu package AND because we have patches.
@@ -33,6 +32,9 @@ if [ $(uname -s) == 'Darwin' ]; then
 
 --extra-ldflags=-L/opt/local/lib
 --extra-ldflags=-L/usr/local/lib
+
+--enable-libfreetype                                                                                                                                                                
+--with-freetype-config=/usr/local/bin/freetype-config                                                                                                                               
 ";
 
   DIR=/opt/local/x;
@@ -210,16 +212,16 @@ cd $DIR/x264;
 # 2nd line of disables is because it started Fing up ~May2013 and including
 #   dlopen() ... dlclose() lines even though we dont want to allow shared...
 if [ "${SHORTNAME?}" == "mac" ]; then
-  PREFIX=/opt/local;
+  XEXTRA="--prefix=/opt/local";
 else
-  PREFIX=/usr/local;
+  XEXTRA="--disable-cli"; # jul15, 2015 x264 binary compiling being PITA so disabled...
 fi
 
 ./configure --enable-static --enable-pic --disable-asm \
 --disable-avs --disable-opencl \
 --extra-cflags=-I${DIRIN?}/local/include \
 --extra-ldflags=-L${DIRIN?}/local/lib \
---prefix=$PREFIX;
+$XEXTRA;
 
 make -j4;
 sudo make install;
