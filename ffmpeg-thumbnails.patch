@@ -28,7 +28,7 @@ index f56c39e..388e1ea 100644
          }
 +
 +if (av_get_frame_filename(filename, sizeof(filename), img->path, s->secxxx) < 0) return AVERROR(EINVAL);
-+av_log(NULL, AV_LOG_WARNING, s->debugxxx);
++av_log(NULL, AV_LOG_WARNING, "%s", s->debugxxx);
 +
          for (i = 0; i < 4; i++) {
              if (avio_open2(&pb[i], filename, AVIO_FLAG_WRITE,
