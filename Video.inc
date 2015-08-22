@@ -2659,7 +2659,7 @@ frame|pkt_pos=658752|pict_type=P',
               unset($ary[$k]);
           }
           
-          $str = Util::cmd("ssh root@{$r[0]} \"export PETABOX_HOME=$pethome FI='{$r[1]}/{$fi}'; php -r '@spl_autoload(ia); echo json_encode(Video::identify(@getenv(FI),0,2000,0,TV::is_tv(@getenv(FI))));' \"  |tail -n1", "PRINT");
+          $str = Util::cmd("ssh root@{$r[0]} \"export PETABOX_HOME=$pethome FI='{$r[1]}/{$fi}'; php -r 'spl_autoload(@ia); echo json_encode(Video::identify(@getenv(FI),0,2000,0,TV::is_tv(@getenv(FI))));' \"  |tail -n1", "PRINT");
           $ffi = json_decode($str,1);
           ksort($ffi);
           
