@@ -29,6 +29,7 @@
         <dependency format="MPEG1" variation="MPEG1" />
         <dependency format="QuickTime" variation="QuickTime" />
         <dependency format="MPEG4" variation="MPEG4" />
+        <dependency format="Windows Media" variation="Windows Media" />
       </variation>
       <!-- NOTE: deriv *NOT* usually made.  see Deriver.loadCollectionRules() -->
       <variation rank="6" name="64Kbps MP3" parameter="-b64 -a --resample 22.05" preextension="_64kb" conditionally="{'collection':['podcast_corydoctorow','librivoxaudio']}">
@@ -53,6 +54,7 @@
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MIDI"       variation="MIDI" />
+        <dependency format="MPEG Audio" variation="MPEG Audio"/>
       </variation>
       <variation rank="6" name="MP3 Sample" parameter="--preset medium" preextension="_sample" conditionally="{'collection':['samples_only','acdc']}">
         <dependency format="WAVE"       variation="WAVE" />
@@ -75,6 +77,7 @@
         <dependency format="Real Audio" variation="Real Audio"/>
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
+        <dependency format="MPEG Audio" variation="MPEG Audio"/>
       </variation>
       <variation rank="6" name="VBR MP3" parameter="--preset standard">
         <dependency format="Segment Data" variation="Segment Data" />
@@ -97,6 +100,7 @@
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MIDI"       variation="MIDI" />
+        <dependency format="MPEG Audio" variation="MPEG Audio"/>
       </variation>
       <variation name="320Kbps MP3" preextension="_320kb" />
       <variation name="256Kbps MP3" preextension="_256kb" />
@@ -180,6 +184,7 @@
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MIDI"       variation="MIDI" />
+        <dependency format="MPEG Audio" variation="MPEG Audio"/>
       </variation>
     </variations>
   </format>
@@ -221,6 +226,7 @@
     <variations>
       <variation name="Columbia Peaks" conditionally="{'!collection':['tvarchive','librivoxaudio']}">
 <!-- ENABLING PER BK REQUEST, SUBJECT TO TRANSIENT DOCKER STARTUP ERRORS -->
+        <dependency format="Windows Media"  variation="Windows Media" />
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
         <dependency format="Flac"       variation="24bit Flac" />
@@ -240,6 +246,7 @@
         <dependency format="Real Audio" variation="Real Audio"/>
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
+        <dependency format="MPEG Audio" variation="MPEG Audio"/>
 <!-- END COMMENTED SECTION -->
       </variation>
     </variations>
@@ -271,6 +278,7 @@
         <dependency format="Real Audio" variation="Real Audio"/>
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
+        <dependency format="MPEG Audio" variation="MPEG Audio"/>
 -->
 <!-- END COMMENTED SECTION -->
       </variation>
@@ -282,7 +290,6 @@
     <class>EssentiaLow</class>
     <variations>
       <variation rank="14" name="Essentia Low GZ" preextension="_esslow.json" conditionally="{'!collection':['tvarchive','librivoxaudio']}">
-<!-- STILL SUBJECT TO ERRORS, ENABLING PER BK REQUEST -->
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
         <dependency format="Flac"       variation="24bit Flac" />
@@ -302,7 +309,7 @@
         <dependency format="Real Audio" variation="Real Audio"/>
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
-<!-- END COMMENTED SECTION-->             
+        <dependency format="MPEG Audio" variation="MPEG Audio"/>
       </variation>
     </variations>
   </format>
@@ -343,6 +350,7 @@
         <dependency format="3GP Audio"  variation="3GP Audio" />        
         <dependency format="MP3"        variation="48Kbps MP3"/>
         <dependency format="MP3"        variation="32Kbps MP3"/>
+        <dependency format="MPEG Audio" variation="MPEG Audio"/>
       </variation>
     </variations>
   </format>  
@@ -1330,6 +1338,7 @@
         <dependency format="MP3"        variation="48Kbps MP3"/>
         <dependency format="MP3"        variation="32Kbps MP3"/>
         <dependency format="Ogg Vorbis" variation="Ogg Vorbis"/>
+        <dependency format="MPEG Audio" variation="MPEG Audio"/>
 
         <!-- much less common formats (but reflects reality of cluster as of 11/2014) - tracey -->
         <dependency format="MP3"        variation="104Kbps MP3"/>
@@ -1554,11 +1563,12 @@
       <variation name="Name Metadata" preextension="_names"/>
     </variations>
   </format>
-  <!-- and this one contains BHL's version of METS metadata -->
-  <format name="BHLMETS">
+  <!-- and the second is a variation of METS that contains BHL's version of METS metadata -->
+  <format name="METS">
     <extension>xml</extension>
     <variations>
       <variation name="Biodiversity Heritage Library METS" preextension="_bhlmets"/>
+      <variation name="METS" preextension="_mets"/> <!-- default METS not exclusive to BHL -->
     </variations>
   </format>
 
@@ -1764,11 +1774,11 @@
     <extension>gz</extension>
     <class>WAT</class>
     <variations>
-      <variation name="ARC Transformation GZ" preextension="_arc.wat" conditionally="{'collection':['ArchiveIt-Collection-1068']}"> 
+      <variation name="ARC Transformation GZ" preextension="_arc.wat" conditionally="{'collection':['ArchiveIt-Collection-1068','geocities']}"> 
         <dependency format="ARC_IA" variation="Internet Archive ARC"/>
         <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
       </variation>
-      <variation name="WARC Transformation GZ" preextension="_warc.wat" conditionally="{'collection':['ArchiveIt-Collection-1068']}"> 
+      <variation name="WARC Transformation GZ" preextension="_warc.wat" conditionally="{'collection':['ArchiveIt-Collection-1068','geocities']}"> 
         <dependency format="WARC" variation="Web ARChive"/>
         <dependency format="WARC GZ" variation="Web ARChive GZ"/>
       </variation>
