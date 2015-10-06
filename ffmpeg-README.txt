@@ -34,7 +34,6 @@ if [ $(uname -s) == 'Darwin' ]; then
 --extra-ldflags=-L/usr/local/lib
 
 --enable-libfreetype                                                                                                                                                                
---with-freetype-config=/usr/local/bin/freetype-config                                                                                                                               
 ";
 
   DIR=/opt/local/x;
