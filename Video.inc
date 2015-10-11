@@ -838,12 +838,12 @@ class Video
                                        (60 * $mat[2]) +
                                        $mat[3]) : null),
 
-      'ffmpeg-version' => (preg_match('/ built on ([^ ]+ +\d+ +\d\d\d\d \d\d:\d\d:\d\d )/', $out, $mat) ?
-                           date("Ymd",strtotime($mat[1])) :
-                           (preg_match('/^FFmpeg version SVN-r(\d+)/', $out, $mat) ?
-                            $mat[1] :
-                            (preg_match('/^(FF|ff)mpeg version (git-[^,]+)/',$out,$mat) ?
-                             $mat[2] : ''))),
+      // example (wily+):
+      //   built with gcc 5.2.1 (Ubuntu 5.2.1-21ubuntu2) 20151003      
+      'ffmpeg-version' => (preg_match('/\n  built with .*? \([^\)]+\) (\d{8})\n/', $out, $mat) ?
+                           $mat[1] : 
+                           (preg_match('/ built on ([^ ]+ +\d+ +\d\d\d\d \d\d:\d\d:\d\d )/', $out, $mat) ?
+                            date("Ymd",strtotime($mat[1])) : "")),
       );
 
 
