@@ -105,7 +105,6 @@ function myErrorHandler($errno, $errstr, $errfile, $errline)
 
 
 // Autoloader!  Invoked automagically by PHP (v5). Loads missing class definitions dynamically!
-spl_autoload_register(function($class_name)
-{
+spl_autoload_register(function($class_name){
   require_once("$class_name.inc");
-}
+});
