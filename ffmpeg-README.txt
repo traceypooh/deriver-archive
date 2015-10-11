@@ -107,7 +107,7 @@ if [ $(uname -s) = 'Darwin' ]; then
   #   brew search <pkg name>
   #   brew install <pkg name>
 
-  brew install  lame theora libvorbis openjpeg faac freetype yasm opencore-amr xvid libvpx a52dec pkgconfig; # bzip2
+  brew install  lame theora libvorbis openjpeg faac freetype yasm opencore-amr xvid libvpx a52dec pkgconfig opus-tools x265; # bzip2
   brew install  sdl; # SDL stuff for ffplay
 
 else
