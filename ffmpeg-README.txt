@@ -308,6 +308,7 @@ ffmpeg_patch;
 ###############################################################################
 cd $DIR;
 cd ffmpeg;
+if [ "${SHORTNAME?}" = "mac" ]; then brew uninstall x264; fi; # ensure we use our built x264
 ./configure $CONFIG;
 
 
@@ -325,6 +326,7 @@ else
   echo;echo;echo "NOTE: any changes to $MYDIR need to be committed..."
 fi
       
+if [ "${SHORTNAME?}" = "mac" ]; then brew install x264; fi; # ensured we use our built x264
 
     
 
