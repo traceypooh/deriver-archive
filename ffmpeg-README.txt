@@ -117,7 +117,7 @@ else
   sudo apt-get -y install  \
     libbluray-dev \
     libopus-dev \
-    libschroedinger-dev  libdirac-dev  dirac \
+    libschroedinger-dev \
     libfaac-dev \
     libgsm1-dev \
     libmp3lame-dev \
@@ -155,7 +155,7 @@ else
   
   # ugh, horrid, libopenjpeg is facepalm again (no .a distributed in wily) xxx
   set +e;
-  JPA=$(dirname $(find $DIR -name libopenjpeg.a)); # where liboppenjpeg.so lives
+  JPA=$(dirname $(find -L $DIR -name libopenjpeg.a)); # where liboppenjpeg.so lives
   set -e;
   if [ "$JPA" = "" ]; then
     cd $DIR;
@@ -167,7 +167,7 @@ else
     cd $DIR;
   fi;
   
-  JPA=$(dirname $(find $DIR -name libopenjpeg.a)); # where liboppenjpeg.so lives
+  JPA=$(dirname $(find -L $DIR -name libopenjpeg.a)); # where liboppenjpeg.so lives
   CONFIG+=(--extra-ldflags=-L$JPA --extra-ldflags=-L$LGNU --extra-ldflags=-lfreetype);
 fi;
 
