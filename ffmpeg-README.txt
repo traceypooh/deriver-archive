@@ -12,9 +12,9 @@
 ###############################################################################
 DIR=/tmp/f;
 DIRIN=$DIR/usr;
-# eg: "trusty" for ubuntu; or "mac"
+# eg: "xenial" for ubuntu; or "mac"
 SHORTNAME=$(lsb_release -cs 2>/dev/null  ||  echo mac);
-if [ "$SHORTNAME" != "mac"  -a  "$SHORTNAME" != "precise"  -a  "$SHORTNAME" != "trusty"  -a  "$SHORTNAME" != "wily" ]; then
+if [ "$SHORTNAME" != "mac"  -a  "$SHORTNAME" != "trusty"  -a  "$SHORTNAME" != "wily"  -a  "$SHORTNAME" != "xenial" ]; then
   echo "unsupported OS"; exit 1;
 fi
 
@@ -39,26 +39,26 @@ typeset -a CONFIG; # array
 # NOTE: --enable-version3  is for prores decoding
 # NOTE: libopenjpeg allows motion-JPEG jp2 variant
 CONFIG+=(
---enable-libfaac 
---enable-libmp3lame 
---enable-libfontconfig 
+--enable-libfaac
+--enable-libmp3lame
+--enable-libfontconfig
 --enable-libfreetype
---enable-libopencore-amrnb 
---enable-libopencore-amrwb 
---enable-libopenjpeg 
+--enable-libopencore-amrnb
+--enable-libopencore-amrwb
+--enable-libopenjpeg
 --enable-libopus
---enable-libtheora 
---enable-libvorbis 
---enable-libvpx  
---enable-libx264 
---enable-libx265 
---enable-libxvid 
+--enable-libtheora
+--enable-libvorbis
+--enable-libvpx
+--enable-libx264
+--enable-libx265
+--enable-libxvid
 
 --enable-avfilter
 --enable-gpl
---enable-nonfree 
---enable-version3 
---enable-static 
+--enable-nonfree
+--enable-version3
+--enable-static
 --disable-shared
 --disable-ffserver
 --disable-vdpau
@@ -78,13 +78,13 @@ RETRY+=(
 if [ $(uname -s) = 'Darwin' ]; then
   MYCC="--cc=clang"; # NOTE: esp. for mac lion+!
   CONFIG+=($MYCC);
-  
-  CONFIG+=(--disable-vda); # esp. for mac lion+!  
+
+  CONFIG+=(--disable-vda); # esp. for mac lion+!
   CONFIG+=(--enable-pic);  # for mavericks+, compile PIC since issue w/ making *static* build in ffmpeg otherwise!
- 
+
   CONFIG+=(
 --enable-sdl
---enable-ffplay 
+--enable-ffplay
 
 --prefix=/usr/local
 --extra-cflags=-I/usr/local/include
@@ -93,7 +93,7 @@ if [ $(uname -s) = 'Darwin' ]; then
 
 --extra-ldflags=-L/opt/local/lib
 --extra-ldflags=-L/usr/local/lib
-);             
+);
 
 
   DIR=/opt/local/x;
@@ -143,7 +143,7 @@ else
 
 
   CONFIG+=(
---prefix=/usr         
+--prefix=/usr
 --enable-libgsm
 --enable-libspeex
 --extra-ldflags=-static
@@ -152,7 +152,7 @@ else
   # helps with finding crazily located libfreetype (and more)
   LGNU=/usr/lib/x86_64-linux-gnu;
   CONFIG+=(--pkg-config=/usr/bin/pkg-config --pkg-config-flags=--static);
-  
+
   # ugh, horrid, libopenjpeg is facepalm again (no .a distributed in wily) xxx
   set +e;
   JPA=$(dirname $(find -L $DIR -name libopenjpeg.a)); # where liboppenjpeg.so lives
@@ -166,10 +166,18 @@ else
     make -j4;
     cd $DIR;
   fi;
-  
+
   JPA=$(dirname $(find -L $DIR -name libopenjpeg.a)); # where liboppenjpeg.so lives
   CONFIG+=(--extra-ldflags=-L$JPA --extra-ldflags=-L$LGNU --extra-ldflags=-lfreetype);
 fi;
+
+
+# zero-day risk, sigh, Jan 12,2016:
+# http://news.softpedia.com/news/zero-day-ffmpeg-vulnerability-lets-anyone-steal-files-from-remote-machines-498880.shtml
+# FIXME xxx REEVAL THIS ONCE FFMPEG SOURCE HAS FIXED THIS SECURITY RISK!
+CONFIG+=(
+  --disable-demuxer=hls --disable-protocol=concat,hls
+);
 
 
 function line(){ perl -e 'print "_"x80; print "\n\n";'; }
@@ -213,7 +221,7 @@ function ffmpeg_src()
   if [ ! -e ffmpeg ]; then
     git clone git://source.ffmpeg.org/ffmpeg.git;
   fi
-  
+
   cd ffmpeg;
   git reset --hard;
   git clean -f;
@@ -230,7 +238,7 @@ function ffmpeg_src()
 #    -Better saved thumbnail names
 #    -Better quality theora (like "ffmpeg2theora" tool; use both bitrate *and* qscale)
 #    -Better copy for MPEG-TS streams (eg: linux recording)
-#       NOTE: disabled for now since incompatible w/ mar2012 ffmpeg and 
+#       NOTE: disabled for now since incompatible w/ mar2012 ffmpeg and
 #             not using MPEG-TS copy at the moment... (and certainly basic MPEG-TS
 #             stream copying is working for video w/ detected width/height now...)
 function ffmpeg_patch()
@@ -241,14 +249,14 @@ function ffmpeg_patch()
     if [ "$PATDIR" = "" ]; then
       # find the patches dir!
       if [ -e "$MYDIR/$p" ]; then
-        PATDIR=file://$MYDIR; 
+        PATDIR=file://$MYDIR;
       elif [ -e "$MYDIR/../lib/ffmpeg/$p" ]; then
         PATDIR=file://$MYDIR/../lib/ffmpeg;
       else
         PATDIR=http://archive.org/~tracey/downloads/patches;
       fi
     fi
-    
+
     curl "$PATDIR/$p" >| ../$p;
     echo APPLYING PATCH $p;
     patch -p1 < ../$p;
@@ -269,6 +277,9 @@ cd $DIR/ffmpeg;
 ./configure;
 make -j4;
 env DESTDIR=$DIR  make install;
+
+cp ffmpeg               $MYDIR/ffmpeg.std;
+cp ffprobe              $MYDIR/ffprobe.std;
 
 
 ###############################################################################
@@ -293,7 +304,7 @@ $XEXTRA;
 make -j4;
 sudo make install;
 
-    
+
 
 ffmpeg_src;
 ffmpeg_patch;
@@ -325,10 +336,10 @@ else
   set -x;
   echo;echo;echo "NOTE: any changes to $MYDIR need to be committed..."
 fi
-      
+
 if [ "${SHORTNAME?}" = "mac" ]; then brew install x264; fi; # ensured we use our built x264
 
-    
+
 
 
 
@@ -339,31 +350,31 @@ if [ "${SHORTNAME?}" = "mac" ]; then
   svn checkout svn://svn.mplayerhq.hu/mplayer/trunk mplayer;
   cd mplayer;
   mv ../ffmpeg .; # needed by mplayer -- will reconfig & remake it, sigh...
-  
-  
+
+
   # make it **not** recompile our ffmpeg (and later install bad libs) on us!!
   perl -i -p \
     -e 's/^\$\(FFMPEGLIBS\)\: \$\(FFMPEGFILES\) config\.h\n//;' \
     -e 's/^.*C ffmpeg.*\n//;' \
     Makefile;
-    
+
   # worked finally!
   perl -i -pe 's/\-mdynamic-no-pic //' configure;
-  
+
   # NOTE:  "disable-tremor" (seemed to be getting in way of vorbis)
   # NOTE:  needed order below ".. -lSDLMain -lopenjpeg .." to avoid libopenjpeg main from intercepting mplayer main (!!)
   ./configure --prefix=/usr/local  ${MYCC?}  --enable-menu  --enable-x264 --enable-theora --enable-liba52  --with-freetype-config=/usr/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I${DIR?}/x264 -I${DIR?}/usr/local/include -I/usr/local/include" --extra-ldflags="-L${DIR?}/x264" --extra-libs="-ltheoraenc -la52 -lx264 -llzma -lSDLMain -lopenjpeg";
 
   make -j3;
   make install;
-  
+
   mv ffmpeg ..;
-  
-  
+
+
   ################################################################################
   #    unrelated brew packages that tracey likes/uses:
   # brew install lesspipe pcre wget ddrescue lftp spidermonkey avidemux exif coreutils pstree
-  # brew install p7zip unrar colordiff jp2a freetype # py-pygments 
+  # brew install p7zip unrar colordiff jp2a freetype # py-pygments
   # brew install imagemagick
   #
   # brew install wine
