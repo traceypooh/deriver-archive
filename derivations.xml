@@ -4,9 +4,7 @@
   <!-- semblance of readability.  Thanks - very appreciated!  tracey -->
 
 
-  <!--
-  class is the name of the corresponding perl/PHP class
-  -->
+  <!-- class is the name of the corresponding PHP class -->
 
   <format name="WAVE">
     <extension>wav</extension>
@@ -23,18 +21,19 @@
     <category>lossy</category>
     <variations>
       <!-- NOTE: deriv *NOT* usually made.  see Deriver.loadCollectionRules() -->
-      <variation rank="6" name="MP3" parameter="-b64 -a --resample 22.05" conditionally="{'collection':['tvarchive','internetarchivepresents']}">
+      <variation rank="6" name="MP3" parameter="-b64 -a --resample 22.05" conditionally="{'collection':['tvarchive','internetarchivepresents','tv_ads']}">
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2" />
         <dependency format="MPEG1" variation="MPEG1" />
         <dependency format="QuickTime" variation="QuickTime" />
         <dependency format="MPEG4" variation="MPEG4" />
         <dependency format="Windows Media" variation="Windows Media" />
+        <dependency format="Matroska" variation="Matroska" /> <!--for rare utube sources-->
+        <dependency format="WebM"     variation="WebM" />     <!--for rare utube sources-->
+        <dependency format="h.264 HD" variation="h.264 HD" /> <!--for rare utube sources w/ SD/HD toggle -->
       </variation>
       <!-- NOTE: deriv *NOT* usually made.  see Deriver.loadCollectionRules() -->
-      <variation rank="6" name="64Kbps MP3" parameter="-b64 -a --resample 22.05" preextension="_64kb" derivativesource="allowed" conditionally="{'collection':['podcast_corydoctorow','librivoxaudio','dopetapes']}">
-        <dependency format="h.264"       variation="h.264" />
-
+      <variation rank="6" name="64Kbps MP3" parameter="-b64 -a --resample 22.05" preextension="_64kb" conditionally="{'collection':['podcast_corydoctorow','librivoxaudio']}">
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
         <dependency format="Flac"       variation="24bit Flac" />
@@ -226,7 +225,7 @@
     <extension>afpk</extension>
     <class>AudioFingerprint</class>
     <variations>
-      <variation name="Columbia Peaks" conditionally="{'!collection':['tvarchive','librivoxaudio']}">
+      <variation name="Columbia Peaks" parameter="precompute --precompute-peaks --density 70" conditionally="{'!collection':['tvarchive','librivoxaudio','political_ads']}">
 <!-- ENABLING PER BK REQUEST, SUBJECT TO TRANSIENT DOCKER STARTUP ERRORS -->
         <dependency format="Windows Media"  variation="Windows Media" />
         <dependency format="WAVE"       variation="WAVE" />
@@ -258,6 +257,22 @@
     <extension>afpt</extension>
     <class>AudioFingerprint</class>
     <variations>
+
+      <!-- TV ARCHIVE ONLY-->
+      <variation name="Columbia Fingerprint TV" preextension="_tva" derivativesource="allowed" parameter="precompute --samplerate 11025 --density 100 --shifts 1" conditionally="{'collection':['tvarchive','political_ads']}">
+        <dependency format="MP3"        variation="VBR MP3"/>
+        <dependency format="MP3"        variation="MP3"/>
+        <dependency format="MP3"        variation="64Kbps MP3"/>
+        <dependency format="Matroska" variation="Matroska" /> <!--for rare utube sources-->
+      </variation>
+      <variation name="Columbia Sparse Fingerprint TV" preextension="_tva20" derivativesource="allowed" parameter="precompute --samplerate 11025 --density 20 --shifts 1" conditionally="{'collection':['tvarchive','political_ads']}">
+        <dependency format="MP3"        variation="VBR MP3"/>
+        <dependency format="MP3"        variation="MP3"/>
+        <dependency format="MP3"        variation="64Kbps MP3"/>
+      </variation>
+
+      <!-- ALL OTHER AUDIO ITEMS -->
+
       <variation name="Columbia Fingerprint">
 <!-- DEPRECATED FOR NOW, GENERATING Columbia Peaks INSTEAD -->
 <!--
@@ -286,7 +301,7 @@
       </variation>
     </variations>
   </format>
-  
+
   <format name="Essentia Low GZ">
     <extension>gz</extension>
     <class>EssentiaLow</class>
@@ -319,12 +334,12 @@
   <format name="Essentia High GZ">
     <extension>gz</extension>
     <class>EssentiaHigh</class>
-    <variations> 
+    <variations>
       <variation name="Essentia High GZ" preextension="_esshigh.json" derivativesource="allowed" conditionally="{'!collection':['tvarchive','librivoxaudio']}">
         <dependency format="Essentia Low GZ"  variation="Essentia Low GZ" />
       </variation>
     </variations>
-  </format>  
+  </format>
 
   <format name="Spectrogram">
     <extension>png</extension>
@@ -349,13 +364,13 @@
         <dependency format="Ogg Vorbis" variation="Ogg Vorbis"/>
         <!-- <dependency format="Real Audio" variation="Real Audio"/> -->
         <!-- <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/> -->
-        <dependency format="3GP Audio"  variation="3GP Audio" />        
+        <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MP3"        variation="48Kbps MP3"/>
         <dependency format="MP3"        variation="32Kbps MP3"/>
         <dependency format="MPEG Audio" variation="MPEG Audio"/>
       </variation>
     </variations>
-  </format>  
+  </format>
 
   <format name="PURETAR">
     <class/>
@@ -652,7 +667,7 @@
       </variation>
     </variations>
   </format>
-    
+
 
 
   <format name="MPEG2">
@@ -798,7 +813,7 @@
     <category>lossy</category>
     <class>MPEG4</class>
     <variations>
-      <!-- 
+      <!--
          -  Parameters started with stock ffmpeg "libx264-baseline.ffpreset" and then extended.
          -  No b-frames - keep the profile simple!
          -  No cabac arithimetic coding. (corresponds to specs for level 1.3 video)
@@ -807,7 +822,7 @@
          -  Then peg to approx 700kb/sec video bitrate.
         -->
       <variation rank="8" name="h.264" parameter="640x480  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=30:bitrate=700:vbv_maxrate=768:vbv_bufsize=1400  -movflags faststart -ac 2 -b:a 128k -ar 44100">
-        <!-- 
+        <!--
            for now we decided to make TV !news same HQ deriv.  we can make a 1/4 pixel-size deriv that
            targets about 10% (compared to ~25%) the original by swapping prior line with this:
            <variation rank="8" name="h.264" conditionally="[
@@ -986,7 +1001,7 @@
     <class>WebM</class>
     <category>lossy</category>
     <variations>
-      <variation rank="11" name="WebM" parameter="640x480 -fpre /petabox/sw/lib/ffmpeg/libvpx-360p.ffpreset" conditionally="{'!collection':['tvarchive']}">
+      <variation rank="11" name="WebM" parameter="640x480 -fpre /petabox/sw/lib/ffmpeg/libvpx-360p.ffpreset" conditionally="{'!collection':['tvarchive','television','democracy_now_vid']}">
 <!--NEVER WENT LIVE: WEBM
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
@@ -1326,7 +1341,7 @@
         <dependency format="Digital Theater Systems Audio" variation="Digital Theater Systems Audio"/>
         <dependency format="Real Audio" variation="Real Audio"/>
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
-        <dependency format="3GP Audio"  variation="3GP Audio" />        
+        <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MIDI"       variation="MIDI" />
         <dependency format="VBR MP3"    variation="VBR MP3"/>
         <dependency format="MP3"        variation="MP3"/>
@@ -1579,7 +1594,7 @@
     <extension>gz</extension>
     <class>AbbyyXML</class>
     <variations>
-      <variation name="Abbyy GZ" preextension="_abbyy" derivativesource="allowed" conditionally="{'!collection':['acs4_data','mathematicsimage','usfederalcourtsdev']}">  
+      <variation name="Abbyy GZ" preextension="_abbyy" derivativesource="allowed" conditionally="{'!collection':['acs4_data','mathematicsimage','usfederalcourtsdev']}">
         <dependency format="ZIP" variation="Single Page Processed JP2 ZIP"/>
         <dependency format="ZIP" variation="Single Page Processed JP2 Tar"/>
         <dependency format="ZIP" variation="Single Page Processed JPEG ZIP"/>
@@ -1776,11 +1791,11 @@
     <extension>gz</extension>
     <class>WAT</class>
     <variations>
-      <variation name="ARC Transformation GZ" preextension="_arc.wat" conditionally="{'collection':['ArchiveIt-Collection-1068','geocities']}"> 
+      <variation name="ARC Transformation GZ" preextension="_arc.wat" conditionally="{'collection':['ArchiveIt-Collection-1068','geocities']}">
         <dependency format="ARC_IA" variation="Internet Archive ARC"/>
         <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
       </variation>
-      <variation name="WARC Transformation GZ" preextension="_warc.wat" conditionally="{'collection':['ArchiveIt-Collection-1068','geocities']}"> 
+      <variation name="WARC Transformation GZ" preextension="_warc.wat" conditionally="{'collection':['ArchiveIt-Collection-1068','geocities','ArchiveIt-Collection-2950','imlsmuseumuniverse']}">
         <dependency format="WARC" variation="Web ARChive"/>
         <dependency format="WARC GZ" variation="Web ARChive GZ"/>
       </variation>
@@ -1797,7 +1812,7 @@
       </variation>
     </variations>
   </format>
-  
+
   <format name="Longitudinal Graph Analysis TGZ">
     <extension>tgz</extension>
     <class>LGA</class>
@@ -1806,22 +1821,22 @@
       </variation>
     </variations>
   </format>
-  
+
   <format name="Web Archive HostLinks GZ">
     <extension>gz</extension>
     <class>HostLinks</class>
     <variations>
-      <variation name="WARC HostLinks GZ" preextension="_warc.hostlinks" conditionally="{'collection':['webwidecrawl','archiveitdigitalcollection']}"> 
+      <variation name="WARC HostLinks GZ" preextension="_warc.hostlinks" conditionally="{'collection':['webwidecrawl','archiveitdigitalcollection','imlsmuseumuniverse']}">
         <dependency format="WARC GZ" variation="Web ARChive GZ"/>
       </variation>
     </variations>
   </format>
-  
+
   <format name="Web Archive UrlLinks Log">
     <extension>log</extension>
     <class>UrlLinks</class>
     <variations>
-      <variation name="WARC UrlLinks Log" preextension="_warc.urllinks" conditionally="{'collection':['wide00012']}"> 
+      <variation name="WARC UrlLinks Log" preextension="_warc.urllinks" conditionally="{'collection':['wide00012']}">
         <dependency format="WARC GZ" variation="Web ARChive GZ"/>
       </variation>
     </variations>
@@ -1831,7 +1846,7 @@
     <extension>gz</extension>
     <class>Parse</class>
     <variations>
-      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','wide00005','nlaweb2013','survey_00000','nls_humanidades','nls_elec2011','nls_2009','nls_2010','nls_2011','nls_2012','nls_2013','20thcenturyweb','nara109thcongressionalcrawl','nara110thcongressionalcrawl','nara111thcongressionalcrawl','nara112thcongressionalcrawl','misc_govcrawls','nl_israel','nlil_2013','naraweb','ArchiveIt-Collection-1078', 'ArchiveIt-Collection-924','nla_2014','ArchiveIt-Collection-1068']}"> 
+      <variation name="Parsed GZ" preextension="_parsed.json" conditionally="{'collection':['shallow_00004','wide00005','nlaweb2013','survey_00000','nls_humanidades','nls_elec2011','nls_2009','nls_2010','nls_2011','nls_2012','nls_2013','20thcenturyweb','nara109thcongressionalcrawl','nara110thcongressionalcrawl','nara111thcongressionalcrawl','nara112thcongressionalcrawl','misc_govcrawls','nl_israel','nlil_2013','naraweb','ArchiveIt-Collection-1078', 'ArchiveIt-Collection-924','nla_2014','ArchiveIt-Collection-1068']}">
         <dependency format="ARC_IA" variation="Internet Archive ARC"/>
         <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
         <dependency format="WARC" variation="Web ARChive"/>
@@ -1954,7 +1969,7 @@
         <dependency format="ISO Image" variation="ISO Image" />
 
         <dependency format="h.264" variation="h.264"/>
-        
+
         <dependency format="WAVE" variation="WAVE"/>
         <dependency format="Flac" variation="Flac"/>
         <dependency format="Shorten" variation="Shorten"/>
