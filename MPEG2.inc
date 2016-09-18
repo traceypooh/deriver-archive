@@ -14,7 +14,7 @@ require_once('Module.inc');
 class MPEG2 extends Module
 {
   public function version() 
-  { return '$Id: a4919f813cca52ba4b96e5f249842e38df5370e1 $'; }
+  { return '$Id: 082a9cc8e200ed583bc94b510c19b1d8928b9f09 $'; }
 
 
   public function dvd()
@@ -134,4 +134,4 @@ class MPEG2 extends Module
     }
   }
 }
-?>
+

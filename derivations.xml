@@ -21,7 +21,7 @@
     <category>lossy</category>
     <variations>
       <!-- NOTE: deriv *NOT* usually made.  see Deriver.loadCollectionRules() -->
-      <variation rank="6" name="MP3" parameter="-b64 -a --resample 22.05" conditionally="{'collection':['tvarchive','internetarchivepresents','tv_ads']}">
+      <variation rank="2" name="MP3" parameter="-b96 -a" conditionally="{'collection':['tvarchive','internetarchivepresents','tv_ads','prelinger','decentralizedwebsummit2016','us_congress','dopetapes']}">
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2" />
         <dependency format="MPEG1" variation="MPEG1" />
@@ -31,9 +31,10 @@
         <dependency format="Matroska" variation="Matroska" /> <!--for rare utube sources-->
         <dependency format="WebM"     variation="WebM" />     <!--for rare utube sources-->
         <dependency format="h.264 HD" variation="h.264 HD" /> <!--for rare utube sources w/ SD/HD toggle -->
+        <dependency format="ISO Image" variation="ISO Image" />
       </variation>
       <!-- NOTE: deriv *NOT* usually made.  see Deriver.loadCollectionRules() -->
-      <variation rank="6" name="64Kbps MP3" parameter="-b64 -a --resample 22.05" preextension="_64kb" conditionally="{'collection':['podcast_corydoctorow','librivoxaudio']}">
+      <variation rank="2" name="64Kbps MP3" parameter="-b64 -a --resample 22.05" preextension="_64kb" conditionally="{'collection':['podcast_corydoctorow','librivoxaudio']}">
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
         <dependency format="Flac"       variation="24bit Flac" />
@@ -57,7 +58,7 @@
         <dependency format="MIDI"       variation="MIDI" />
         <dependency format="MPEG Audio" variation="MPEG Audio"/>
       </variation>
-      <variation rank="6" name="MP3 Sample" parameter="--preset medium" preextension="_sample" conditionally="{'collection':['samples_only','acdc']}">
+      <variation rank="2" name="MP3 Sample" parameter="--preset medium" preextension="_sample" conditionally="{'collection':['samples_only','acdc']}">
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
         <dependency format="Flac"       variation="24bit Flac" />
@@ -80,7 +81,7 @@
         <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MPEG Audio" variation="MPEG Audio"/>
       </variation>
-      <variation rank="6" name="VBR MP3" parameter="--preset standard">
+      <variation rank="2" name="VBR MP3" parameter="--preset standard">
         <dependency format="Segment Data" variation="Segment Data" />
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
@@ -161,7 +162,7 @@
     <class>Ogg</class>
     <category>lossy</category>
     <variations>
-      <variation rank="7" name="Ogg Vorbis" conditionally="{'!collection':['tvarchive']}">
+      <variation rank="7" name="Ogg Vorbis" conditionally="{'!collection':['tvarchive','acdc','what_cd']}">
         <dependency format="WAVE" variation="WAVE" />
         <dependency format="Shorten" variation="Shorten" />
         <dependency format="Flac" variation="24bit Flac" />
@@ -259,13 +260,13 @@
     <variations>
 
       <!-- TV ARCHIVE ONLY-->
-      <variation name="Columbia Fingerprint TV" preextension="_tva" derivativesource="allowed" parameter="precompute --samplerate 11025 --density 100 --shifts 1" conditionally="{'collection':['tvarchive','political_ads']}">
+      <variation rank="3" name="Columbia Fingerprint TV" preextension="_tva" derivativesource="allowed" parameter="precompute --samplerate 11025 --density 100 --shifts 1" conditionally="{'collection':['tvarchive','political_ads']}">
         <dependency format="MP3"        variation="VBR MP3"/>
         <dependency format="MP3"        variation="MP3"/>
         <dependency format="MP3"        variation="64Kbps MP3"/>
         <dependency format="Matroska" variation="Matroska" /> <!--for rare utube sources-->
       </variation>
-      <variation name="Columbia Sparse Fingerprint TV" preextension="_tva20" derivativesource="allowed" parameter="precompute --samplerate 11025 --density 20 --shifts 1" conditionally="{'collection':['tvarchive','political_ads']}">
+      <variation rank="3" name="Columbia Sparse Fingerprint TV" preextension="_tva20" derivativesource="allowed" parameter="precompute --samplerate 11025 --density 20 --shifts 1" conditionally="{'collection':['tvarchive','political_ads']}">
         <dependency format="MP3"        variation="VBR MP3"/>
         <dependency format="MP3"        variation="MP3"/>
         <dependency format="MP3"        variation="64Kbps MP3"/>
@@ -307,6 +308,7 @@
     <class>EssentiaLow</class>
     <variations>
       <variation rank="14" name="Essentia Low GZ" preextension="_esslow.json" conditionally="{'!collection':['tvarchive','librivoxaudio']}">
+        <!-- suspend derivation of this format (BK request, May 2016)
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
         <dependency format="Flac"       variation="24bit Flac" />
@@ -327,6 +329,7 @@
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MPEG Audio" variation="MPEG Audio"/>
+        -->
       </variation>
     </variations>
   </format>
@@ -336,7 +339,9 @@
     <class>EssentiaHigh</class>
     <variations>
       <variation name="Essentia High GZ" preextension="_esshigh.json" derivativesource="allowed" conditionally="{'!collection':['tvarchive','librivoxaudio']}">
+        <!-- suspend derivation of this format (BK request, May 2016)
         <dependency format="Essentia Low GZ"  variation="Essentia Low GZ" />
+        -->
       </variation>
     </variations>
   </format>
@@ -437,7 +442,7 @@
     <extension>pdf</extension>
     <class>GrayscalePdf</class>
     <variations>
-      <variation name="Grayscale LuraTech PDF" preextension="_bw" conditionally="{'collection':['biodiversity','aceportal','oclsaccessibility']}">
+      <variation name="Grayscale LuraTech PDF" preextension="_bw" conditionally="{'collection':['biodiversity','aceportal','oclsaccessibility','minorityhealth']}">
         <dependency format="DjvuXML" variation="Djvu XML"/>
       </variation>
     </variations>
@@ -636,6 +641,8 @@
       <variation name="Raw TBRC Book Zip" preextension="_tbrc"/>
       <variation name="Generic Raw Book Zip" preextension="_images"/>
 
+      <variation name="OCLC xISBN ZIP" preextension="_xisbn"/>
+
       <variation name="ZIP" multifile="true"/> <!--generic default in /editxml-->
     </variations>
   </format>
@@ -806,6 +813,23 @@
   </format>
 
 
+  <format name="NRT">
+    <extension>txt</extension>
+    <variations>
+      <variation rank="0" name="NRT" preextension="NRT"/>
+    </variations>
+  </format>
+  <format name="NRT Processed">
+    <extension>txt</extension>
+    <class>NRT</class>
+    <variations>
+      <variation rank="0" name="NRT Processed" preextension="NRT_processed">
+        <dependency format="NRT" variation="NRT" />
+      </variation>
+    </variations>
+  </format>
+
+
   <format name="MPEG4">
     <extension>mp4</extension>
     <extension>mpeg4</extension>
@@ -882,6 +906,27 @@
         <dependency format="Flash Video" variation="Flash Video" />
         <dependency format="Matroska" variation="Matroska" />
       </variation>
+
+      <variation rank="8" name="h.264 486P" parameter="648x486  -x264opts bitrate=3500:vbv_maxrate=4000:vbv_bufsize=7000  -pix_fmt yuv420p -movflags faststart -ac 2 -b:a 160k -ar 48000" preextension="_486p" conditionally="{'collection':['californialightandsound']}">
+        <dependency format="QuickTime" variation="QuickTime" />
+      </variation>
+
+      <!--PICK ONE:-->
+      <!-- lower quality, but faster to encode: -->
+      <variation rank="8" name="MPEGTS/h.264" parameter="ffmpeg -f mpegts -copyts -i - -hide_banner -copyts -f mpegts -c:a aac -ac 2 -b:a 128k -ar 44100 -sws_flags neighbor -vf &quot;framestep=2,scale='iw/2':-1&quot; -profile:v baseline -x264opts bframes=0:level=30:bitrate=600" conditionally="{'collection':['tvarchive']}">
+        <dependency format="MPEGTS" variation="MPEGTS" />
+      </variation>
+      <!-- highest quality -->
+      <!--
+      <variation rank="8" name="MPEGTS/h.264" parameter="ffmpeg -f mpegts -copyts -i - -hide_banner -copyts -f mpegts -c:a aac -ac 2 -b:a 128k -ar 44100 -c:v libx264" conditionally="{'collection':['tvarchive']}">
+        <dependency format="MPEGTS" variation="MPEGTS" />
+      </variation>
+      -->
+
+
+
+
+
       <!-- our prior h.264 derivative (smaller bitrate, way less pixels) -->
       <variation name="512Kb MPEG4" preextension="_512kb" />
       <!-- these two are prior default mpeg4 derived formats -->
@@ -1143,43 +1188,6 @@
     <class>AnimatedGIF</class>
     <variations>
       <variation rank="1" name="Animated GIF">
-        <!-- possible movies related source formats -->
-        <dependency format="h.264 HD" variation="h.264 HD" />
-        <dependency format="DV Video" variation="DV Video" />
-        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
-        <dependency format="MPEG2-TS" variation="MPEG2-TS" />
-        <dependency format="MPEG2" variation="MPEG2"/>
-        <dependency format="WebM" variation="WebM" />
-        <dependency format="MPEG4" variation="h.264 MPEG4" />
-        <dependency format="MPEG1" variation="MPEG1"/>
-        <dependency format="Motion JPEG" variation="Motion JPEG" />
-        <dependency format="QuickTime" variation="256Kb QuickTime" />
-        <dependency format="MPEG4" variation="MPEG4" />
-        <dependency format="QuickTime" variation="QuickTime 1.5Mbps" />
-        <dependency format="QuickTime" variation="QuickTime 1Mbps" />
-        <dependency format="QuickTime" variation="64Kb QuickTime" />
-        <dependency format="QuickTime" variation="56Kb QuickTime" />
-        <dependency format="QuickTime" variation="QuickTime" />
-        <dependency format="Windows Media" variation="Windows Media" />
-        <dependency format="DivX" variation="DivX" />
-        <dependency format="Intel Video" variation="IV50" />
-        <dependency format="Cinepack" variation="Cinepack" />
-        <dependency format="Ogg Theora" variation="Ogg Theora" />
-        <dependency format="Ogg Video" variation="Ogg Video" />
-        <dependency format="Real Media" variation="Real Media" />
-        <dependency format="ISO Image" variation="ISO Image" />
-        <dependency format="Flash Video" variation="Flash Video" />
-        <dependency format="Flash Video" variation="LinkTV FLV (512k)" />
-        <dependency format="Flash Video" variation="FLV 400k" />
-        <dependency format="MPEG4" variation="MPEG4 1.5Mbps" />
-        <dependency format="MPEG4" variation="256Kb MPEG4" />
-        <dependency format="MPEG4" variation="64Kb MPEG4" />
-        <dependency format="3GP" variation="3GP" />
-        <dependency format="Matroska" variation="Matroska" />
-        <!-- oddly, some people have uploaded originals with this next format -->
-        <dependency format="MPEG4" variation="512Kb MPEG4" />
-
-
         <!-- possible books related source formats -->
         <dependency format="PJP2ZIP"  variation="Single Page Processed JP2 ZIP"/>
         <dependency format="PJP2TAR"  variation="Single Page Processed JP2 Tar"/>
@@ -1202,7 +1210,7 @@
     <class>Thumbnails</class>
     <subdir>.thumbs</subdir>
     <variations>
-      <variation rank="3" name="Thumbnail" preextension="_000001">
+      <variation rank="4" name="Thumbnail" preextension="_000001">
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
@@ -1239,6 +1247,9 @@
         <!-- oddly, some people have uploaded originals with this next format -->
         <dependency format="MPEG4" variation="512Kb MPEG4" />
       </variation>
+      <variation rank="5" name="MPEGTS/Thumbnail" preextension="_000000" parameter="ffmpeg -i - -ss 1 -an -vf scale=160:110 -vframes 1 -pix_fmt yuvj422p _%06d.jpg">
+        <dependency format="MPEGTS" variation="MPEGTS" conditionally="{'collection':['tvarchive']}" />
+      </variation>
     </variations>
   </format>
 
@@ -1247,11 +1258,8 @@
     <extension>idx</extension>
     <class>Idx</class>
     <variations>
-      <variation rank="2" name="Video Index" preextension=".mpg">
-        <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
-        <dependency format="MPEG2-TS" variation="MPEG2-TS" />
-        <dependency format="MPEG2" variation="MPEG2"/>
-        <dependency format="MPEG1" variation="MPEG1"/>
+      <variation name="Video Index" preextension=".mpg">
+        <!-- no longer derived as of Jun 2016 (tracey) -->
       </variation>
     </variations>
   </format>
@@ -1434,12 +1442,12 @@
 
   <!-- this oddity is because Adobe Digital Editions doesn't currently -->
   <!-- handle pdfs that use jp2 compression; we make it only for items -->
-  <!-- in the lendinglibrary collection                                -->
+  <!-- in the inlibrary collection                                     -->
   <format name="JPEGPDF">
     <extension>pdf</extension>
     <class>JPEGCompPDF</class>
     <variations>
-      <variation name="JPEG-Compressed PDF" preextension="_jpg" conditionally="{'collection':['lendinglibrary','printdisabled']}">
+      <variation name="JPEG-Compressed PDF" preextension="_jpg" conditionally="{'collection':['inlibrary']}">
         <dependency format="DjvuXML" variation="Djvu XML"/>
       </variation>
     </variations>
@@ -1471,8 +1479,7 @@
     <class>DJVUTXT</class>
     <variations>
       <variation name="DjVuTXT" preextension="_djvu" derivativesource="allowed" conditionally="{'!collection':['poor_ocr']}">
-        <dependency format="DjVu" variation="Original DjVu" />
-        <dependency format="DjVu" variation="DjVu" />
+        <dependency format="djvuXML" variation="Djvu XML" />
       </variation>
     </variations>
   </format>
@@ -1607,11 +1614,8 @@
 
   <format name="DjVu">
     <extension>djvu</extension>
-    <class>DjVu</class>
     <variations>
-      <variation name="DjVu" derivativesource="allowed">
-        <dependency format="djvuXML" variation="Djvu XML"/>
-      </variation>
+      <variation name="DjVu"/>
       <variation name="Original DjVu" preextension="_orig"/>
     </variations>
   </format>
@@ -1667,9 +1671,10 @@
     <class>EPUB</class>
     <variations>
       <variation name="EPUB" conditionally="{'!collection':['poor_ocr']}">
-        <dependency format="AbbyyGZ" variation="Abbyy GZ"/>
-        <dependency format="ZIP" variation="Abbyy ZIP"/>
-        <dependency format="abbyyXML" variation="ABBYY XML"/>
+      <!-- epub derives turned off, 2016-04-25 -->
+      <!--  <dependency format="AbbyyGZ" variation="Abbyy GZ"/> -->
+      <!--  <dependency format="ZIP" variation="Abbyy ZIP"/> -->
+      <!--  <dependency format="abbyyXML" variation="ABBYY XML"/> -->
       </variation>
     </variations>
   </format>
@@ -1795,7 +1800,7 @@
         <dependency format="ARC_IA" variation="Internet Archive ARC"/>
         <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
       </variation>
-      <variation name="WARC Transformation GZ" preextension="_warc.wat" conditionally="{'collection':['ArchiveIt-Collection-1068','geocities','ArchiveIt-Collection-2950','imlsmuseumuniverse']}">
+      <variation name="WARC Transformation GZ" preextension="_warc.wat" conditionally="{'collection':['ArchiveIt-Collection-1068','geocities','ArchiveIt-Collection-2950','ArchiveIt-Collection-6689','imlsmuseumuniverse']}">
         <dependency format="WARC" variation="Web ARChive"/>
         <dependency format="WARC GZ" variation="Web ARChive GZ"/>
       </variation>
@@ -1962,6 +1967,7 @@
       <!-- NOTE: explicitly allowed to be derived from another derivative -->
       <!-- for TV, also extracts CC, then tries to align it with extracted audio forms... -->
       <variation rank="16" name="SubRip" derivativesource="allowed">
+        <dependency format="MPEGTS" variation="MPEGTS" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2-TS" variation="MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2"/>
@@ -1982,9 +1988,11 @@
     <class>JSON</class>
     <variations>
       <variation rank="17" name="JSON" derivativesource="allowed" conditionally="{'collection':['tvarchive']}">
+        <dependency format="NRT" variation="NRT" />
         <dependency format="SubRip" variation="SubRip" />
       </variation>
       <variation name="What.CD JSON" preextension="_what_cd"/>
+      <variation name="OCLC xISBN JSON" preextension="_xisbn"/>
     </variations>
   </format>
 
@@ -1996,6 +2004,8 @@
       <variation name="Metadata Log" preextension="_meta">
         <dependency format="Metadata" variation="Extra Metadata JSON"/>
         <dependency format="Metadata" variation="MusicBrainz Metadata"/>
+        <dependency format="Metadata" variation="OCLC xISBN JSON"/>
+        <dependency format="ZIP" variation="OCLC xISBN ZIP"/>
       </variation>
     </variations>
   </format>

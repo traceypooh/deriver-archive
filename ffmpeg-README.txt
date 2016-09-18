@@ -1,20 +1,22 @@
 #!/bin/zsh -ex
 
 ###############################################################################
-# author: Tracey Jaquith.  Software license GPL version 2.
+# author: Tracey Jaquith.   Software license AGPL version 3.
 ###############################################################################
 # We compile our own ffmpeg because we have config options we want differently
 # from the std ubuntu package AND because we have patches.
 #
 # For example, we want builtin mp3 creation (lame),
-# AAC audio encoding and decoding (faac and faad) support,
-# and h.264/x264 and ... and a pony 8-) ....
+# AAC audio encoding and decoding support,
+# and h.264/x264, x265 and ... and a pony 8-) ....
 ###############################################################################
 DIR=/tmp/f;
 DIRIN=$DIR/usr;
 # eg: "xenial" for ubuntu; or "mac"
+# for ubuntu, if you haven't already, please:
+#     apt-get -y install lsb-release
 SHORTNAME=$(lsb_release -cs 2>/dev/null  ||  echo mac);
-if [ "$SHORTNAME" != "mac"  -a  "$SHORTNAME" != "trusty"  -a  "$SHORTNAME" != "wily"  -a  "$SHORTNAME" != "xenial" ]; then
+if [ "$SHORTNAME" != "mac"  -a  "$SHORTNAME" != "xenial" ]; then
   echo "unsupported OS"; exit 1;
 fi
 
@@ -23,6 +25,8 @@ fi
 unset LD_LIBRARY_PATH; #avoid any contamination when set!
 MYDIR=$(d=`dirname $0`; echo $d | grep '^/' || echo `pwd`/$d);
 
+
+if [ -z $USER ]; then USER=$(whoami); fi # eek/careful if root!
 
 sudo mkdir -p $DIR;
 sudo chown $USER $DIR;
@@ -39,7 +43,6 @@ typeset -a CONFIG; # array
 # NOTE: --enable-version3  is for prores decoding
 # NOTE: libopenjpeg allows motion-JPEG jp2 variant
 CONFIG+=(
---enable-libfaac
 --enable-libmp3lame
 --enable-libfontconfig
 --enable-libfreetype
@@ -75,7 +78,7 @@ RETRY+=(
 
 
 
-if [ $(uname -s) = 'Darwin' ]; then
+if [ "$SHORTNAME" = "mac" ]; then
   MYCC="--cc=clang"; # NOTE: esp. for mac lion+!
   CONFIG+=($MYCC);
 
@@ -99,7 +102,7 @@ if [ $(uname -s) = 'Darwin' ]; then
   DIR=/opt/local/x;
   DIRIN=$DIR/opt;
 
-  echo "step 1: install  macports -- see http://www.macports.org/install.php"
+  echo "step 1: install brew -- http://brew.sh/"
 
   # Some generally useful brew commands (in "terminal" app):
   #   brew doctor
@@ -107,18 +110,17 @@ if [ $(uname -s) = 'Darwin' ]; then
   #   brew search <pkg name>
   #   brew install <pkg name>
 
-  brew install  lame theora libvorbis openjpeg faac freetype yasm opencore-amr xvid libvpx a52dec pkgconfig opus-tools x265; # bzip2
+  brew install  curl autoconf yasm lame theora libvorbis openjpeg faac freetype opencore-amr xvid libvpx a52dec pkgconfig opus-tools x265; # bzip2
   brew install  sdl; # SDL stuff for ffplay
 
 else
   # Make sure we have basic needed pkgs!
-  sudo apt-get install yasm; # make sure we have an assembler!
+  sudo apt-get install -y curl autoconf yasm; # make sure we have an assembler!
 
   sudo apt-get -y install  \
     libbluray-dev \
     libopus-dev \
     libschroedinger-dev \
-    libfaac-dev \
     libgsm1-dev \
     libmp3lame-dev \
     libspeex-dev \
@@ -130,15 +132,15 @@ else
     libavfilter-dev \
     libtheora-dev \
     libvpx-dev \
-    libx265-dev  libnuma-dev \
+    libnuma-dev \
     libfreetype6-dev \
     fontconfig expat \
     libass-dev \
     libsdl-dev  libsdl1.2-dev \
   ;
 
-  # we building most recent head of this below
-  sudo apt-get -y purge libx264-dev;
+  # we building most recent head of this _statically_ below
+  sudo apt-get -y purge libx264-dev libx265-dev;
 
 
 
@@ -153,14 +155,15 @@ else
   LGNU=/usr/lib/x86_64-linux-gnu;
   CONFIG+=(--pkg-config=/usr/bin/pkg-config --pkg-config-flags=--static);
 
-  # ugh, horrid, libopenjpeg is facepalm again (no .a distributed in wily) xxx
+  # ugh, horrid, libopenjpeg is facepalm again (no .a distributed in xenial) xxx
   set +e;
   JPA=$(dirname $(find -L $DIR -name libopenjpeg.a)); # where liboppenjpeg.so lives
   set -e;
   if [ "$JPA" = "" ]; then
     cd $DIR;
-    apt-get source libopenjpeg-dev;
-    cd openjpeg*/;
+    apt-get install -y libtool;
+    git clone git://anonscm.debian.org/pkg-phototools/openjpeg.git
+    cd openjpeg;
     ./bootstrap.sh;
     ./configure;
     make -j4;
@@ -184,7 +187,7 @@ function line(){ perl -e 'print "_"x80; print "\n\n";'; }
 
 
 ################################################################################
-# ffmpeg, ffprobe, x264, mplayer
+# ffmpeg, ffprobe, x264, x265, mplayer
 #       compile directly an ffmpeg that can create x264 and WebM
 ################################################################################
 
@@ -196,7 +199,7 @@ function line(){ perl -e 'print "_"x80; print "\n\n";'; }
 
 ###############################################################################
 # x264 -- make the lib we use to make h.264 video!
-#         set it up so that we'll compile it in *statically*
+#           set it up so that we'll compile it in *statically*
 ###############################################################################
 cd $DIR;
 rm -rfv $DIRIN;
@@ -237,10 +240,6 @@ function ffmpeg_src()
 #    -AAC audio (nondecreasing timestamps is fine; monotonic is too restrictive!)
 #    -Better saved thumbnail names
 #    -Better quality theora (like "ffmpeg2theora" tool; use both bitrate *and* qscale)
-#    -Better copy for MPEG-TS streams (eg: linux recording)
-#       NOTE: disabled for now since incompatible w/ mar2012 ffmpeg and
-#             not using MPEG-TS copy at the moment... (and certainly basic MPEG-TS
-#             stream copying is working for video w/ detected width/height now...)
 function ffmpeg_patch()
 {
   cd $DIR/ffmpeg;
@@ -304,6 +303,21 @@ $XEXTRA;
 make -j4;
 sudo make install;
 
+
+# x265
+if [ "$SHORTNAME" != "mac" ]; then
+  # need to make the static .a file!
+  cd $DIR;
+  if [ ! -e x265 ]; then
+    git clone https://anonscm.debian.org/git/pkg-multimedia/x265.git
+  fi
+  cd x265;
+  git reset --hard;  git clean -f;  git pull;  git status;
+
+  cd source;
+  cmake  -DCMAKE_INSTALL_PREFIX=${DIRIN?}/local  .;
+  make  &&  make install
+fi
 
 
 ffmpeg_src;

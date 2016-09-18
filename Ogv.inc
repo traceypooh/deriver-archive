@@ -4,7 +4,7 @@ require_once('Module.inc');
 class Ogv extends Module
 {
   public function version()
-  { return '$Id: 5af0b932297cde55eb0ac7dd56503713df55d300 $'; }
+  { return '$Id: 406d9bf9d1c49a2c3c550a10d51a7172c88feb4a $'; }
   
 
 
@@ -56,4 +56,3 @@ class Ogv extends Module
     Util::cmdPP("mv $tmp ".Util::esc($dest));
   }
 }
-?>

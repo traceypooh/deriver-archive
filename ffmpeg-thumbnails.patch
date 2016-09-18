@@ -1,10 +1,10 @@
 diff --git a/ffmpeg.c b/ffmpeg.c
-index 40d929d..cc98c2f 100644
+index 5d7d32a..856a2eb 100644
 --- a/ffmpeg.c
 +++ b/ffmpeg.c
-@@ -926,7 +926,14 @@ static void do_video_out(AVFormatContext *s,
+@@ -970,7 +970,14 @@ static void do_video_out(AVFormatContext *s,
          /* by default, we output a single frame */
-         nb0_frames = 0;
+         nb0_frames = 0; // tracks the number of times the PREVIOUS frame should be duplicated, mostly for variable framerate (VFR)
          nb_frames = 1;
 -
 +	{
@@ -13,16 +13,29 @@ index 40d929d..cc98c2f 100644
 +	  s->secxxx         = (pts==AV_NOPTS_VALUE || pts<0 ? 0 : (long int)floor( av_q2d(ist->st->time_base) * pts ));
 +	  snprintf(s->debugxxx, 60, "pts:%ld tbn:%d/%d frame:%d ==> %ld\n", pts, ist->st->time_base.num, ist->st->time_base.den, ist->st->codec->frame_number, s->secxxx);
 +	}
-+	
-+	
++
++
          format_video_sync = video_sync_method;
          if (format_video_sync == VSYNC_AUTO) {
              if(!strcmp(s->oformat->name, "avi")) {
+diff --git a/libavformat/avformat.h b/libavformat/avformat.h
+index 21e505d..d668b47 100644
+--- a/libavformat/avformat.h
++++ b/libavformat/avformat.h
+@@ -1888,7 +1888,7 @@ typedef struct AVFormatContext {
+      * - decoding: set by user through AVOptions (NO direct access)
+      */
+     char *protocol_blacklist;
+-} AVFormatContext;
++char debugxxx[60]; long secxxx; } AVFormatContext;
+
+ int av_format_get_probe_score(const AVFormatContext *s);
+ AVCodec * av_format_get_video_codec(const AVFormatContext *s);
 diff --git a/libavformat/img2enc.c b/libavformat/img2enc.c
-index f56c39e..388e1ea 100644
+index 1297b1a..a2859b1 100644
 --- a/libavformat/img2enc.c
 +++ b/libavformat/img2enc.c
-@@ -98,6 +98,10 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
+@@ -106,6 +106,10 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
                     img->img_number, img->path);
              return AVERROR(EINVAL);
          }
@@ -31,18 +44,5 @@ index f56c39e..388e1ea 100644
 +av_log(NULL, AV_LOG_WARNING, "%s", s->debugxxx);
 +
          for (i = 0; i < 4; i++) {
-             if (avio_open2(&pb[i], filename, AVIO_FLAG_WRITE,
-                            &s->interrupt_callback, NULL) < 0) {
-diff --git a/libavformat/avformat.h b/libavformat/avformat.h
-index 719c23b..0def27e 100644
---- a/libavformat/avformat.h
-+++ b/libavformat/avformat.h
-@@ -1799,7 +1799,7 @@ typedef struct AVFormatContext {
-      * Demuxing: Set by user.
-      */
-     int (*open_cb)(struct AVFormatContext *s, AVIOContext **p, const char *url, int flags, const AVIOInterruptCB *int_cb, AVDictionary **options);
--} AVFormatContext;
-+char debugxxx[60]; long secxxx; } AVFormatContext;
- 
- int av_format_get_probe_score(const AVFormatContext *s);
- AVCodec * av_format_get_video_codec(const AVFormatContext *s);
+             snprintf(img->tmp[i], sizeof(img->tmp[i]), "%s.tmp", filename);
+             av_strlcpy(img->target[i], filename, sizeof(img->target[i]));

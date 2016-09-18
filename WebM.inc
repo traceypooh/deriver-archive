@@ -4,7 +4,7 @@ require_once('Module.inc');
 class WebM extends Module
 {
   public function version() 
-  { return '$Id: c34788054b481a6b452ead243fbe2ec9ae495a49 $'; }
+  { return '$Id: ec538e4e06aed5e5726fa63960a45f3e05a8a784 $'; }
 
   
   public function derive($src=null, $dest=null, $identify=null, $first=true, $title=1)
@@ -48,4 +48,4 @@ class WebM extends Module
     Util::cmdPP("mv $tmp ".Util::esc($dest));
   }
 }
-?>
+
