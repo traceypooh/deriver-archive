@@ -115,7 +115,7 @@ if [ "$SHORTNAME" = "mac" ]; then
 
 else
   # Make sure we have basic needed pkgs!
-  sudo apt-get install -y curl autoconf yasm; # make sure we have an assembler!
+  sudo apt-get install -y curl autoconf cmake yasm; # make sure we have an assembler!
 
   sudo apt-get -y install  \
     libbluray-dev \
@@ -315,8 +315,9 @@ if [ "$SHORTNAME" != "mac" ]; then
   git reset --hard;  git clean -f;  git pull;  git status;
 
   cd source;
-  cmake  -DCMAKE_INSTALL_PREFIX=${DIRIN?}/local  .;
-  make  &&  make install
+  cmake .;
+  make -j4;
+  sudo make install;
 fi
 
 
