@@ -29,9 +29,15 @@ and then run (on bash/shell):
 
 ### `docker run --rm -it ubuntu:bionic`
 `apt-get update`
+
 `apt-get install -y  ffmpeg  exiftool  wget  php  php-mbstring  php-xml  git`
+
 `perl -i -pe 's/short_open_tag =.*/short_open_tag = on/' /etc/php*/*/*/*.ini`
+
 `git clone git://github.com/traceypooh/deriver-archive`
+
 `cd deriver-archive`
+
 `wget archive.org/download/stairs/stairs.avi`
+
 `./derive stairs.avi`
