@@ -1,7 +1,7 @@
-diff --git a/ffmpeg.c b/ffmpeg.c
+diff --git a/fftools/ffmpeg.c b/fftools/ffmpeg.c
 index 5d7d32a..856a2eb 100644
---- a/ffmpeg.c
-+++ b/ffmpeg.c
+--- a/fftools/ffmpeg.c
++++ b/fftools/ffmpeg.c
 @@ -970,7 +970,14 @@ static void do_video_out(AVFormatContext *s,
          /* by default, we output a single frame */
          nb0_frames = 0; // tracks the number of times the PREVIOUS frame should be duplicated, mostly for variable framerate (VFR)
@@ -10,27 +10,14 @@ index 5d7d32a..856a2eb 100644
 +	{
 +	  // long pts       = ist->decoded_frame->pts; // <== jan2014 no longer set
 +	  long pts          = av_rescale_q(ist->pts, AV_TIME_BASE_Q, ist->st->time_base);
-+	  s->secxxx         = (pts==AV_NOPTS_VALUE || pts<0 ? 0 : (long int)floor( av_q2d(ist->st->time_base) * pts ));
-+	  snprintf(s->debugxxx, 60, "pts:%ld tbn:%d/%d frame:%d ==> %ld\n", pts, ist->st->time_base.num, ist->st->time_base.den, ist->st->codec->frame_number, s->secxxx);
++	  of->ctx->secxxx         = (pts==AV_NOPTS_VALUE || pts<0 ? 0 : (long int)floor( av_q2d(ist->st->time_base) * pts ));
++	  snprintf(of->ctx->debugxxx, 60, "pts:%ld tbn:%d/%d frame:%d ==> %ld\n", pts, ist->st->time_base.num, ist->st->time_base.den, ist->st->codec->frame_number, of->ctx->secxxx);
 +	}
 +
 +
          format_video_sync = video_sync_method;
          if (format_video_sync == VSYNC_AUTO) {
              if(!strcmp(s->oformat->name, "avi")) {
-diff --git a/libavformat/avformat.h b/libavformat/avformat.h
-index 21e505d..d668b47 100644
---- a/libavformat/avformat.h
-+++ b/libavformat/avformat.h
-@@ -1888,7 +1888,7 @@ typedef struct AVFormatContext {
-      * - decoding: set by user through AVOptions (NO direct access)
-      */
-     char *protocol_blacklist;
--} AVFormatContext;
-+char debugxxx[60]; long secxxx; } AVFormatContext;
-
- int av_format_get_probe_score(const AVFormatContext *s);
- AVCodec * av_format_get_video_codec(const AVFormatContext *s);
 diff --git a/libavformat/img2enc.c b/libavformat/img2enc.c
 index 1297b1a..a2859b1 100644
 --- a/libavformat/img2enc.c
@@ -46,3 +33,16 @@ index 1297b1a..a2859b1 100644
          for (i = 0; i < 4; i++) {
              snprintf(img->tmp[i], sizeof(img->tmp[i]), "%s.tmp", filename);
              av_strlcpy(img->target[i], filename, sizeof(img->target[i]));
+diff --git a/libavformat/avformat.h b/libavformat/avformat.h
+index fdaffa5bf4..5f8122b458 100644
+--- a/libavformat/avformat.h
++++ b/libavformat/avformat.h
+@@ -1944,7 +1944,7 @@ typedef struct AVFormatContext {
+      * - decoding: set by user
+      */
+     int skip_estimate_duration_from_pts;
+-} AVFormatContext;
++char debugxxx[60]; long secxxx; } AVFormatContext;
+
+ #if FF_API_FORMAT_GET_SET
+ /**

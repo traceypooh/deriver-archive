@@ -10,228 +10,237 @@
 # AAC audio encoding and decoding support,
 # and h.264/x264, x265 and ... and a pony 8-) ....
 ###############################################################################
-DIR=/tmp/f;
-DIRIN=$DIR/usr;
-# eg: "xenial" for ubuntu; or "mac"
-# for ubuntu, if you haven't already, please:
-#     apt-get -y install lsb-release
-SHORTNAME=$(lsb_release -cs 2>/dev/null  ||  echo mac);
-if [ "$SHORTNAME" != "mac"  -a  "$SHORTNAME" != "xenial" ]; then
-  echo "unsupported OS"; exit 1;
+DIR=/tmp/f
+FFOS=bionic
+
+
+export DEBIAN_FRONTEND=noninteractive
+unset LD_LIBRARY_PATH # avoid any contamination when set!
+MAC=
+if [[ $(uname) = 'Darwin' ]]; then
+  MAC=1
 fi
 
 
 
-unset LD_LIBRARY_PATH; #avoid any contamination when set!
-MYDIR=$(d=`dirname $0`; echo $d | grep '^/' || echo `pwd`/$d);
+function main() {
+  if [ -e /p/ffmpeg-README.txt ]; then
+    docker-setup
+  fi
+
+  MYDIR=$(d=`dirname $0`; echo $d | grep '^/' || echo `pwd`/$d)
 
 
-if [ -z $USER ]; then USER=$(whoami); fi # eek/careful if root!
-
-sudo mkdir -p $DIR;
-sudo chown $USER $DIR;
-cd $DIR;
+  if [ ! "$MAC"  -a  ! -e /p/ffmpeg-README.txt ]; then
+    docker-run
+  fi
 
 
-
-
-MYCC="";
-typeset -a CONFIG; # array
-
-
-# NOTE: configure options are mostly alphabetized, thankyouverymuch (makes comparison easier)
-# NOTE: --enable-version3  is for prores decoding
-# NOTE: libopenjpeg allows motion-JPEG jp2 variant
-CONFIG+=(
---enable-libmp3lame
---enable-libfontconfig
---enable-libfreetype
---enable-libopencore-amrnb
---enable-libopencore-amrwb
---enable-libopenjpeg
---enable-libopus
---enable-libtheora
---enable-libvorbis
---enable-libvpx
---enable-libx264
---enable-libx265
---enable-libxvid
-
---enable-avfilter
---enable-gpl
---enable-nonfree
---enable-version3
---enable-static
---disable-shared
---disable-ffserver
---disable-vdpau
-
---extra-cflags=-static
---extra-cflags=-I${DIR?}/usr/local/include
-);
-# no statics (super) for these (or direct dependencies, eg: ass) so that sux (retry each build...)
-# http://packages.ubuntu.com/search?searchon=contents&arch=any&mode=exactfilename&suite=wily&keywords=libass.a
-RETRY+=(
---enable-libass
---enable-libbluray
-);
+  config-setup
+  os-specific-dependencies-and-config
+  if [ ! $MAC ]; then
+    openssl-static
+    openjpeg-static
+  fi
+  ffmpeg-std
+  x264
+  if [ ! $MAC ]; then
+    x265
+  fi
+  ffmpeg-src
+  ffmpeg-patch
+  lib-fixes
+  ffmpeg-compile
+}
 
 
 
-if [ "$SHORTNAME" = "mac" ]; then
-  MYCC="--cc=clang"; # NOTE: esp. for mac lion+!
-  CONFIG+=($MYCC);
+function docker-setup() {
+  # FIRST, try to ensure as little pkg config warnings/carping as possible
+  # NEXT, update any LTS to (a stable) LTS point release, eg:
+  #   16.04  =>  16.04.1
+  apt-get install -y apt-utils sudo
+  apt-get upgrade -y
 
-  CONFIG+=(--disable-vda); # esp. for mac lion+!
-  CONFIG+=(--enable-pic);  # for mavericks+, compile PIC since issue w/ making *static* build in ffmpeg otherwise!
+  # setup a minimally useful build env
+  apt-get install -y  php-cli
+  if [ -e /p/zshrc ]; then
+    ln -sf /p/zshrc   /root/.zshrc
+    ln -sf /p/aliases /root/.aliases
+  fi
+  export LC_ALL=C
+}
 
+
+
+function docker-run() {
+  # linux, but _not_ docker
+  if [ -e $MYDIR/../../docker/aliases ]; then
+    cp $MYDIR/../../docker/{aliases,zshrc} $MYDIR/
+  fi
+  touch     $MYDIR/ffmpeg.next
+  touch     $MYDIR/ffprobe.next
+  touch     $MYDIR/ffmpeg.std
+  touch     $MYDIR/ffprobe.std
+  chmod 777 $MYDIR/ff*p*e*.next
+  chmod 777 $MYDIR/ff*p*e*.std
+
+  # NOTE: you stay (interactively) in the container if we fatal with an error - for debug/inspection
+  sudo docker run -it --rm -v $MYDIR:/p ubuntu:$FFOS \
+    bash -c "apt-get update  &&  apt-get install -y zsh  &&  (/p/ffmpeg-README.txt  ||  zsh)" \
+    2>&1 |tee $MYDIR/flog
+
+  rm -f $MYDIR/{aliases,zshrc}
+  exit 0
+}
+
+
+
+function config-setup() {
+  mkdir -m777 -p $DIR
+  cd $DIR
+
+
+  typeset -a CONFIG # array
+
+
+  # NOTE: configure options are mostly alphabetized, thankyouverymuch (makes comparison easier)
   CONFIG+=(
---enable-sdl
---enable-ffplay
-
---prefix=/usr/local
---extra-cflags=-I/usr/local/include
---extra-cflags=-I/usr/local/include/SDL
---extra-cflags=-I/opt/local/include
-
---extra-ldflags=-L/opt/local/lib
---extra-ldflags=-L/usr/local/lib
-);
-
-
-  DIR=/opt/local/x;
-  DIRIN=$DIR/opt;
-
-  echo "step 1: install brew -- http://brew.sh/"
-
-  # Some generally useful brew commands (in "terminal" app):
-  #   brew doctor
-  #   brew list
-  #   brew search <pkg name>
-  #   brew install <pkg name>
-
-  brew install  curl autoconf yasm lame theora libvorbis openjpeg faac freetype opencore-amr xvid libvpx a52dec pkgconfig opus-tools x265; # bzip2
-  brew install  sdl; # SDL stuff for ffplay
-
-else
-  # Make sure we have basic needed pkgs!
-  sudo apt-get install -y curl autoconf cmake yasm; # make sure we have an assembler!
-
-  sudo apt-get -y install  \
-    libbluray-dev \
-    libopus-dev \
-    libschroedinger-dev \
-    libgsm1-dev \
-    libmp3lame-dev \
-    libspeex-dev \
-    libopenjpeg-dev \
-    libopencore-amrnb-dev  libopencore-amrwb-dev \
-    libvorbis-dev \
-    libxvidcore-dev \
-    libasound2-dev \
-    libavfilter-dev \
-    libtheora-dev \
-    libvpx-dev \
-    libnuma-dev \
-    libfreetype6-dev \
-    fontconfig expat \
-    libass-dev \
-    libsdl-dev  libsdl1.2-dev \
-  ;
-
-  # we building most recent head of this _statically_ below
-  sudo apt-get -y purge libx264-dev libx265-dev;
-
-
-
+    --enable-libmp3lame
+    --enable-libfontconfig
+    --enable-libfreetype
+    --enable-libopencore-amrnb
+    --enable-libopencore-amrwb
+  )
+  CONFIG+=(--enable-libopenjpeg) # allow motion-JPEG jp2 variant
   CONFIG+=(
---prefix=/usr
---enable-libgsm
---enable-libspeex
---extra-ldflags=-static
-);
+    --enable-libopus
+    --enable-libtheora
+    --enable-libvorbis
+    --enable-libvpx
+    --enable-libx264
+    --enable-libx265
+    --enable-libxvid
+    --enable-openssl
 
-  # helps with finding crazily located libfreetype (and more)
-  LGNU=/usr/lib/x86_64-linux-gnu;
-  CONFIG+=(--pkg-config=/usr/bin/pkg-config --pkg-config-flags=--static);
+    --enable-avfilter
+    --enable-gpl
+    --enable-nonfree
+  )
+  CONFIG+=(--enable-version3) # for prores decoding
+  CONFIG+=(
+    --enable-static
+    --disable-shared
+    --disable-vdpau
 
-  # ugh, horrid, libopenjpeg is facepalm again (no .a distributed in xenial) xxx
-  set +e;
-  JPA=$(dirname $(find -L $DIR -name libopenjpeg.a)); # where liboppenjpeg.so lives
-  set -e;
-  if [ "$JPA" = "" ]; then
-    cd $DIR;
-    apt-get install -y libtool;
-    git clone git://anonscm.debian.org/pkg-phototools/openjpeg.git
-    cd openjpeg;
-    ./bootstrap.sh;
-    ./configure;
-    make -j4;
-    cd $DIR;
-  fi;
-
-  JPA=$(dirname $(find -L $DIR -name libopenjpeg.a)); # where liboppenjpeg.so lives
-  CONFIG+=(--extra-ldflags=-L$JPA --extra-ldflags=-L$LGNU --extra-ldflags=-lfreetype);
-fi;
-
-
-# zero-day risk, sigh, Jan 12,2016:
-# http://news.softpedia.com/news/zero-day-ffmpeg-vulnerability-lets-anyone-steal-files-from-remote-machines-498880.shtml
-# FIXME xxx REEVAL THIS ONCE FFMPEG SOURCE HAS FIXED THIS SECURITY RISK!
-CONFIG+=(
-  --disable-demuxer=hls --disable-protocol=concat,hls
-);
+    --extra-cflags=-static
+  )
+  # no statics (libs _they_ depend on) for these, so bleah excluded (retry each build...)
+  # http://packages.ubuntu.com/search?searchon=contents&arch=any&mode=exactfilename&suite=wily&keywords=libass.a
+  CONFIG_WANTED_NO_DICE+=(
+    --enable-libass
+    --enable-libbluray
+  )
+}
 
 
-function line(){ perl -e 'print "_"x80; print "\n\n";'; }
+function os-specific-dependencies-and-config() {
+  if [ $MAC ]; then
+    CONFIG+=(--cc=clang)    # esp. for mac lion+!
+    CONFIG+=(--disable-vda) # esp. for mac lion+!
+    CONFIG+=(--enable-pic)  # for mavericks+, compile PIC avoids issue w/ *static* build in ffmpeg o/w!
+    CONFIG+=(
+      --enable-sdl
+      --enable-ffplay
+
+      --prefix=/usr/local
+      --extra-cflags=-I/usr/local/include
+      --extra-cflags=-I/usr/local/include/SDL
+      --extra-cflags=-I/opt/local/include
+
+      --extra-ldflags=-L/opt/local/lib
+      --extra-ldflags=-L/usr/local/lib
+    )
 
 
-################################################################################
-# ffmpeg, ffprobe, x264, x265, mplayer
-#       compile directly an ffmpeg that can create x264 and WebM
-################################################################################
+    DIR=/opt/local/x
+
+    echo "step 1: install brew -- http://brew.sh/"
+
+    # Some generally useful brew commands (in "terminal" app):
+    #   brew doctor
+    #   brew list
+    #   brew search <pkg name>
+    #   brew install <pkg name>
+
+    set +e
+    brew install  curl autoconf yasm lame theora libvorbis openjpeg faac freetype opencore-amr xvid libvpx a52dec pkgconfig opus-tools x265 # bzip2
+    set -e
+    brew install  sdl # SDL stuff for ffplay
+
+  else
+    # Make sure we have basic needed pkgs!
+    perl -i -pe 's/^# deb-src/deb-src/' /etc/apt/sources.list  # ensure can 'apt-get source .. ' later
+    apt-get update
+    apt-get install -y curl autoconf cmake yasm git # make sure we have an assembler!
+
+    apt-get -y install  \
+      libbluray-dev \
+      libopus-dev \
+      libgsm1-dev \
+      libmp3lame-dev \
+      libspeex-dev \
+      libopenjp2-7-dev \
+      libopencore-amrnb-dev  libopencore-amrwb-dev \
+      libvorbis-dev \
+      libxvidcore-dev \
+      libasound2-dev \
+      libavfilter-dev \
+      libtheora-dev \
+      libvpx-dev \
+      libnuma-dev \
+      libfreetype6-dev \
+      fontconfig expat \
+      libass-dev \
+      libsdl-dev  libsdl1.2-dev \
+      libssh-dev openssl
+
+
+    # we building most recent head of this _statically_ below
+    apt-get -y purge libx264-dev libx265-dev
 
 
 
-
-
-
-
-###############################################################################
-# x264 -- make the lib we use to make h.264 video!
-#           set it up so that we'll compile it in *statically*
-###############################################################################
-cd $DIR;
-rm -rfv $DIRIN;
-if [ ! -e x264 ]; then
-  git clone git://git.videolan.org/x264.git;
-fi
-cd x264;
-git reset --hard;
-git clean -f;
-git pull;
-git status;
+    CONFIG+=(
+      --prefix=/usr
+      --enable-libgsm
+      --enable-libspeex
+      --extra-ldflags=-static
+      --pkg-config-flags=--static
+    )
+  fi
+}
 
 
 
 ###############################################################################
 # ffmpeg -- get source
 ###############################################################################
-function ffmpeg_src()
-{
-  cd $DIR;
-
+function ffmpeg-src() {
   if [ ! -e ffmpeg ]; then
-    git clone git://source.ffmpeg.org/ffmpeg.git;
+    git clone git://source.ffmpeg.org/ffmpeg.git
   fi
 
-  cd ffmpeg;
-  git reset --hard;
-  git clean -f;
-  git pull;
-  line; git status; line;
-  # git diff
+  cd ffmpeg
+  git reset --hard
+  git clean -f
+  git pull
+  line
+  git status
+  line
+  cd -
 }
+
 
 
 ###############################################################################
@@ -240,26 +249,26 @@ function ffmpeg_src()
 #    -AAC audio (nondecreasing timestamps is fine; monotonic is too restrictive!)
 #    -Better saved thumbnail names
 #    -Better quality theora (like "ffmpeg2theora" tool; use both bitrate *and* qscale)
-function ffmpeg_patch()
-{
-  cd $DIR/ffmpeg;
+function ffmpeg-patch() {
+  cd $DIR/ffmpeg
   PATDIR=
-  for p in ffmpeg-aac.patch  ffmpeg-thumbnails.patch  ffmpeg-theora.patch  ffmpeg-PAT.patch; do
+  for p in ffmpeg-aac.patch  ffmpeg-theora.patch  ffmpeg-PAT.patch  ffmpeg-thumbnails.patch; do
     if [ "$PATDIR" = "" ]; then
       # find the patches dir!
       if [ -e "$MYDIR/$p" ]; then
-        PATDIR=file://$MYDIR;
+        PATDIR=file://$MYDIR
       elif [ -e "$MYDIR/../lib/ffmpeg/$p" ]; then
-        PATDIR=file://$MYDIR/../lib/ffmpeg;
+        PATDIR=file://$MYDIR/../lib/ffmpeg
       else
-        PATDIR=http://archive.org/~tracey/downloads/patches;
+        PATDIR=http://archive.org/~tracey/downloads/patches
       fi
     fi
 
-    curl "$PATDIR/$p" >| ../$p;
-    echo APPLYING PATCH $p;
-    patch -p1 < ../$p;
+    curl "$PATDIR/$p" >| ../$p
+    echo APPLYING PATCH $p
+    patch -p1 < ../$p
   done
+  cd -
 }
 
 
@@ -268,131 +277,163 @@ function ffmpeg_patch()
 # ffmpeg -- do 1st pass default config and compile *and* install so
 #           we can get modern libavutil, etc. installed in place for x264 build
 ###############################################################################
-ffmpeg_src;
-ffmpeg_patch; # test applying patches *first* in case any need updating
+function ffmpeg-std() {
+  ffmpeg-src
+  ffmpeg-patch # test applying patches *first* in case any need updating
 
-ffmpeg_src;   # revert any of the patches for this first clean/stock build
-cd $DIR/ffmpeg;
-./configure;
-make -j4;
-env DESTDIR=$DIR  make install;
+  ffmpeg-src   # revert any of the patches for this first clean/stock build
+  cd $DIR/ffmpeg
+  ./configure --prefix=/usr
+  make -j6
+  make install
 
-cp ffmpeg               $MYDIR/ffmpeg.std;
-cp ffprobe              $MYDIR/ffprobe.std;
+  cp ffmpeg               $MYDIR/ffmpeg.std
+  cp ffprobe              $MYDIR/ffprobe.std
+  cd -
+}
+
 
 
 ###############################################################################
-# BACK to x264 -- now we can compile it and use most recent libavutil, etc.
-#                 (installed above with first ffmpeg config+compile base pass)
+# x264 -- make the lib we use to make h.264 video!
+#         set it up so that we'll compile it in *statically*
+#         now we can compile it and use most recent libavutil, etc.
+#         (installed above with ffmpeg-std)
 ###############################################################################
-cd $DIR/x264;
-# 2nd line of disables is because it started Fing up ~May2013 and including
-#   dlopen() ... dlclose() lines even though we dont want to allow shared...
-if [ "${SHORTNAME?}" = "mac" ]; then
-  XEXTRA="--prefix=/opt/local";
-else
-  XEXTRA="--disable-cli"; # jul15, 2015 x264 binary compiling being PITA so disabled...
-fi
+function x264() {
+  cd $DIR
+  if [ ! -e x264 ]; then
+    git clone git://git.videolan.org/x264.git
+  fi
+  cd x264
+  git reset --hard
+  git clean -f
+  git pull
+  git status
 
-./configure --enable-static --enable-pic --disable-asm \
---disable-avs --disable-opencl \
---extra-cflags=-I${DIRIN?}/local/include \
---extra-ldflags=-L${DIRIN?}/local/lib \
-$XEXTRA;
+  # 2nd line of disables is because it started Fing up ~May2013 and including
+  #   dlopen() ... dlclose() lines even though we dont want to allow shared...
+  typeset -a XEXTRA # array
+  if [ $MAC ]; then
+    XEXTRA+=(--prefix=/opt/local)
+  else
+    XEXTRA+=(--prefix=/usr)
+    XEXTRA+=(--disable-cli) # [10/2015..10/2017] x264 binary compiling being PITA so disabled...
+  fi
 
-make -j4;
-sudo make install;
+  ./configure --enable-static --enable-pic --disable-asm --disable-avs --disable-opencl  $XEXTRA
+
+  make -j6
+  sudo make install
+  cd -
+}
 
 
-# x265
-if [ "$SHORTNAME" != "mac" ]; then
+
+function x265() {
   # need to make the static .a file!
-  cd $DIR;
+  cd $DIR
   if [ ! -e x265 ]; then
     git clone https://anonscm.debian.org/git/pkg-multimedia/x265.git
   fi
-  cd x265;
-  git reset --hard;  git clean -f;  git pull;  git status;
+  cd x265
+  git reset --hard
+  git clean -f
+  git pull
+  git status
 
-  cd source;
-  cmake .;
-  make -j4;
-  sudo make install;
-fi
-
-
-ffmpeg_src;
-ffmpeg_patch;
-
-
+  cd source
+  cmake .
+  make -j6
+  make install
+  cd $DIR
+}
 
 
 
-
-###############################################################################
-# ffmpeg -- compile
-###############################################################################
-cd $DIR;
-cd ffmpeg;
-if [ "${SHORTNAME?}" = "mac" ]; then brew uninstall x264; fi; # ensure we use our built x264
-./configure $CONFIG;
-
-
-make clean;
-make -j4 V=1;
-# make alltools; # no longer needed -- uncomment if you like
-env DESTDIR=${DIR?} make install;
-if [ "${SHORTNAME?}" = "mac" ]; then
-  cp ffmpeg ffprobe ffplay  /usr/local/bin/;
-else
-  cp ffmpeg               $MYDIR/ffmpeg.$SHORTNAME;
-  cp ffprobe              $MYDIR/ffprobe.$SHORTNAME;
- #cp ffplay               $MYDIR/ffplay.$SHORTNAME;
-  set -x;
-  echo;echo;echo "NOTE: any changes to $MYDIR need to be committed..."
-fi
-
-if [ "${SHORTNAME?}" = "mac" ]; then brew install x264; fi; # ensured we use our built x264
+function openssl-static() {
+  # bionic beta pkg didnt come with static .a lib file, so build from source xxx
+  apt-get source openssl
+  cd openssl*/
+  ./config --prefix=/usr  &&  make -j4  &&  make install
+  cd -
+}
 
 
 
+function openjpeg-static() {
+  # bionic beta pkg didnt come with static .a lib file, so build from source xxx
+  if [ ! -e openjpeg ]; then
+    git clone https://github.com/uclouvain/openjpeg
+  fi
+  cd openjpeg
+  ( mkdir -p build  &&  cd build  &&  cmake .. -DCMAKE_BUILD_TYPE=Release  &&  make  &&  make install )
+  cd -
+}
 
 
-if [ "${SHORTNAME?}" = "mac" ]; then
-  # now build mplayer from source (uses libx264 above and ffmpeg)
 
-  cd ${DIR?};
-  svn checkout svn://svn.mplayerhq.hu/mplayer/trunk mplayer;
-  cd mplayer;
-  mv ../ffmpeg .; # needed by mplayer -- will reconfig & remake it, sigh...
+function lib-fixes() {
+  # ugh! Oct2017 started having library linker lm and lpthread issues w/ config autodetection...
+  perl -i -pe 's/ \-lmp3lame/ -lmp3lame -lm/' $DIR/ffmpeg/configure
+  perl -i -pe 's/ \-lxvidcore/ -lxvidcore -lm -lpthread/' $DIR/ffmpeg/configure
 
-
-  # make it **not** recompile our ffmpeg (and later install bad libs) on us!!
-  perl -i -p \
-    -e 's/^\$\(FFMPEGLIBS\)\: \$\(FFMPEGFILES\) config\.h\n//;' \
-    -e 's/^.*C ffmpeg.*\n//;' \
-    Makefile;
-
-  # worked finally!
-  perl -i -pe 's/\-mdynamic-no-pic //' configure;
-
-  # NOTE:  "disable-tremor" (seemed to be getting in way of vorbis)
-  # NOTE:  needed order below ".. -lSDLMain -lopenjpeg .." to avoid libopenjpeg main from intercepting mplayer main (!!)
-  ./configure --prefix=/usr/local  ${MYCC?}  --enable-menu  --enable-x264 --enable-theora --enable-liba52  --with-freetype-config=/usr/local/bin/freetype-config  --disable-tremor  --disable-ffmpeg_so  --extra-cflags="-I${DIR?}/x264 -I${DIR?}/usr/local/include -I/usr/local/include" --extra-ldflags="-L${DIR?}/x264" --extra-libs="-ltheoraenc -la52 -lx264 -llzma -lSDLMain -lopenjpeg";
-
-  make -j3;
-  make install;
-
-  mv ffmpeg ..;
+  for pc in $(find /usr/local/lib/pkgconfig /usr/lib/x86_64-linux-gnu/pkgconfig |egrep 'x265.pc|fontconfig.pc|libopenjp2.pc|libssl.pc|libcrypto.pc'); do
+    if ! $(fgrep Libs.private: $pc |fgrep -q lpthread); then
+      perl -i -pe 's/Libs.private:/Libs.private: -lpthread/;' -e 's/ \-lgcc_s/ /g;' $pc
+    fi
+  done
+}
 
 
-  ################################################################################
-  #    unrelated brew packages that tracey likes/uses:
-  # brew install lesspipe pcre wget ddrescue lftp spidermonkey avidemux exif coreutils pstree
-  # brew install p7zip unrar colordiff jp2a freetype # py-pygments
-  # brew install imagemagick
-  #
-  # brew install wine
-  # brew install gimp
-  # brew install dvdauthor cdrtools dvdrw-tools
-fi
+
+function ffmpeg-compile() {
+  cd $DIR
+  cd ffmpeg
+  if [ $MAC ]; then
+    brew uninstall x264 # ensure we use our built x264
+  fi
+  ./configure $CONFIG
+
+
+  make clean
+  make -j6 V=1
+  # make alltools; # no longer needed -- uncomment if you like
+  env DESTDIR=${DIR?} make install
+  if [ $MAC ]; then
+    cp ffmpeg ffprobe ffplay  /usr/local/bin/
+  else
+    cp ffmpeg               $MYDIR/ffmpeg.$SHORTNAME
+    cp ffprobe              $MYDIR/ffprobe.$SHORTNAME
+   #cp ffplay               $MYDIR/ffplay.$SHORTNAME
+    set -x
+    echo
+    echo
+    echo "NOTE: any changes to $MYDIR need to be committed..."
+  fi
+
+  if [ $MAC ]; then
+    brew install x264 # ensured we use our built x264
+  fi
+}
+
+
+
+function brew-pkgs() {
+  # unrelated brew packages that tracey likes/uses:
+  brew install lesspipe pcre wget ddrescue avidemux exif coreutils pstree
+  brew install p7zip unrar colordiff jp2a freetype
+  brew install imagemagick
+
+  brew install dvdauthor cdrtools dvdrw-tools
+}
+
+
+
+function line(){
+  perl -e 'print "_"x80; print "\n\n"';
+}
+
+
+
+main
