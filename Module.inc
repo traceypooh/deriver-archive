@@ -20,9 +20,10 @@ abstract class Module {
       $base = basename($src);
       $this->targetFile=dirname($src)."/{$base}.thumbs/{$base}_000001.{$suffix}";
       $this->parameter = 1;
+      $this->targetFormat = 'Thumbnail';
     } else {
       // see if there is a "parameter" value we should setup
-      $x=simplexml_load_file("{$_SERVER['PETABOX_HOME']}/derivations.xml");
+      $x = simplexml_load_file("{$_SERVER['PETABOX_HOME']}/derivations.xml");
       $nodes = $x->xpath("/formats/format[class='$cname']/variations/variation[@parameter!='']/@parameter");
       if ($nodes  &&  count($nodes)) {
         $this->parameter = ((string)$nodes[0]->parameter[0]);

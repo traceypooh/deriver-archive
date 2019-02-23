@@ -1,14 +1,13 @@
-deriver-archive
-===============
-
-<a href="https://archive.org">Internet Archive's</a> setup for creating h.264, creating ogg theora, and creating thumbnails
+# <a href="https://archive.org">Internet Archive's</a> setup for creating h.264 mp4 and thumbnails.
 
 This is intended to allow an external user to derive video files in the same way
 (and using most of the same code) that Internet Archive does.
 
 
-The least amount of work to get this working is to be on linux ubuntu
-or macOSX.
+The least amount of work to get this working is to be on linux ubuntu, or docker.
+
+
+## Requirements
 
 You'll need certain binary programs and packages like:
 * "php"  (command line variant, likely including some extra modules)
@@ -23,13 +22,16 @@ You'll need certain binary programs and packages like:
 You can then make a directory with a video file in it
 and then run (on bash/shell):
 
-./derive [source video filename]
+`./derive [source video filename]`
 
 
+## Example using docker
 
-NOTE: if you are interested in extracting recorded TV captions embedded in MPEG-TS files
-(eg: "line 21" (AKA "EIA-608")) then I've included "ccextractor-README.txt".
-
-
-# to setup a readonly version of this on your machine:
-git clone git://github.com/traceypooh/deriver-archive.git
+### `docker run --rm -it ubuntu:bionic`
+`apt-get update`
+`apt-get install -y  ffmpeg  exiftool  wget  php  php-mbstring  php-xml  git`
+`perl -i -pe 's/short_open_tag =.*/short_open_tag = on/' /etc/php*/*/*/*.ini`
+`git clone git://github.com/traceypooh/deriver-archive`
+`cd deriver-archive`
+`wget archive.org/download/stairs/stairs.avi`
+`./derive stairs.avi`

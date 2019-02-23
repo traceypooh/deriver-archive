@@ -9,14 +9,18 @@ errtesting();
 
 
 class Config {
-  public function value($key) {
+  public static function value($key) {
     return (strncmp('bin-', $key, 4)==0 ? substr($key, 4) : $key);
   }
 
-  public function petaboxPath($val) {
+  public static function petaboxPath($val) {
     return Config::value($val);
   }
 }
+
+// stubbed out
+trait Assert {}
+class TV {}
 
 
 function printr($obj) {

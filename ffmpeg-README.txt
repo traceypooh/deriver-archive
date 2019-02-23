@@ -16,10 +16,6 @@ FFOS=bionic
 
 export DEBIAN_FRONTEND=noninteractive
 unset LD_LIBRARY_PATH # avoid any contamination when set!
-MAC=
-if [[ $(uname) = 'Darwin' ]]; then
-  MAC=1
-fi
 
 
 
@@ -31,22 +27,18 @@ function main() {
   MYDIR=$(d=`dirname $0`; echo $d | grep '^/' || echo `pwd`/$d)
 
 
-  if [ ! "$MAC"  -a  ! -e /p/ffmpeg-README.txt ]; then
+  if [ ! -e /p/ffmpeg-README.txt ]; then
     docker-run
   fi
 
 
   config-setup
-  os-specific-dependencies-and-config
-  if [ ! $MAC ]; then
-    openssl-static
-    openjpeg-static
-  fi
+  dependencies-and-config
+  openssl-static
+  openjpeg-static
   ffmpeg-std
   x264
-  if [ ! $MAC ]; then
-    x265
-  fi
+  x265
   ffmpeg-src
   ffmpeg-patch
   lib-fixes
@@ -144,81 +136,46 @@ function config-setup() {
 }
 
 
-function os-specific-dependencies-and-config() {
-  if [ $MAC ]; then
-    CONFIG+=(--cc=clang)    # esp. for mac lion+!
-    CONFIG+=(--disable-vda) # esp. for mac lion+!
-    CONFIG+=(--enable-pic)  # for mavericks+, compile PIC avoids issue w/ *static* build in ffmpeg o/w!
-    CONFIG+=(
-      --enable-sdl
-      --enable-ffplay
+function dependencies-and-config() {
+  # Make sure we have basic needed pkgs!
+  perl -i -pe 's/^# deb-src/deb-src/' /etc/apt/sources.list  # ensure can 'apt-get source .. ' later
+  apt-get update
+  apt-get install -y curl autoconf cmake yasm git # make sure we have an assembler!
 
-      --prefix=/usr/local
-      --extra-cflags=-I/usr/local/include
-      --extra-cflags=-I/usr/local/include/SDL
-      --extra-cflags=-I/opt/local/include
-
-      --extra-ldflags=-L/opt/local/lib
-      --extra-ldflags=-L/usr/local/lib
-    )
-
-
-    DIR=/opt/local/x
-
-    echo "step 1: install brew -- http://brew.sh/"
-
-    # Some generally useful brew commands (in "terminal" app):
-    #   brew doctor
-    #   brew list
-    #   brew search <pkg name>
-    #   brew install <pkg name>
-
-    set +e
-    brew install  curl autoconf yasm lame theora libvorbis openjpeg faac freetype opencore-amr xvid libvpx a52dec pkgconfig opus-tools x265 # bzip2
-    set -e
-    brew install  sdl # SDL stuff for ffplay
-
-  else
-    # Make sure we have basic needed pkgs!
-    perl -i -pe 's/^# deb-src/deb-src/' /etc/apt/sources.list  # ensure can 'apt-get source .. ' later
-    apt-get update
-    apt-get install -y curl autoconf cmake yasm git # make sure we have an assembler!
-
-    apt-get -y install  \
-      libbluray-dev \
-      libopus-dev \
-      libgsm1-dev \
-      libmp3lame-dev \
-      libspeex-dev \
-      libopenjp2-7-dev \
-      libopencore-amrnb-dev  libopencore-amrwb-dev \
-      libvorbis-dev \
-      libxvidcore-dev \
-      libasound2-dev \
-      libavfilter-dev \
-      libtheora-dev \
-      libvpx-dev \
-      libnuma-dev \
-      libfreetype6-dev \
-      fontconfig expat \
-      libass-dev \
-      libsdl-dev  libsdl1.2-dev \
-      libssh-dev openssl
+  apt-get -y install  \
+    libbluray-dev \
+    libopus-dev \
+    libgsm1-dev \
+    libmp3lame-dev \
+    libspeex-dev \
+    libopenjp2-7-dev \
+    libopencore-amrnb-dev  libopencore-amrwb-dev \
+    libvorbis-dev \
+    libxvidcore-dev \
+    libasound2-dev \
+    libavfilter-dev \
+    libtheora-dev \
+    libvpx-dev \
+    libnuma-dev \
+    libfreetype6-dev \
+    fontconfig expat \
+    libass-dev \
+    libsdl-dev  libsdl1.2-dev \
+    libssh-dev openssl
 
 
-    # we building most recent head of this _statically_ below
-    apt-get -y purge libx264-dev libx265-dev
+  # we building most recent head of this _statically_ below
+  apt-get -y purge libx264-dev libx265-dev
 
 
 
-    CONFIG+=(
-      --prefix=/usr
-      --enable-libgsm
-      --enable-libspeex
-      --extra-ldflags=-static
-      --pkg-config-flags=--static
-    )
-  fi
+  CONFIG+=(
+    --prefix=/usr
+    --enable-libgsm
+    --enable-libspeex
+    --extra-ldflags=-static
+    --pkg-config-flags=--static
+  )
 }
 
 
@@ -314,12 +271,8 @@ function x264() {
   # 2nd line of disables is because it started Fing up ~May2013 and including
   #   dlopen() ... dlclose() lines even though we dont want to allow shared...
   typeset -a XEXTRA # array
-  if [ $MAC ]; then
-    XEXTRA+=(--prefix=/opt/local)
-  else
-    XEXTRA+=(--prefix=/usr)
-    XEXTRA+=(--disable-cli) # [10/2015..10/2017] x264 binary compiling being PITA so disabled...
-  fi
+  XEXTRA+=(--prefix=/usr)
+  XEXTRA+=(--disable-cli) # [10/2015..10/2017] x264 binary compiling being PITA so disabled...
 
   ./configure --enable-static --enable-pic --disable-asm --disable-avs --disable-opencl  $XEXTRA
 
@@ -390,9 +343,6 @@ function lib-fixes() {
 function ffmpeg-compile() {
   cd $DIR
   cd ffmpeg
-  if [ $MAC ]; then
-    brew uninstall x264 # ensure we use our built x264
-  fi
   ./configure $CONFIG
 
 
@@ -400,34 +350,14 @@ function ffmpeg-compile() {
   make -j6 V=1
   # make alltools; # no longer needed -- uncomment if you like
   env DESTDIR=${DIR?} make install
-  if [ $MAC ]; then
-    cp ffmpeg ffprobe ffplay  /usr/local/bin/
-  else
-    cp ffmpeg               $MYDIR/ffmpeg.$SHORTNAME
-    cp ffprobe              $MYDIR/ffprobe.$SHORTNAME
-   #cp ffplay               $MYDIR/ffplay.$SHORTNAME
-    set -x
-    echo
-    echo
-    echo "NOTE: any changes to $MYDIR need to be committed..."
-  fi
-
-  if [ $MAC ]; then
-    brew install x264 # ensured we use our built x264
-  fi
+  cp ffmpeg               $MYDIR/ffmpeg.$SHORTNAME
+  cp ffprobe              $MYDIR/ffprobe.$SHORTNAME
+ #cp ffplay               $MYDIR/ffplay.$SHORTNAME
+  set -x
+  echo
+  echo
+  echo "NOTE: any changes to $MYDIR need to be committed..."
 }
-
-
-
-function brew-pkgs() {
-  # unrelated brew packages that tracey likes/uses:
-  brew install lesspipe pcre wget ddrescue avidemux exif coreutils pstree
-  brew install p7zip unrar colordiff jp2a freetype
-  brew install imagemagick
-
-  brew install dvdauthor cdrtools dvdrw-tools
-}
-
 
 
 function line(){
