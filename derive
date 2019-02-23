@@ -1,5 +1,5 @@
 #!/usr/bin/env php
-<? 
+<?
 $_SERVER['PETABOX_HOME'] = dirname(realpath($_SERVER['PATH_TRANSLATED']));
 ini_set('include_path', $_SERVER['PETABOX_HOME']);
 require_once('setup.inc');
@@ -19,8 +19,6 @@ error_log("\$id => $id");
 // comment/uncomment toggle these out as you like!
 new Thumbnails($src, $id, "jpg");
 new MPEG4     ($src, $id, "mp4");
-new Ogv       ($src, $id, "ogv");
-//new WebM      ($src, $id, "webm");
 
 
 class Util
