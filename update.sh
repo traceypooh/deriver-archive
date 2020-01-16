@@ -9,7 +9,7 @@ cp /petabox/deriver/inc/MPEG4.php  MPEG4.inc
 
 cp /petabox/bin/ffmpeg-README.txt  .
 
-for i in ffmpeg-aac.patch  ffmpeg-PAT.patch  ffmpeg-theora.patch  ffmpeg-thumbnails.patch; do
+for i in ffmpeg-aac.patch  ffmpeg-PAT.patch  ffmpeg-thumbnails.patch; do
   rm -f $i
   wget https://archive.org/~tracey/downloads/patches/$i
 done

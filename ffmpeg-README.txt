@@ -205,11 +205,10 @@ function ffmpeg-src() {
 ###############################################################################
 #    -AAC audio (nondecreasing timestamps is fine; monotonic is too restrictive!)
 #    -Better saved thumbnail names
-#    -Better quality theora (like "ffmpeg2theora" tool; use both bitrate *and* qscale)
 function ffmpeg-patch() {
   cd $DIR/ffmpeg
   PATDIR=
-  for p in ffmpeg-aac.patch  ffmpeg-theora.patch  ffmpeg-PAT.patch  ffmpeg-thumbnails.patch; do
+  for p in ffmpeg-aac.patch  ffmpeg-PAT.patch  ffmpeg-thumbnails.patch; do
     if [ "$PATDIR" = "" ]; then
       # find the patches dir!
       if [ -e "$MYDIR/$p" ]; then
