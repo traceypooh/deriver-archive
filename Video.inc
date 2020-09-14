@@ -70,8 +70,6 @@ class Video {
     // for probing for codec info/characteristics, up from ~5MB to ~200MB to analyze.
     // for duration, check first 900 seconds (arg is in microseconds), not default 5 seconds.
     $ffmpeg = Config::petaboxPath('bin-ffmpeg');
-    if (isset($GLOBALS['FFNEXT']))
-      $ffmpeg = str_replace('bin/ffmpeg', 'bin/ffmpeg.next', $ffmpeg);
     $args = (defined('LIMITLESS') ? ' -threads 16 ' : ' -threads 2 ').(Video::file_is_tv($file) ? ' -f mpegts ':'');
 
     return "$ffmpeg $args1 -analyzeduration 900000000000 -probesize 200M $args";
