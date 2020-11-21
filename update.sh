@@ -7,9 +7,7 @@ cp /petabox/deriver/derivations.xml  .
 cp /petabox/deriver/inc/Thumbnails.php   Thumbnails.inc
 cp /petabox/deriver/inc/MPEG4.php  MPEG4.inc
 
-cp /petabox/bin/ffmpeg-README.txt  .
+cp /petabox/bin/ffmpeg-README.sh  .
 
-for i in ffmpeg-aac.patch  ffmpeg-PAT.patch  ffmpeg-thumbnails.patch; do
-  rm -f $i
-  wget https://archive.org/~tracey/downloads/patches/$i
-done
+cp /petabox/lib/ffmpeg/ffmpeg-aac.patch .
+cp /petabox/lib/ffmpeg/ffmpeg-thumbnails.patch .

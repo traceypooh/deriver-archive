@@ -1,8 +1,10 @@
+# create/update w/ hand-edits (if needed), then:
+#   git diff -u |cat
 diff --git a/fftools/ffmpeg.c b/fftools/ffmpeg.c
 index 5d7d32a..856a2eb 100644
 --- a/fftools/ffmpeg.c
 +++ b/fftools/ffmpeg.c
-@@ -970,7 +970,14 @@ static void do_video_out(AVFormatContext *s,
+@@ -1087,7 +1087,14 @@ static void do_video_out(AVFormatContext *s,
          /* by default, we output a single frame */
          nb0_frames = 0; // tracks the number of times the PREVIOUS frame should be duplicated, mostly for variable framerate (VFR)
          nb_frames = 1;
@@ -19,28 +21,28 @@ index 5d7d32a..856a2eb 100644
          if (format_video_sync == VSYNC_AUTO) {
              if(!strcmp(s->oformat->name, "avi")) {
 diff --git a/libavformat/img2enc.c b/libavformat/img2enc.c
-index 1297b1a..a2859b1 100644
+index b303d38239..0efb300c68 100644
 --- a/libavformat/img2enc.c
 +++ b/libavformat/img2enc.c
-@@ -106,6 +106,10 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
-                    img->img_number, img->path);
-             return AVERROR(EINVAL);
-         }
+@@ -162,6 +162,10 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
+                img->img_number, img->path);
+         return AVERROR(EINVAL);
+     }
 +
 +if (av_get_frame_filename(filename, sizeof(filename), img->path, s->secxxx) < 0) return AVERROR(EINVAL);
 +av_log(NULL, AV_LOG_WARNING, "%s", s->debugxxx);
 +
-         for (i = 0; i < 4; i++) {
-             snprintf(img->tmp[i], sizeof(img->tmp[i]), "%s.tmp", filename);
-             av_strlcpy(img->target[i], filename, sizeof(img->target[i]));
+     for (i = 0; i < 4; i++) {
+         av_dict_copy(&options, img->protocol_opts, 0);
+         snprintf(img->tmp[i], sizeof(img->tmp[i]), "%s.tmp", filename);
 diff --git a/libavformat/avformat.h b/libavformat/avformat.h
-index fdaffa5bf4..5f8122b458 100644
+index e91e7f1d33..5b68fdaf70 100644
 --- a/libavformat/avformat.h
 +++ b/libavformat/avformat.h
-@@ -1944,7 +1944,7 @@ typedef struct AVFormatContext {
+@@ -1951,7 +1951,7 @@ typedef struct AVFormatContext {
       * - decoding: set by user
       */
-     int skip_estimate_duration_from_pts;
+     int max_probe_packets;
 -} AVFormatContext;
 +char debugxxx[60]; long secxxx; } AVFormatContext;
 

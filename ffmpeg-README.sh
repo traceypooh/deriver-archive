@@ -10,32 +10,29 @@
 # AAC audio encoding and decoding support,
 # and h.264/x264, x265 and ... and a pony 8-) ....
 ###############################################################################
-DIR=/tmp/f
-FFOS=bionic
+DIR=/f
 
 
 export DEBIAN_FRONTEND=noninteractive
 unset LD_LIBRARY_PATH # avoid any contamination when set!
 
+MYDIR=${0:a:h}
+ME=$(basename $0)
+
+typeset -a CONFIG # array
 
 
 function main() {
-  if [ -e /p/ffmpeg-README.txt ]; then
-    docker-setup
-  fi
+  [ -e /p/$ME ]  ||  docker-run
+  [ -e /p/$ME ]  ||  exit 0
 
-  MYDIR=$(d=`dirname $0`; echo $d | grep '^/' || echo `pwd`/$d)
-
-
-  if [ ! -e /p/ffmpeg-README.txt ]; then
-    docker-run
-  fi
-
-
+  docker-setup
   config-setup
   dependencies-and-config
+  aac-setup
   openssl-static
   openjpeg-static
+  vorbis-static
   ffmpeg-std
   x264
   x265
@@ -45,6 +42,25 @@ function main() {
   ffmpeg-compile
 }
 
+
+function docker-run() {
+  # linux, but _not_ docker
+  [ -e $MYDIR/../../docker/aliases ]  &&  cp $MYDIR/../../docker/{aliases,zshrc} $MYDIR/
+
+  touch -a  $MYDIR/ffmpeg.next
+  touch -a  $MYDIR/ffprobe.next
+  touch -a  $MYDIR/ffmpeg.std
+  touch -a  $MYDIR/ffprobe.std
+  chmod 777 $MYDIR/ff*p*e*.next
+  chmod 777 $MYDIR/ff*p*e*.std
+
+  # NOTE: you stay (interactively) in the container if we fatal with an error - for debug/inspection
+  sudo docker run -it --rm -v $MYDIR:/p -v $MYDIR/../lib/ffmpeg:/pat ubuntu:rolling \
+    bash -c "apt-get update  &&  apt-get install -y zsh  &&  (/p/$ME  ||  zsh)" \
+    2>&1 |tee $MYDIR/flog
+
+  rm -f $MYDIR/{aliases,zshrc}
+}
 
 
 function docker-setup() {
@@ -56,44 +72,16 @@ function docker-setup() {
 
   # setup a minimally useful build env
   apt-get install -y  php-cli
-  if [ -e /p/zshrc ]; then
-    ln -sf /p/zshrc   /root/.zshrc
-    ln -sf /p/aliases /root/.aliases
-  fi
+  [ -e /p/zshrc   ]  &&  ln -sf /p/zshrc   /root/.zshrc
+  [ -e /p/aliases ]  &&  ln -sf /p/aliases /root/.aliases
+
   export LC_ALL=C
 }
-
-
-
-function docker-run() {
-  # linux, but _not_ docker
-  if [ -e $MYDIR/../../docker/aliases ]; then
-    cp $MYDIR/../../docker/{aliases,zshrc} $MYDIR/
-  fi
-  touch     $MYDIR/ffmpeg.next
-  touch     $MYDIR/ffprobe.next
-  touch     $MYDIR/ffmpeg.std
-  touch     $MYDIR/ffprobe.std
-  chmod 777 $MYDIR/ff*p*e*.next
-  chmod 777 $MYDIR/ff*p*e*.std
-
-  # NOTE: you stay (interactively) in the container if we fatal with an error - for debug/inspection
-  sudo docker run -it --rm -v $MYDIR:/p ubuntu:$FFOS \
-    bash -c "apt-get update  &&  apt-get install -y zsh  &&  (/p/ffmpeg-README.txt  ||  zsh)" \
-    2>&1 |tee $MYDIR/flog
-
-  rm -f $MYDIR/{aliases,zshrc}
-  exit 0
-}
-
 
 
 function config-setup() {
   mkdir -m777 -p $DIR
   cd $DIR
-
-
-  typeset -a CONFIG # array
 
 
   # NOTE: configure options are mostly alphabetized, thankyouverymuch (makes comparison easier)
@@ -129,7 +117,7 @@ function config-setup() {
   )
   # no statics (libs _they_ depend on) for these, so bleah excluded (retry each build...)
   # http://packages.ubuntu.com/search?searchon=contents&arch=any&mode=exactfilename&suite=wily&keywords=libass.a
-  CONFIG_WANTED_NO_DICE+=(
+  CONFIG_WANTED_xxx+=(
     --enable-libass
     --enable-libbluray
   )
@@ -150,7 +138,6 @@ function dependencies-and-config() {
     libspeex-dev \
     libopenjp2-7-dev \
     libopencore-amrnb-dev  libopencore-amrwb-dev \
-    libvorbis-dev \
     libxvidcore-dev \
     libasound2-dev \
     libavfilter-dev \
@@ -164,7 +151,7 @@ function dependencies-and-config() {
     libssh-dev openssl
 
 
-  # we building most recent head of this _statically_ below
+  # we build most recent head of this _statically_ below
   apt-get -y purge libx264-dev libx265-dev
 
 
@@ -179,14 +166,11 @@ function dependencies-and-config() {
 }
 
 
-
 ###############################################################################
 # ffmpeg -- get source
 ###############################################################################
 function ffmpeg-src() {
-  if [ ! -e ffmpeg ]; then
-    git clone git://source.ffmpeg.org/ffmpeg.git
-  fi
+  [ -e ffmpeg ]  ||  git clone git://source.ffmpeg.org/ffmpeg
 
   cd ffmpeg
   git reset --hard
@@ -199,34 +183,19 @@ function ffmpeg-src() {
 }
 
 
-
 ###############################################################################
 # ffmpeg -- tracey patches
 ###############################################################################
 #    -AAC audio (nondecreasing timestamps is fine; monotonic is too restrictive!)
 #    -Better saved thumbnail names
 function ffmpeg-patch() {
-  cd $DIR/ffmpeg
-  PATDIR=
-  for p in ffmpeg-aac.patch  ffmpeg-PAT.patch  ffmpeg-thumbnails.patch; do
-    if [ "$PATDIR" = "" ]; then
-      # find the patches dir!
-      if [ -e "$MYDIR/$p" ]; then
-        PATDIR=file://$MYDIR
-      elif [ -e "$MYDIR/../lib/ffmpeg/$p" ]; then
-        PATDIR=file://$MYDIR/../lib/ffmpeg
-      else
-        PATDIR=http://archive.org/~tracey/downloads/patches
-      fi
-    fi
-
-    curl "$PATDIR/$p" >| ../$p
+  cd ffmpeg
+  for p in /pat/ffmpeg-aac.patch  /pat/ffmpeg-thumbnails.patch; do
     echo APPLYING PATCH $p
-    patch -p1 < ../$p
+    patch -p1 < $p
   done
   cd -
 }
-
 
 
 ###############################################################################
@@ -238,7 +207,7 @@ function ffmpeg-std() {
   ffmpeg-patch # test applying patches *first* in case any need updating
 
   ffmpeg-src   # revert any of the patches for this first clean/stock build
-  cd $DIR/ffmpeg
+  cd ffmpeg
   ./configure --prefix=/usr
   make -j6
   make install
@@ -249,7 +218,6 @@ function ffmpeg-std() {
 }
 
 
-
 ###############################################################################
 # x264 -- make the lib we use to make h.264 video!
 #         set it up so that we'll compile it in *statically*
@@ -257,10 +225,8 @@ function ffmpeg-std() {
 #         (installed above with ffmpeg-std)
 ###############################################################################
 function x264() {
-  cd $DIR
-  if [ ! -e x264 ]; then
-    git clone git://git.videolan.org/x264.git
-  fi
+  [ -e x264 ]  ||  git clone https://code.videolan.org/videolan/x264
+
   cd x264
   git reset --hard
   git clean -f
@@ -281,26 +247,23 @@ function x264() {
 }
 
 
-
 function x265() {
   # need to make the static .a file!
-  cd $DIR
-  if [ ! -e x265 ]; then
-    git clone https://anonscm.debian.org/git/pkg-multimedia/x265.git
-  fi
+  [ -e x265 ]  ||  git clone https://anonscm.debian.org/git/pkg-multimedia/x265
+
   cd x265
   git reset --hard
   git clean -f
   git pull
   git status
+  cd -
 
-  cd source
+  cd x265/source
   cmake .
   make -j6
   make install
-  cd $DIR
+  cd -
 }
-
 
 
 function openssl-static() {
@@ -312,35 +275,51 @@ function openssl-static() {
 }
 
 
+function aac-setup() {
+  # for highest quality AAC encoding.  pkgs only come with .so file(s), so build .a from source
+  apt-get -y install  libtool  dpkg-dev
+  apt-get source libfdk-aac-dev
+
+  cd fdk-aac*/
+  ./autogen.sh
+  ./configure --enable-static --disable-shared --prefix=/usr  &&  make -j4  &&  make install
+  cd -
+
+  CONFIG+=(--enable-libfdk-aac)
+}
 
 function openjpeg-static() {
   # bionic beta pkg didnt come with static .a lib file, so build from source xxx
-  if [ ! -e openjpeg ]; then
-    git clone https://github.com/uclouvain/openjpeg
-  fi
+  [ -e openjpeg ]  ||  git clone https://github.com/uclouvain/openjpeg
+
   cd openjpeg
   ( mkdir -p build  &&  cd build  &&  cmake .. -DCMAKE_BUILD_TYPE=Release  &&  make  &&  make install )
   cd -
 }
 
+function vorbis-static() {
+  # focal ubuntu started having issues w/ the .a file compiling in..
+  apt-get source  libvorbis-dev
 
+  cd libvorbis*/
+  PKG_CONFIG=/usr/bin/pkg-config ./configure --enable-static --disable-shared --prefix=/usr
+  make -j4  &&  make install
+  cd -
+}
 
 function lib-fixes() {
   # ugh! Oct2017 started having library linker lm and lpthread issues w/ config autodetection...
-  perl -i -pe 's/ \-lmp3lame/ -lmp3lame -lm/' $DIR/ffmpeg/configure
-  perl -i -pe 's/ \-lxvidcore/ -lxvidcore -lm -lpthread/' $DIR/ffmpeg/configure
+  perl -i -pe 's/ \-lmp3lame/ -lmp3lame -lm/'             ffmpeg/configure
+  perl -i -pe 's/ \-lxvidcore/ -lxvidcore -lm -lpthread/' ffmpeg/configure
 
   for pc in $(find /usr/local/lib/pkgconfig /usr/lib/x86_64-linux-gnu/pkgconfig |egrep 'x265.pc|fontconfig.pc|libopenjp2.pc|libssl.pc|libcrypto.pc'); do
-    if ! $(fgrep Libs.private: $pc |fgrep -q lpthread); then
-      perl -i -pe 's/Libs.private:/Libs.private: -lpthread/;' -e 's/ \-lgcc_s/ /g;' $pc
-    fi
+    ( fgrep Libs.private: $pc |fgrep -q lpthread
+    )  ||  perl -i -pe 's/Libs.private:/Libs.private: -lpthread/;' -e 's/ \-lgcc_s/ /g;' $pc
   done
 }
 
 
-
 function ffmpeg-compile() {
-  cd $DIR
   cd ffmpeg
   ./configure $CONFIG
 
@@ -349,9 +328,11 @@ function ffmpeg-compile() {
   make -j6 V=1
   # make alltools; # no longer needed -- uncomment if you like
   env DESTDIR=${DIR?} make install
-  cp ffmpeg               $MYDIR/ffmpeg.$SHORTNAME
-  cp ffprobe              $MYDIR/ffprobe.$SHORTNAME
- #cp ffplay               $MYDIR/ffplay.$SHORTNAME
+  cp ffmpeg               $MYDIR/ffmpeg.next
+  cp ffprobe              $MYDIR/ffprobe.next
+ #cp ffplay               $MYDIR/ffplay.next
+  cd -
+
   set -x
   echo
   echo
@@ -362,7 +343,6 @@ function ffmpeg-compile() {
 function line(){
   perl -e 'print "_"x80; print "\n\n"';
 }
-
 
 
 main

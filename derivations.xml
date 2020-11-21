@@ -6,13 +6,76 @@
 
   <!-- class is the name of the corresponding PHP class -->
 
+  <format name="JPEG">
+    <!-- NOTE: this is effectively a demo of using another docker image to derive a module -->
+    <!-- NOTE: limited to just collection poohBot and AVI sources :) -->
+    <extension>jpg</extension>
+    <class>ServerlessDocker</class>
+    <variations>
+      <variation name="JPEG from Video" parameter="registry.archive.org/www/serverless/master" conditionally="{'collection':['poohBot']}">
+        <dependency format="Motion JPEG" variation="Motion JPEG"/>
+        <dependency format="Cinepack" variation="Cinepack"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="hOCR">
+    <extension>gz</extension>
+    <class>ServerlessDocker</class>
+    <variations>
+      <variation name="hOCR GZ" preextension="_hocr.html" parameter="{'production':'registry.archive.org/www/tesseract/production','test':'registry.archive.org/www/tesseract/testing'}" conditionally="{'collection':['sim_microfilm','internetarchivebooks','tesseract_test']}">
+        <dependency format="PJP2ZIP" variation="Single Page Processed JP2 ZIP"/>
+        <dependency format="PJP2TAR" variation="Single Page Processed JP2 Tar"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="Log">
+    <extension>log</extension>
+    <class>ServerlessDocker</class>
+    <variations>
+      <variation name="Microfilm Issues Log" preextension="_ufilm" parameter="{'production':'registry.archive.org/www/microfilm-issue-generator/production','test':'registry.archive.org/www/microfilm-issue-generator/testing','arg':'--device /dev/fuse --cap-add SYS_ADMIN --privileged'}">
+        <dependency format="JSON" variation="Microfilm Issues JSON"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="MPX">
+    <extension>mpx</extension>
+    <class>ServerlessDocker</class>
+    <variations>
+      <variation rank="0" name="MPX" parameter="registry.archive.org/www/av/master" conditionally="{'collection':['tvarchive']}">
+        <dependency format="h.264" variation="h.264"/>
+      </variation>
+    </variations>
+  </format>
+
+  <format name="Audio Speech Analysis">
+    <extension>json</extension>
+    <class>ServerlessDocker</class>
+    <variations>
+      <variation rank="300" name="Speech Confidence JSON" preextension="_speech_confidence" parameter="registry.archive.org/www/audio-tagger/master" conditionally="{'collection':['radio','radio-archive']}">
+        <dependency format="MP3"          variation="VBR MP3"/>
+        <dependency format="MPEG-4 Audio" variation="MPEG-4 Audio"/>
+      </variation>
+
+      <variation rank="301" name="Speech VS Music JSON" preextension="_speech_vs_music" parameter="registry.archive.org/www/audio-tagger/master" conditionally="{'collection':['radio','radio-archive']}">
+        <dependency format="Speech Confidence JSON" variation="Speech Confidence JSON"/>
+      </variation>
+
+      <variation rank="302" name="JSON SRT" preextension="_speech_vs_music_asr" deextension=".asr" parameter="registry.archive.org/www/audio-tagger/master" conditionally="{'format':['Speech VS Music JSON']}">
+        <dependency format="SubRip" variation="SubRip"/>
+      </variation>
+    </variations>
+  </format>
+
+
   <format name="WAVE">
     <extension>wav</extension>
     <variations>
       <variation name="WAVE" />
     </variations>
   </format>
-
 
   <format name="MP3">
     <extension>mp3</extension>
@@ -21,7 +84,7 @@
     <category>lossy</category>
     <variations>
       <!-- NOTE: deriv *NOT* usually made.  see Deriver.loadCollectionRules() -->
-      <variation rank="2" name="MP3" parameter="-b96 -a" conditionally="{'collection':['tvarchive','internetarchivepresents','tv_ads','prelinger','decentralizedwebsummit2016','us_congress','dopetapes','densho','educationalfilms','electionmedia','community_media','digitallibraryindia','hdvideo','internetarchivepresents','feature_films']}">
+      <variation rank="123" name="MP3" parameter="-b96 -a" conditionally="{'collection':['TV-DW','TV-ALJAZ','TV-RT','internetarchivepresents','tv_ads','prelinger','decentralizedwebsummit2016','us_congress','dopetapes','densho','educationalfilms','electionmedia','community_media','digitallibraryindia','hdvideo','internetarchivepresents','feature_films']}">
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2" />
         <dependency format="MPEG1" variation="MPEG1" />
@@ -34,7 +97,7 @@
         <dependency format="ISO Image" variation="ISO Image" />
       </variation>
       <!-- NOTE: deriv *NOT* usually made.  see Deriver.loadCollectionRules() -->
-      <variation rank="2" name="64Kbps MP3" parameter="-b64 -a --resample 22.05" preextension="_64kb" conditionally="{'collection':['podcast_corydoctorow','librivoxaudio']}">
+      <variation rank="123" name="64Kbps MP3" parameter="-b64 -a --resample 22.05" preextension="_64kb" conditionally="{'collection':['podcast_corydoctorow','librivoxaudio']}">
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
         <dependency format="Flac"       variation="24bit Flac" />
@@ -49,7 +112,6 @@
         <dependency format="MP3"        variation="192Kbps MP3"/>
         <dependency format="MP3"        variation="160Kbps MP3"/>
         <dependency format="MP3"        variation="128Kbps MP3"/>
-        <dependency format="MP3"        variation="VBR MP3"/>
         <dependency format="Ogg Vorbis" variation="Ogg Vorbis" />
         <dependency format="MP3"        variation="96Kbps MP3"/>
         <dependency format="Real Audio" variation="Real Audio"/>
@@ -57,36 +119,15 @@
         <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MIDI"       variation="MIDI" />
         <dependency format="MPEG Audio" variation="MPEG Audio"/>
-      </variation>
-      <variation rank="2" name="MP3 Sample" parameter="--preset medium" preextension="_sample" conditionally="{'collection':['samples_only']}">
-        <dependency format="WAVE"       variation="WAVE" />
-        <dependency format="Shorten"    variation="Shorten"/>
-        <dependency format="Flac"       variation="24bit Flac" />
-        <dependency format="Flac"       variation="Flac" />
-        <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding"/>
-        <dependency format="WebA"       variation="WebA" />
-        <dependency format="AIFF"       variation="AIFF" />
-        <dependency format="Windows Media Audio"  variation="Windows Media Audio" />
-        <dependency format="Digital Theater Systems Audio" variation="Digital Theater Systems Audio"/>
-        <dependency format="MP3"        variation="320Kbps MP3"/>
-        <dependency format="MP3"        variation="256Kbps MP3"/>
-        <dependency format="MP3"        variation="192Kbps MP3"/>
         <dependency format="MP3"        variation="VBR MP3"/>
-        <dependency format="MP3"        variation="160Kbps MP3"/>
-        <dependency format="MP3"        variation="128Kbps MP3"/>
-        <dependency format="Ogg Vorbis" variation="Ogg Vorbis" />
-        <dependency format="MP3"        variation="96Kbps MP3"/>
-        <dependency format="Real Audio" variation="Real Audio"/>
-        <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
-        <dependency format="3GP Audio"  variation="3GP Audio" />
-        <dependency format="MPEG Audio" variation="MPEG Audio"/>
       </variation>
-      <variation rank="2" name="VBR MP3" parameter="--preset standard">
+      <!-- NOTE: we want this _before_ "MP3 Sample" to ensure we try to make this before samples for items with Segment Data, etc. -->
+      <variation rank="121" name="VBR MP3" parameter="--preset standard" conditionally="{'!collection':['radio','radio-archive']}">
         <dependency format="Segment Data" variation="Segment Data" />
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
-        <dependency format="Flac"       variation="24bit Flac" />
-        <dependency format="Flac"       variation="Flac" />
+        <dependency format="Flac"       variation="24bit Flac" conditionally="{'!format':['Segment Data']}"/>
+        <dependency format="Flac"       variation="Flac"       conditionally="{'!format':['Segment Data']}"/>
         <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding"/>
         <dependency format="WebA"       variation="WebA" />
         <dependency format="AIFF"       variation="AIFF" />
@@ -102,6 +143,30 @@
         <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
         <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MIDI"       variation="MIDI" />
+        <dependency format="MPEG Audio" variation="MPEG Audio"/>
+      </variation>
+      <variation rank="122" name="MP3 Sample" parameter="--preset medium" preextension="_sample" conditionally="{'collection':['samples_only']}">
+        <dependency format="Segment Data" variation="Segment Data" />
+        <dependency format="WAVE"       variation="WAVE" />
+        <dependency format="Shorten"    variation="Shorten"/>
+        <dependency format="Flac"       variation="24bit Flac" conditionally="{'!format':['Segment Data']}"/>
+        <dependency format="Flac"       variation="Flac"       conditionally="{'!format':['Segment Data']}"/>
+        <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding"/>
+        <dependency format="WebA"       variation="WebA" />
+        <dependency format="AIFF"       variation="AIFF" />
+        <dependency format="Windows Media Audio"  variation="Windows Media Audio" />
+        <dependency format="Digital Theater Systems Audio" variation="Digital Theater Systems Audio"/>
+        <dependency format="MP3"        variation="320Kbps MP3"/>
+        <dependency format="MP3"        variation="256Kbps MP3"/>
+        <dependency format="MP3"        variation="192Kbps MP3"/>
+        <dependency format="MP3"        variation="VBR MP3"/>
+        <dependency format="MP3"        variation="160Kbps MP3"/>
+        <dependency format="MP3"        variation="128Kbps MP3"/>
+        <dependency format="Ogg Vorbis" variation="Ogg Vorbis" />
+        <dependency format="MP3"        variation="96Kbps MP3"/>
+        <dependency format="Real Audio" variation="Real Audio"/>
+        <dependency format="Apple Lossless Audio" variation="Apple Lossless Audio"/>
+        <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MPEG Audio" variation="MPEG Audio"/>
       </variation>
       <variation name="320Kbps MP3" preextension="_320kb" />
@@ -127,6 +192,20 @@
       <variation name="Windows Media Audio"/>
     </variations>
   </format>
+
+
+  <format name="MPEG-4 Audio">
+    <extension>m4a</extension>
+    <class>M4A</class>
+    <category>lossy</category>
+    <variations>
+      <variation rank="125" name="MPEG-4 Audio" conditionally="{'collection':['radio','radio-archive','beta-audio']}">
+        <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding" />
+        <dependency format="MP3" variation="VBR MP3" />
+      </variation>
+    </variations>
+  </format>
+
 
   <format name="Advanced Audio Coding">
     <extension>aac</extension>
@@ -158,11 +237,11 @@
   </format>
 
   <format name="Ogg Vorbis">
+    <!-- NOTE: we _used_ to make .ogg files, similar to .mp3 files.  Discontinued 2020-01 -->
     <extension>ogg</extension>
-    <class>Ogg</class>
     <category>lossy</category>
     <variations>
-      <variation name="Ogg Vorbis" />
+      <variation name="Ogg Vorbis"/>
     </variations>
   </format>
 
@@ -177,8 +256,8 @@
     <extension>flac</extension>
     <class>FLAC</class>
     <variations>
-      <variation rank="11" name="Flac">
-        <dependency rank="8" format="WAVE" variation="WAVE" />
+      <variation rank="210" name="Flac">
+        <dependency rank="180" format="WAVE" variation="WAVE" />
         <dependency format="Digital Theater Systems Audio" variation="Digital Theater Systems Audio"/>
         <!-- dependency format="Shorten" variation="Shorten" / -->
       </variation>
@@ -211,8 +290,8 @@
         <dependency format="Windows Media"  variation="Windows Media" />
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
-        <dependency format="Flac"       variation="24bit Flac" />
-        <dependency format="Flac"       variation="Flac" />
+        <dependency format="Flac"       variation="24bit Flac" conditionally="{'!format':['Segment Data']}"/>
+        <dependency format="Flac"       variation="Flac"       conditionally="{'!format':['Segment Data']}"/>
         <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding"/>
         <dependency format="WebA"       variation="WebA" />
         <dependency format="AIFF"       variation="AIFF" />
@@ -239,13 +318,13 @@
     <variations>
 
       <!-- TV ARCHIVE ONLY-->
-      <variation rank="3" name="Columbia Fingerprint TV" preextension="_tva" parameter="precompute --samplerate 11025 --density 100 --shifts 1" conditionally="{'collection':['tvarchive','political_ads','electionmedia']}">
+      <variation rank="130" name="Columbia Fingerprint TV" preextension="_tva" parameter="precompute --samplerate 11025 --density 100 --shifts 1" conditionally="{'collection':['political_ads','electionmedia']}">
         <dependency format="MP3"        variation="VBR MP3"/>
         <dependency format="MP3"        variation="MP3"/>
         <dependency format="MP3"        variation="64Kbps MP3"/>
         <dependency format="Matroska" variation="Matroska" /> <!--for rare utube sources-->
       </variation>
-      <variation rank="3" name="Columbia Sparse Fingerprint TV" preextension="_tva20" parameter="precompute --samplerate 11025 --density 20 --shifts 1" conditionally="{'collection':['tvarchive','political_ads','electionmedia']}">
+      <variation rank="130" name="Columbia Sparse Fingerprint TV" preextension="_tva20" parameter="precompute --samplerate 11025 --density 20 --shifts 1" conditionally="{'collection':['political_ads','electionmedia']}">
         <dependency format="MP3"        variation="VBR MP3"/>
         <dependency format="MP3"        variation="MP3"/>
         <dependency format="MP3"        variation="64Kbps MP3"/>
@@ -284,9 +363,8 @@
 
   <format name="Essentia Low GZ">
     <extension>gz</extension>
-    <class>EssentiaLow</class>
     <variations>
-      <variation rank="14" name="Essentia Low GZ" preextension="_esslow.json" conditionally="{'!collection':['tvarchive','librivoxaudio']}">
+      <variation rank="240" name="Essentia Low GZ" preextension="_esslow.json" conditionally="{'!collection':['tvarchive','librivoxaudio']}">
         <!-- suspend derivation of this format (BK request, May 2016)
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
@@ -315,7 +393,6 @@
 
   <format name="Essentia High GZ">
     <extension>gz</extension>
-    <class>EssentiaHigh</class>
     <variations>
       <variation name="Essentia High GZ" preextension="_esshigh.json" conditionally="{'!collection':['tvarchive','librivoxaudio']}">
         <!-- suspend derivation of this format (BK request, May 2016)
@@ -329,11 +406,11 @@
     <extension>png</extension>
     <class>Spectrogram</class>
     <variations>
-      <variation rank="13" name="Spectrogram" preextension="_spectrogram" conditionally="{'!collection':['tvarchive']}">
+      <variation rank="230" name="Spectrogram" preextension="_spectrogram" conditionally="{'!collection':['tvarchive']}">
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
-        <dependency format="Flac"       variation="24bit Flac" />
-        <dependency format="Flac"       variation="Flac" />
+        <dependency format="Flac"       variation="24bit Flac" conditionally="{'!format':['Segment Data']}"/>
+        <dependency format="Flac"       variation="Flac"       conditionally="{'!format':['Segment Data']}"/>
         <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding"/>
         <dependency format="WebA"       variation="WebA" />
         <dependency format="AIFF"       variation="AIFF" />
@@ -626,8 +703,8 @@
 
 
   <format name="Checksums">
+    <!-- prior derivative - no longer used -->
     <extension>md5</extension>
-    <class>MD5</class>
     <variations>
       <variation name="Checksums" />
     </variations>
@@ -635,15 +712,10 @@
 
 
   <format name="Flac FingerPrint">
+    <!-- prior derivative - no longer used -->
     <extension>ffp</extension>
-    <class>FFP</class>
     <variations>
-      <!-- NOTE: explicitly allowed to be derived from another derivative -->
-      <!-- Eg: WAVE  =>  Flac  =>  Flac FingerPrint -->
-      <variation rank="8" name="Flac FingerPrint" multifile="true">
-        <!-- <dependency format="Flac" variation="24bit Flac" /> -->
-        <!-- <dependency format="Flac" variation="Flac"/> -->
-      </variation>
+      <variation name="Flac FingerPrint" multifile="true" />
     </variations>
   </format>
 
@@ -659,14 +731,14 @@
 
       <!-- NOTE: this needs to run **first** since it can replace source files!-->
       <!-- NOTE: subtle - name needs to differ from MPEG2 since have another conditionally later.. -->
-      <variation rank="0" name="VOB" conditionally="{'collection':['television']}">
+      <variation rank="100" name="VOB" conditionally="{'collection':['television']}">
         <dependency format="DVD Info" variation="DVD Info"/>
       </variation>
 
       <!-- NOTE: this needs to run **first** since it can replace source files!-->
       <!-- pegssc == PEG Server-Standards-Compliant -->
-      <variation rank="0" name="MPEG2" preextension=".pegssc" conditionally="[{'collection':['denveropenmedia','SeattleCommunityMedia','phillycam'],'parameter':'-ac 2 -acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 7000000 -maxrate 8000000 -minrate 5000000 -bufsize 835008 -packetsize 2048 -muxrate 10080000'},
-                                                                              {'collection':['tedtalks','poptech','eastoncat','broadcast_ready'],   'parameter':'-ac 2 -acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 5000000 -maxrate 6000000 -minrate 4000000 -bufsize 635008 -packetsize 2048 -muxrate 10080000'}]">
+      <variation rank="0" name="MPEG2" preextension=".pegssc" conditionally="{'collection':['tedtalks','poptech','eastoncat','broadcast_ready','denveropenmedia','SeattleCommunityMedia','phillycam'],'parameter':'-ac 2 -acodec mp2 -ar 48000 -b:a 256k   -vcodec mpeg2video -r 29.97 -f dvd -copyts -g 15 -b:v 7000000 -maxrate 8000000 -minrate 5000000 -bufsize 835008 -packetsize 2048 -muxrate 10080000'}">
+        <!-- back in black bars (and keep 4:3) -->
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
@@ -707,12 +779,15 @@
   </format>
 
   <format name="MPEG1">
+    <class>MPEG1</class>
     <extension>mpg</extension>
     <extension>mp1</extension>
     <extension>mpeg1</extension>
     <class />
     <variations>
-      <variation name="MPEG1" />
+      <variation rank="0" name="MPEG1" multifile="true" conditionally="{'collection':['tvarchive']}">
+        <dependency format="MPEGTS" variation="MPEGTS"/>
+      </variation>
     </variations>
   </format>
 
@@ -725,11 +800,11 @@
   </format>
 
   <format name="Ogg Video">
+    <!-- NOTE: we _used_ to make .ogv files, similar to .mp4 files.  Discontinued 2020-01 -->
     <extension>ogv</extension>
-    <class>Ogv</class>
     <category>lossy</category>
     <variations>
-      <variation name="Ogg Video"/>
+      <variation name="Ogg Video" />
     </variations>
   </format>
 
@@ -767,14 +842,14 @@
   <format name="NRT">
     <extension>txt</extension>
     <variations>
-      <variation rank="0" name="NRT" preextension="NRT"/>
+      <variation rank="100" name="NRT" preextension="NRT"/>
     </variations>
   </format>
   <format name="NRT Processed">
     <extension>txt</extension>
     <class>NRT</class>
     <variations>
-      <variation rank="0" name="NRT Processed" preextension="NRT_processed">
+      <variation rank="100" name="NRT Processed" preextension="NRT_processed">
         <dependency format="NRT" variation="NRT" />
       </variation>
     </variations>
@@ -788,15 +863,7 @@
     <category>lossy</category>
     <class>MPEG4</class>
     <variations>
-      <!--
-         -  Parameters started with stock ffmpeg "libx264-baseline.ffpreset" and then extended.
-         -  No b-frames - keep the profile simple!
-         -  No cabac arithimetic coding. (corresponds to specs for level 1.3 video)
-         -  For ipod video, make sure max avg bitrate doesn't go over 768
-         -     http://lists.mplayerhq.hu/pipermail/ffmpeg-user/2006-June/003218.html
-         -  Then peg to approx 700kb/sec video bitrate.
-        -->
-      <variation rank="8" name="h.264" parameter="640x480  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=30:bitrate=700:vbv_maxrate=768:vbv_bufsize=1400  -movflags faststart -ac 2 -b:a 128k -ar 44100">
+      <variation rank="180" name="h.264" conditionally="{'!collection':['tvsatellite']}">
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
@@ -826,13 +893,17 @@
         <dependency format="MPEG4" variation="MPEG4 1.5Mbps" />
         <dependency format="3GP" variation="3GP" />
         <dependency format="Matroska" variation="Matroska" />
-        <dependency format="Shockwave Flash" variation="Shockwave Flash" />
-        <!-- derive from _our_ derivative only as last resort -->
-        <dependency format="256Kb MPEG4" variation="256Kb MPEG4" />
+        <!-- derive from _our_ prior derivative only as last resort -->
         <dependency format="Ogg Video" variation="Ogg Video" />
       </variation>
 
-      <variation rank="8" name="h.264 720P" parameter="1280x720  -profile:v baseline  -x264opts cabac=0:bframes=0:ref=1:weightp=0:level=31:bitrate=2048:vbv_maxrate=2250:vbv_bufsize=4096  -movflags faststart -ac 2 -b:a 128k -ar 44100" preextension="_720p" conditionally="{'collection':['35mmstockfootage','hdvideo','internetarchivepresents']}">
+
+      <variation rank="180" name="h.264 IA" preextension=".ia">
+        <dependency format="MPEG4" variation="MPEG4"/>
+      </variation>
+
+
+      <variation rank="180" name="h.264 720P" preextension="_720p" conditionally="{'collection':['35mmstockfootage','hdvideo','internetarchivepresents']}">
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2-TS" variation="MPEG2-TS" />
@@ -852,37 +923,10 @@
         <dependency format="Matroska" variation="Matroska" />
       </variation>
 
-      <variation rank="8" name="h.264 486P" parameter="648x486  -x264opts bitrate=3500:vbv_maxrate=4000:vbv_bufsize=7000  -pix_fmt yuv420p -movflags faststart -ac 2 -b:a 160k -ar 48000" preextension="_486p" conditionally="{'collection':['californialightandsound-xxx-coming-soon']}">
-        <dependency format="QuickTime" variation="QuickTime" />
-      </variation>
 
-      <variation rank="8" name="h.264 popcorn" parameter="640x480" conditionally="{'collection':['popcornproject']}">
+      <variation rank="180" name="h.264 popcorn" conditionally="{'collection':['popcornproject']}">
         <dependency format="Metadata" variation="Metadata" />
       </variation>
-
-
-      <!--PICK ONE:-->
-      <!-- high quality, assuming extend 'mobile' (max 720p) mpegts input.  Since typcially 30 fps, ensure GOP is max 3s/90  -->
-      <variation rank="8" name="MPEGTS/h.264" parameter="ffmpeg -f mpegts -copyts -i - -hide_banner -copyts -f mpegts -c:a aac -ac 2 -b:a 128k -ar 44100 -movflags faststart -sws_flags neighbor -g 90 -profile:v baseline -x264opts bframes=0:level=30:bitrate=700" conditionally="{'collection':['tvarchive']}">
-        <dependency format="MPEGTS" variation="MPEGTS" />
-      </variation>
-
-      <!-- lower quality; faster encode.  Since typically dropping to 15fps, ensure GOP is max 3s/35  -->
-      <!--
-      <variation rank="8" name="MPEGTS/h.264" parameter="ffmpeg -f mpegts -copyts -i - -hide_banner -copyts -f mpegts -c:a aac -ac 2 -b:a 128k -ar 44100 -sws_flags neighbor -vf &quot;framestep=2,scale='iw/2':-1&quot; -g 45 -profile:v baseline -x264opts bframes=0:level=30:bitrate=600" conditionally="{'collection':['tvarchive']}">
-        <dependency format="MPEGTS" variation="MPEGTS" />
-      </variation>
-      -->
-
-      <!-- highest quality -->
-      <!--
-      <variation rank="8" name="MPEGTS/h.264" parameter="ffmpeg -f mpegts -copyts -i - -hide_banner -copyts -f mpegts -c:a aac -ac 2 -b:a 128k -ar 44100 -c:v libx264" conditionally="{'collection':['tvarchive']}">
-        <dependency format="MPEGTS" variation="MPEGTS" />
-      </variation>
-      -->
-
-
-
 
 
       <!-- our prior h.264 derivative (smaller bitrate, way less pixels) -->
@@ -1026,9 +1070,9 @@
 
   <format name="Cinepack">
     <extension>avi</extension>
-    <class>AVI</class>
+    <class>ServerlessDocker</class>
     <variations>
-      <variation rank="0" name="Cinepack">
+      <variation rank="100" name="Cinepack" parameter="registry.archive.org/www/av/master">
         <dependency format="Movie Frames" variation="Movie Frames"/>
       </variation>
     </variations>
@@ -1087,16 +1131,6 @@
     </variations>
   </format>
 
-  <format name="Collection Header">
-    <extension>gif</extension>
-    <extension>jpg</extension>
-    <class />
-    <variations>
-      <variation name="Collection Header" />
-      <variation name="Collection Header" preextension="_header"/>
-    </variations>
-  </format>
-
   <!-- front, back, and spine cover for a 'print on demand' book -->
   <format name="Book Cover">
     <extension>jpg</extension>
@@ -1127,7 +1161,7 @@
     <class>Thumbnails</class>
     <subdir>.thumbs</subdir>
     <variations>
-      <variation rank="4" name="Thumbnail" preextension="_000001">
+      <variation rank="140" name="Thumbnail" preextension="_000001">
         <dependency format="h.264 HD" variation="h.264 HD" />
         <dependency format="DV Video" variation="DV Video" />
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
@@ -1159,14 +1193,15 @@
         <dependency format="MPEG4" variation="64Kb MPEG4" />
         <dependency format="3GP" variation="3GP" />
         <dependency format="Matroska" variation="Matroska" />
+
         <!-- oddly, some people have uploaded originals with this next format -->
         <dependency format="MPEG4" variation="512Kb MPEG4" />
 
-        <!-- derive from _our_ derivative only as last resort -->
+        <!-- derive from _our_ prior derivative only as last resort -->
         <dependency format="Ogg Video" variation="Ogg Video" />
       </variation>
-      <variation rank="5" name="MPEGTS/Thumbnail" preextension="_000000" parameter="ffmpeg -i - -ss 1 -an -vf scale=160:110 -vframes 1 -pix_fmt yuvj422p _%06d.jpg">
-        <dependency format="MPEGTS" variation="MPEGTS" conditionally="{'collection':['tvarchive']}" />
+      <variation rank="150" name="MPEGTS/Thumbnail" preextension="_000000" parameter="ffmpeg -i - -ss 1 -an -vf scale=160:110 -vframes 1 -pix_fmt yuvj422p _%06d.jpg">
+        <dependency format="MPEGTS" variation="MPEGTS" conditionally="{'collection':['tvarchive-xxxx']}" />
       </variation>
     </variations>
   </format>
@@ -1196,7 +1231,7 @@
     <extension>jpg</extension>
     <class>JPEGThumb</class>
     <variations>
-      <variation rank="10" name="JPEG Thumb" preextension="_thumb">  <!-- module may make additional sizes listed below, too -->
+      <variation rank="200" name="JPEG Thumb" preextension="_thumb">  <!-- module may make additional sizes listed below, too -->
         <dependency format="TIFF" variation="TIFF" />
         <dependency format="JP2" variation="JPEG 2000" />
         <dependency format="JPEG" variation="JPEG" />
@@ -1251,10 +1286,10 @@
     <extension>png</extension>
     <class>PNG</class>
     <variations>
-      <variation rank="12" name="PNG" conditionally="{'!collection':['tvarchive']}">
+      <variation rank="220" name="PNG" conditionally="{'!collection':['tvarchive']}">
         <dependency format="WAVE"       variation="WAVE" />
         <dependency format="Shorten"    variation="Shorten"/>
-        <dependency format="Flac"       variation="24bit Flac" />
+        <dependency format="Flac"       variation="24bit Flac"/>
         <dependency format="Flac"       variation="Flac"/>
         <dependency format="Advanced Audio Coding" variation="Advanced Audio Coding"/>
         <dependency format="WebA"       variation="WebA" />
@@ -1266,6 +1301,7 @@
         <dependency format="3GP Audio"  variation="3GP Audio" />
         <dependency format="MIDI"       variation="MIDI" />
         <dependency format="VBR MP3"    variation="VBR MP3"/>
+        <dependency format="MPEG-4 Audio" variation="MPEG-4 Audio"/>
         <dependency format="MP3"        variation="MP3"/>
         <dependency format="MP3"        variation="320Kbps MP3"/>
         <dependency format="MP3"        variation="256Kbps MP3"/>
@@ -1325,13 +1361,15 @@
 
   <format name="PDF">
     <extension>pdf</extension>
-    <class>PDF</class> <!-- may make ImagePDF instead -->
+    <class>PDF</class>
     <variations>
-      <variation name="Text PDF">
+      <!-- module will make "Image Container PDF" instead of "Text PDF" if language can't be ocr'd -->
+      <variation name="Text PDF" conditionally="{'!collection':['sim_raw_scans','sim_microfilm','no-generated-pdf']}" parameter="{'production':'registry.archive.org/www/pdf/production','test':'registry.archive.org/www/pdf/testing'}">
         <dependency format="EPUB" variation="EPUB"/>
-        <dependency format="AbbyyGZ" variation="Abbyy GZ"/>
-        <dependency format="abbyyXML" variation="ABBYY XML"/>
+        <dependency format="Page Numbers JSON" variation="Page Numbers JSON" conditionally="{'collection':['internetarchivebooks','tesseract_test']}"/>
+        <dependency format="AbbyyGZ" variation="Abbyy GZ" conditionally="{'format':['Page Numbers JSON'],'!collection':['internetarchivebooks','tesseract_test']}"/>
       </variation>
+      <variation name="Uncompressed Image-Only PDF" preextension="_imgonly"/> <!-- no longer made -->
     </variations>
   </format>
 
@@ -1343,6 +1381,14 @@
     </variations>
   </format>
 
+  <format name="Recoded PDF">
+    <extension>pdf</extension>
+    <class>ServerlessDocker</class>
+    <variations>
+      <variation name="Recoded Text PDF" preextension="_recoded"/> <!-- no longer made -->
+    </variations>
+  </format>
+
   <!-- ewwww. now that a single item can have both a contributed no-text pdf -->
   <!-- and a derived with-text pdf, we need an alternative filename for      -->
   <!-- with-text pdfs, to be used only when there's already a no-text one    -->
@@ -1350,7 +1396,7 @@
     <extension>pdf</extension>
     <class>HackPDF</class>
     <variations>
-      <variation name="Additional Text PDF" preextension="_text">
+      <variation name="Additional Text PDF" preextension="_text" conditionally="{'!collection':['no-generated-pdf']}">
         <dependency format="AbbyyGZ" variation="Abbyy GZ"/>
         <dependency format="abbyyXML" variation="ABBYY XML"/>
       </variation>
@@ -1373,9 +1419,9 @@
     <class>PackageWithACS</class>
     <variations>
       <variation name="ACS Encrypted PDF" preextension="_encrypted" conditionally="{'collection':['inlibrary','printdisabled']}">
-        <dependency format="HackPDF" variation="Additional Text PDF"/>
-        <dependency format="PDF" variation="Text PDF"/>
-        <dependency format="ImagePDF" variation="Image Container PDF"/>
+        <dependency format="HackPDF" variation="Additional Text PDF" conditionally="{'!collection':['sim_raw_scans','sim_microfilm','internetarchivebooks']}"/>
+        <dependency format="PDF" variation="Text PDF" conditionally="{'!collection':['sim_raw_scans','sim_microfilm']}"/>
+        <dependency format="ImagePDF" variation="Image Container PDF" conditionally="{'!collection':['sim_raw_scans','sim_microfilm','internetarchivebooks']}"/>
       </variation>
     </variations>
   </format>
@@ -1385,8 +1431,9 @@
     <class>PackageWithACS</class>
     <variations>
       <variation name="ACS Encrypted EPUB" preextension="_encrypted" conditionally="{'collection':['inlibrary','printdisabled']}">
-        <dependency format="EPUB" variation="EPUB"/>
-        <dependency format="AbbyyGZ" variation="Abbyy GZ"/>
+        <dependency format="EPUB" variation="Remediated EPUB" conditionally="{'!collection':['sim_raw_scans','sim_microfilm','internetarchivebooks']}"/>
+        <dependency format="EPUB" variation="EPUB" conditionally="{'!collection':['sim_raw_scans','sim_microfilm','internetarchivebooks']}"/>
+        <dependency format="AbbyyGZ" variation="Abbyy GZ" conditionally="{'!collection':['sim_raw_scans','sim_microfilm','internetarchivebooks']}"/>
       </variation>
     </variations>
   </format>
@@ -1433,6 +1480,7 @@
         <!-- book, and the language is one we can't OCR with Abbyy (true for  -->
         <!-- some of the books transferred from China)                        -->
         <dependency format="DjVu" variation="Original DjVu"/>
+        <dependency format="hOCR" variation="hOCR GZ"/>
         <dependency format="AbbyyGZ" variation="Abbyy GZ"/>
         <dependency format="abbyyXML" variation="ABBYY XML"/>
       </variation>
@@ -1481,6 +1529,7 @@
   </format>
 
   <format name="Segment Data">
+    <extension>json</extension>
     <extension>xml</extension>
     <variations>
       <variation name="Segment Data" preextension="_segments"/>
@@ -1547,7 +1596,7 @@
     <extension>gz</extension>
     <class>AbbyyXML</class>
     <variations>
-      <variation name="Abbyy GZ" preextension="_abbyy" conditionally="{'!collection':['acs4_data','mathematicsimage','usfederalcourtsdev']}">
+      <variation name="Abbyy GZ" preextension="_abbyy" conditionally="{'!collection':['acs4_data','mathematicsimage','usfederalcourtsdev','tesseract_test','sim_microfilm','internetarchivebooks']}">
         <dependency format="ZIP" variation="Single Page Processed JP2 ZIP"/>
         <dependency format="ZIP" variation="Single Page Processed JP2 Tar"/>
         <dependency format="ZIP" variation="Single Page Processed JPEG ZIP"/>
@@ -1618,6 +1667,7 @@
       <!--  <dependency format="ZIP" variation="Abbyy ZIP"/> -->
       <!--  <dependency format="abbyyXML" variation="ABBYY XML"/> -->
       </variation>
+      <variation name="Remediated EPUB" preextension="_rem"/>
     </variations>
   </format>
 
@@ -1708,7 +1758,6 @@
 
   <format name="DAT">
     <extension>gz</extension>
-    <class>ProcARC</class>
     <variations>
       <variation name="DAT" preextension=".dat" />
     </variations>
@@ -1727,13 +1776,14 @@
     <class>CDXIndex</class>
     <variations>
       <!-- assign rank so HeritrixJob runs before CDXIndex, in case HeritrixJob removes the W/ARC -->
-      <variation rank="2" name="ARC CDX Index" preextension=".arc.os.cdx">
+      <variation rank="120" name="ARC CDX Index" preextension=".arc.os.cdx">
         <dependency format="ARC_IA" variation="Internet Archive ARC"/>
         <dependency format="ARC_IA GZ" variation="Internet Archive ARC GZ"/>
       </variation>
-      <variation rank="2" name="WARC CDX Index" preextension=".warc.os.cdx">
+      <variation rank="120" name="WARC CDX Index" preextension=".warc.os.cdx">
         <dependency format="WARC" variation="Web ARChive"/>
         <dependency format="WARC GZ" variation="Web ARChive GZ"/>
+        <dependency format="WARC ZST" variation="Web ARChive ZST"/>
       </variation>
       <variation name="Item CDX Index" preextension=".cdx"/>
     </variations>
@@ -1867,6 +1917,13 @@
     </variations>
   </format>
 
+  <format name="WARC ZST">
+    <extension>zst</extension>
+    <variations>
+      <variation name="Web ARChive ZST" preextension=".warc" />
+    </variations>
+  </format>
+
 
   <format name="RAR">
     <extension>rar</extension>
@@ -1928,8 +1985,8 @@
     <variations>
       <!-- NOTE: explicitly allowed to be derived from another derivative -->
       <!-- for TV, also extracts CC, then tries to align it with extracted audio forms... -->
-      <variation rank="16" name="SubRip">
-        <dependency format="MPEGTS" variation="MPEGTS" />
+      <variation rank="260" name="SubRip" conditionally="{'!collection':['tvsatellite']}">
+        <dependency format="MPEGTS" variation="MPEGTS" conditionally="{'collection':['tvarchive-xxxx']}"/>
         <dependency format="h.264/MPEG2-TS" variation="h.264/MPEG2-TS" />
         <dependency format="MPEG2-TS" variation="MPEG2-TS" />
         <dependency format="MPEG2" variation="MPEG2"/>
@@ -1957,7 +2014,7 @@
     <extension>js</extension>
     <class>ASR</class>
     <variations>
-      <variation rank="15" name="ASR" preextension=".asr" conditionally="{'collection':['TV-DW','TV-ALJAZ','TV-RT']}">
+      <variation rank="250" name="ASR" preextension=".asr" conditionally="{'collection':['TV-DW','TV-ALJAZ','TV-RT']}">
         <dependency format="MP3" variation="MP3"/>
       </variation>
     </variations>
@@ -1968,17 +2025,23 @@
     <extension>json</extension>
     <class>JSON</class>
     <variations>
-      <variation rank="17" name="JSON" conditionally="{'collection':['tvarchive']}">
+      <variation rank="270" name="JSON" conditionally="{'collection':['tvarchive']}">
         <dependency format="NRT" variation="NRT" />
         <dependency format="SubRip" variation="SubRip" />
       </variation>
-      <variation name="What.CD JSON" preextension="_what_cd"/>
       <variation name="OCLC xISBN JSON" preextension="_xisbn"/>
-      <variation name="Scandata JSON" preextension="scandata"/>
-      <variation name="TV Clips JSON" preextension="_clips"/>
-      <variation name="TV Plays JSON" preextension="_plays"/>
       <variation name="Extra Metadata JSON" preextension="_extrameta"/>
-      <variation name="Web Archive JSON" preextension="_web-archive"/>
+      <variation name="Microfilm Issues JSON" preextension="_ufilm"/>
+    </variations>
+  </format>
+
+  <format name="Page Numbers JSON">
+    <extension>json</extension>
+    <class>DetectPageNumbers</class>
+    <variations>
+      <variation name="Page Numbers JSON" preextension="_page_numbers">
+        <dependency format="DjvuXML" variation="Djvu XML" conditionally="{'format':['Scandata']}" />
+      </variation>
     </variations>
   </format>
 
@@ -2060,7 +2123,7 @@
     <class>HeritrixJob</class>
     <variations>
       <!-- assign rank so HeritrixJob runs before CDXIndex, in case HeritrixJob removes the W/ARC -->
-      <variation rank="1" name="HeritrixCrawlLog" preextension="_cxml">
+      <variation rank="110" name="HeritrixCrawlLog" preextension="_cxml">
         <dependency format="HeritrixJob" variation="HeritrixJob"/>
       </variation>
     </variations>

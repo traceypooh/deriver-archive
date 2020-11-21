@@ -2,7 +2,7 @@
 
 class Thumbnails extends Module {
   public function derive($src = null, $dest = null, $identify = null, $first = true, $title = 1) {
-    if ($src==null)
+    if ($src == null)
       return $this->deriveVideo(); // calls self w/ args set, ISO Image preprocessing if needed
 
 
@@ -31,16 +31,17 @@ class Thumbnails extends Module {
       echo "    Thumbnail maker basename: $baseName\n";
       echo "    Thumbnail maker base dir: $baseDir\n";
       if ($maxThumbs) {
-        // @codingStandardsIgnoreLine
-        echo "    NOTE: There are {$this->parameter} source files in item deriving Thumbnails (derive up to $maxThumbs thumbnails now)\n";
+        echo "    NOTE: There are {$this->parameter} source files in item deriving Thumbnails " .
+          "(derive up to $maxThumbs thumbnails now)\n";
       }
 
 
       // make the thumbnails
       $thumbnails =
         Video::frames($src, $outDir, $this->is_tvarchive(), $maxThumbs, $identify, basename($baseName));
-    } elseif (preg_match('/^ffmpeg(.*)-i - (.*)$/', $this->parameter, $mat)  &&  $mat[1][0]===' ') {
-      $cmd = "ffmpeg {$mat[1]} -i ".Util::esc($src)." {$mat[2]}";
+    } elseif (preg_match('/^ffmpeg(.*)-i - (.*)$/', $this->parameter, $mat)  &&  $mat[1][0] === ' ') {
+      // NOTE: think this is only TVArchve NRT...
+      $cmd = "/petabox/bin/ffmpeg {$mat[1]} -i ".Util::esc($src)." {$mat[2]}";
 
       chdir($this->tmp);
       Util::cmdPP($cmd);
@@ -81,7 +82,9 @@ class Thumbnails extends Module {
     // glob for pathological long/broken items (esp. TV!) that wind up with 5000 thumbs.
     // Also makes us not exceed cmd-line max len.
     // Also makes for quieter catalog task logs. ;-)
-    Util::cmdPP('mv *_[0-9][0-9][0-9][0-9][0-9][0-9].jpg ' . Util::esc("$baseDir/"));
+    // (dot-slash appended to prevent treating files starting with dashes as options, e.g.,
+    // "-V_000000.jpg")
+    Util::cmdPP('mv ./*_[0-9][0-9][0-9][0-9][0-9][0-9].jpg ' . Util::esc("$baseDir/"));
 
     foreach ($thumbnails as $thumb)
       $this->extraTarget($this->shortName("$baseDir/$thumb"), $this->targetFormat);
