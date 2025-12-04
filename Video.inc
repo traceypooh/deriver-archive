@@ -390,7 +390,6 @@ class Video {
           // egs: 32000 Hz, 4.0        - /details/TestDvRip/DV_Test.mov
           //      48000 Hz, 5.0(side)  -
           // https://archive.org/details/WJLA_20160415_100000_Good_Morning_Washington__600#start/1080/end/1140
-          //   extracted test here:  https://archive.org/~tracey/_/robin/
           $arr['ar'] = $m[1];
           $arr['audio_nchannels'] += $m[2];
           $best[] = $streamID;
@@ -1467,7 +1466,7 @@ class Video {
 
     // do some *very* basic testing of ffprobe (of all the current ways as of July2014 we use it)
     // @codingStandardsIgnoreLine
-    $mpg = '/home/tracey/public_html/_/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric.mpg';
+    $mpg = 'https://archive.org/download/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric.mpg';
     foreach (["-print_format compact -select_streams v -show_packets | egrep -o '.*flags=.' | head -20" =>
               // @codingStandardsIgnoreStart
               'packet|codec_type=video|stream_index=0|pts=8286398944|pts_time=92071.099378|dts=8286389935|dts_time=92070.999278|duration=3003|duration_time=0.033367|convergence_duration=N/A|convergence_duration_time=N/A|size=45044|pos=2820|flags=K
@@ -1502,7 +1501,7 @@ packet|codec_type=video|stream_index=0|pts=8286446992|pts_time=92071.633244|dts=
 stream|codec_type=audio|id=0x881
 stream|codec_type=video|id=0x880side_data|
 stream|codec_type=audio|id=0x881
-format|filename=/home/tracey/public_html/_/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric.mpg|nb_streams=2|nb_programs=1|format_name=mpegts|format_long_name=MPEG-TS (MPEG-2 Transport Stream)|start_time=92070.357978|duration=2.576567|size=690148|bit_rate=2142845|probe_score=50',
+format|filename=https://archive.org/download/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric/WJZ_20100122_000141_CBS_Evening_News_With_Katie_Couric.mpg|nb_streams=2|nb_programs=1|format_name=mpegts|format_long_name=MPEG-TS (MPEG-2 Transport Stream)|start_time=92070.357978|duration=2.576567|size=690148|bit_rate=2142845|probe_score=50',
 
 
               "-print_format compact -show_frames -select_streams v -show_entries frame=pict_type,pkt_pos | egrep -o '.*pict_type=.'" =>
